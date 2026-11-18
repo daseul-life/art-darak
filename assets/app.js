@@ -321,6 +321,8 @@
   /* ============================================================
      1. 작품 카드
      ============================================================ */
+  /* 마음은 아직 아무도 누르지 않았으면 ♡ 만 보이고,
+     실제로 마음이 하나라도 모였을 때만 숫자를 붙입니다. */
   function likeButtonHTML(work) {
     var liked = Store.isLiked(work.id);
     var count = work.like_count + (liked ? 1 : 0);
@@ -328,7 +330,7 @@
       'data-like-id="' + esc(work.id) + '" data-base="' + work.like_count + '" ' +
       'aria-pressed="' + (liked ? 'true' : 'false') + '" aria-label="마음 남기기">' +
       '<span class="like__icon" aria-hidden="true">' + (liked ? '♥' : '♡') + '</span>' +
-      '<span class="like__count">' + nf(count) + '</span></button>';
+      '<span class="like__count"' + (count > 0 ? '' : ' hidden') + '>' + nf(count) + '</span></button>';
   }
 
   function cardHTML(work) {
@@ -371,7 +373,12 @@
       var icon = button.querySelector('.like__icon');
       var count = button.querySelector('.like__count');
       if (icon) icon.textContent = liked ? '♥' : '♡';
-      if (count) count.textContent = nf(base + (liked ? 1 : 0));
+      if (count) {
+        var next = base + (liked ? 1 : 0);
+        count.textContent = nf(next);
+        if (next > 0) count.removeAttribute('hidden');
+        else count.setAttribute('hidden', '');
+      }
     });
   }
 

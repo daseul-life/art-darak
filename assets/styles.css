@@ -1096,6 +1096,7 @@ button { font: inherit; color: inherit; }
   box-shadow: 0 6px 12px -10px rgba(158, 95, 108, .7);
 }
 .like__icon { font-size: .9rem; line-height: 1; }
+.like__count[hidden] { display: none; } /* 마음 0일 때는 숫자 없이 ♡ 만 */
 .like.is-liked .like__icon { animation: pop .4s var(--ease); }
 @keyframes pop {
   0% { transform: scale(.7); }
