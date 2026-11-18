@@ -1,0 +1,985 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>내 다락방 · 아트다락방</title>
+<meta name="description" content="내 다락방. 필명과 소개, 내가 건 작품과 받은 감상을 한곳에서.">
+<meta name="theme-color" content="#FDF2F3">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/styles.css">
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="192x192" href="images/icon-192.png">
+<link rel="apple-touch-icon" sizes="180x180" href="images/apple-touch-icon.png">
+<link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="아트다락방">
+</head>
+<body data-page="darakbang">
+
+<div class="mode-note" data-mode-note hidden>
+  <span class="spark spark--sm" aria-hidden="true"></span>
+  <span data-mode-text>체험 모드 · 지금 남긴 필명과 작품은 이 브라우저에만 저장돼요</span>
+</div>
+
+<header class="site-header">
+  <div class="container header__inner">
+    <a class="logo" href="index.html">
+      <span class="logo__mark" aria-hidden="true">✦</span>
+      <span class="logo__text">아트다락방<em>ART DARAK</em></span>
+    </a>
+    <nav class="site-nav" id="site-nav" aria-label="주요 메뉴">
+      <a href="index.html">홈</a>
+      <a href="gallery.html">갤러리</a>
+      <a href="register.html" class="nav__cta">작품 등록</a>
+      <a href="soon.html">창작자</a>
+      <a href="soon.html">커뮤니티</a>
+      <a href="darakbang.html" class="is-active" aria-current="page">내 다락방</a>
+    </nav>
+    <div class="header__actions">
+      <button class="account-btn" type="button" data-account aria-label="필명으로 가입하거나 로그인하기">
+        <span class="account-btn__avatar" data-account-avatar aria-hidden="true">✦</span>
+        <span class="account-btn__text" data-account-text>필명으로 시작</span>
+      </button>
+      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav">
+        <span class="nav-toggle__bars" aria-hidden="true"><i></i><i></i><i></i></span>
+        메뉴
+      </button>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <section class="page-head">
+    <div class="container">
+      <p class="breadcrumb"><a href="index.html">홈</a> · <span data-head-crumb>내 다락방</span></p>
+      <h1><span data-head-title>내 다락방</span> <span class="spark" aria-hidden="true"></span></h1>
+      <p data-head-desc>필명 하나로 시작하는 나만의 방. 작품과 소개, 그리고 찾아온 사람들이 남긴 말이 함께 쌓입니다.</p>
+    </div>
+  </section>
+
+  <section class="section" style="padding-top:0;">
+    <div class="container">
+
+      <!-- 로그인 전 -->
+      <div class="guest-panel" id="darak-guest" hidden>
+        <span class="guest-panel__emoji" aria-hidden="true">🪄</span>
+        <h2>아직 다락방 문이 닫혀 있어요</h2>
+        <p>필명 하나만 정하면 바로 내 방이 열립니다. 이메일 없이, 실력이나 경력도 묻지 않아요.</p>
+        <button class="btn btn--primary" type="button" data-open-auth="signup">필명으로 시작하기</button>
+      </div>
+
+      <!-- 없는 필명의 다락방 -->
+      <div class="guest-panel" id="darak-missing" hidden>
+        <span class="guest-panel__emoji" aria-hidden="true">🔍</span>
+        <h2>그 필명의 다락방을 찾지 못했어요</h2>
+        <p data-missing-text>주소의 필명이 바뀌었거나, 아직 문을 열지 않은 다락방일 수 있어요.</p>
+        <a class="btn btn--ghost" href="gallery.html">갤러리에서 필명 찾기</a>
+      </div>
+
+      <!-- 로그인 후 -->
+      <div id="darak-main" hidden>
+
+        <div class="profile attic-theme--rose" id="profile-card">
+          <div class="profile__cover" aria-hidden="true"></div>
+          <div class="profile__body">
+            <div class="profile__top">
+              <div class="profile__avatar" data-me-avatar aria-hidden="true">✦</div>
+              <div class="profile__tools">
+                <button class="btn btn--ghost btn--sm" type="button" id="edit-profile">프로필 꾸미기</button>
+                <button class="btn btn--ghost btn--sm" type="button" data-logout>나가기</button>
+                <a class="btn btn--ghost btn--sm" href="darakbang.html" data-visit-own hidden>내 다락방으로</a>
+                <button class="btn btn--primary btn--sm" type="button" data-open-auth="signup" data-visit-join hidden>내 다락방 만들기</button>
+              </div>
+            </div>
+            <div class="profile__name-row">
+              <h2 class="profile__name" data-me-pen>내 필명</h2>
+              <span class="badge-pen">필명</span>
+              <span class="badge-title" data-me-title hidden></span>
+            </div>
+            <p class="profile__note" data-me-note hidden></p>
+            <p class="profile__intro" data-me-bio></p>
+            <div class="profile__tags" data-me-fields></div>
+
+            <!-- 다락방 사무실 미니어처 (벽지 · 분위기 · 소품이 바로 반영) -->
+            <figure class="droom-figure">
+              <div class="droom-frame">
+                <div class="droom droom--write" id="darak-studio" role="group"
+                     aria-label="창가 서재 분위기의 다락방 사무실. 아직 놓은 소품이 없어요.">
+                  <svg class="droom__svg" viewBox="0 0 800 500" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">
+                    <defs>
+                      <linearGradient id="droomWall" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0" class="droom__stopWallA"></stop>
+                        <stop offset="1" class="droom__stopWallB"></stop>
+                      </linearGradient>
+                      <linearGradient id="droomFloor" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0" class="droom__stopFloorA"></stop>
+                        <stop offset="1" class="droom__stopFloorB"></stop>
+                      </linearGradient>
+                      <linearGradient id="droomSky" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0" class="droom__stopSkyA"></stop>
+                        <stop offset="0.62" class="droom__stopSkyB"></stop>
+                        <stop offset="1" class="droom__stopSkyC"></stop>
+                      </linearGradient>
+                      <radialGradient id="droomGlow">
+                        <stop offset="0" class="droom__stopGlow"></stop>
+                        <stop offset="1" class="droom__stopGlowClear"></stop>
+                      </radialGradient>
+                      <linearGradient id="droomBeamGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0" class="droom__stopBeam"></stop>
+                        <stop offset="1" class="droom__stopBeamClear"></stop>
+                      </linearGradient>
+                      <linearGradient id="droomWood" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0" stop-color="#E0B694"></stop>
+                        <stop offset="1" stop-color="#B9855F"></stop>
+                      </linearGradient>
+                      <linearGradient id="droomWoodSoft" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0" stop-color="#E3BFB2"></stop>
+                        <stop offset="1" stop-color="#C69B92"></stop>
+                      </linearGradient>
+                      <linearGradient id="droomWallShade" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0" stop-color="#6E4650" stop-opacity="0"></stop>
+                        <stop offset="0.72" stop-color="#6E4650" stop-opacity="0.04"></stop>
+                        <stop offset="1" stop-color="#6E4650" stop-opacity="0.12"></stop>
+                      </linearGradient>
+                      <linearGradient id="droomVignette" x1="0" y1="0" x2="1" y2="0">
+                        <stop offset="0" stop-color="#6E4650" stop-opacity="0.09"></stop>
+                        <stop offset="0.14" stop-color="#6E4650" stop-opacity="0"></stop>
+                        <stop offset="0.86" stop-color="#6E4650" stop-opacity="0"></stop>
+                        <stop offset="1" stop-color="#6E4650" stop-opacity="0.09"></stop>
+                      </linearGradient>
+                      <clipPath id="droomWindowClip">
+                        <path d="M300,282 L300,132 A100,96 0 0 1 500,132 L500,282 Z"></path>
+                      </clipPath>
+                    </defs>
+
+                    <!-- 벽 -->
+                    <rect x="0" y="0" width="800" height="500" fill="url(#droomWall)"></rect>
+                    <rect x="0" y="0" width="800" height="336" fill="url(#droomWallShade)"></rect>
+                    <ellipse cx="400" cy="170" rx="310" ry="240" fill="url(#droomGlow)" opacity=".62"></ellipse>
+                    <rect x="0" y="0" width="800" height="500" fill="url(#droomVignette)"></rect>
+
+                    <!-- 다락방 경사 보 -->
+                    <path class="droom__ceiling" d="M0,0 L330,0 L330,6 L-20,166 L-20,0 Z"></path>
+                    <path class="droom__ceiling" d="M800,0 L470,0 L470,6 L820,166 L820,0 Z"></path>
+                    <path d="M-20,168 L330,8 L330,40 L-20,200 Z" fill="url(#droomWoodSoft)"></path>
+                    <path d="M820,168 L470,8 L470,40 L820,200 Z" fill="url(#droomWoodSoft)"></path>
+
+                    <!-- 창 -->
+                    <g class="droom__window">
+                      <path d="M292,290 L292,130 A108,102 0 0 1 508,130 L508,290 Z" fill="#FFFAF2"></path>
+                      <g clip-path="url(#droomWindowClip)">
+                        <path d="M300,282 L300,132 A100,96 0 0 1 500,132 L500,282 Z" fill="url(#droomSky)"></path>
+                        <g class="droom__skyDay">
+                          <circle cx="352" cy="126" r="27" fill="#FFF7E2" opacity=".95"></circle>
+                          <circle cx="352" cy="126" r="38" fill="url(#droomGlow)" opacity=".6"></circle>
+                          <path d="M424,108 q7,-9 14,0 M446,96 q7,-9 14,0" stroke="#FFF8EA" stroke-width="2.4" fill="none" stroke-linecap="round" opacity=".85"></path>
+                        </g>
+                        <g class="droom__skyNight">
+                          <circle cx="440" cy="100" r="23" fill="#FCF2D4"></circle>
+                          <circle cx="450" cy="93" r="19" fill="url(#droomSky)"></circle>
+                          <g fill="#FFF8E4">
+                            <circle cx="322" cy="88" r="2.2"></circle><circle cx="344" cy="112" r="1.6"></circle>
+                            <circle cx="366" cy="76" r="1.8"></circle><circle cx="392" cy="104" r="2.4"></circle>
+                            <circle cx="414" cy="80" r="1.5"></circle><circle cx="470" cy="130" r="1.9"></circle>
+                            <circle cx="330" cy="150" r="1.5"></circle><circle cx="384" cy="140" r="1.4"></circle>
+                          </g>
+                        </g>
+                        <g class="droom__skyCraft">
+                          <circle cx="356" cy="196" r="16" fill="#FFF3D4" opacity=".8"></circle>
+                          <path d="M330,120 q14,-12 30,-2 q14,-8 26,2 h-56 Z" fill="#FFF9EE" opacity=".75"></path>
+                          <path d="M404,88 q12,-10 26,-1 q12,-6 22,1 h-48 Z" fill="#FFF9EE" opacity=".6"></path>
+                        </g>
+                        <path class="droom__hills" d="M300,282 C330,240 380,236 410,262 C440,232 480,236 500,270 L500,282 Z" fill="#C3D4C0"></path>
+                        <path d="M300,282 C340,262 390,258 430,272 C460,256 485,258 500,266 L500,282 Z" fill="#B2C7AF" opacity=".8"></path>
+                        <path d="M300,60 L500,180 L500,60 Z" fill="#FFFFFF" opacity=".12"></path>
+                      </g>
+                      <path d="M396,34 L396,290 M298,190 L502,190" stroke="#FFFAF2" stroke-width="7" stroke-linecap="round"></path>
+                      <path d="M292,290 L292,130 A108,102 0 0 1 508,130 L508,290" fill="none" stroke="#FFFFFF" stroke-opacity=".45" stroke-width="2"></path>
+                      <rect x="282" y="284" width="236" height="13" rx="6" fill="#F3DCC8"></rect>
+                      <rect x="282" y="295" width="236" height="6" rx="3" fill="#B9855F" opacity=".28"></rect>
+                      <path d="M298,124 C280,172 284,238 294,288 L272,288 C264,236 268,168 288,118 Z" fill="#FBE7E9" opacity=".92"></path>
+                      <path d="M502,124 C520,172 516,238 506,288 L528,288 C536,236 532,168 512,118 Z" fill="#FBE7E9" opacity=".92"></path>
+                      <path d="M288,132 C274,180 278,240 286,282" stroke="#E7C9CE" stroke-width="1.6" fill="none" opacity=".8"></path>
+                      <path d="M512,132 C526,180 522,240 514,282" stroke="#E7C9CE" stroke-width="1.6" fill="none" opacity=".8"></path>
+                    </g>
+
+                    <!-- 바닥 -->
+                    <rect x="0" y="330" width="800" height="170" fill="url(#droomFloor)"></rect>
+                    <g class="droom__planks" stroke="#7A4A3E" stroke-width="1.4" opacity=".16">
+                      <path d="M120,330 L92,500 M400,330 L400,500 M680,330 L708,500"></path>
+                    </g>
+                    <ellipse cx="400" cy="392" rx="200" ry="42" fill="url(#droomGlow)" opacity=".45"></ellipse>
+                    <ellipse cx="400" cy="456" rx="244" ry="52" fill="#6E4650" opacity=".07"></ellipse>
+                    <ellipse cx="400" cy="452" rx="234" ry="48" fill="#FDF2EC" opacity=".9"></ellipse>
+                    <ellipse cx="400" cy="452" rx="216" ry="42" fill="none" stroke="#E3BEBE" stroke-width="2" stroke-dasharray="7 8" opacity=".75"></ellipse>
+                    <ellipse cx="400" cy="452" rx="188" ry="34" fill="#F8E2DC" opacity=".75"></ellipse>
+
+                    <!-- 걸레받이 -->
+                    <rect x="0" y="326" width="800" height="10" fill="#FBEDE4"></rect>
+                    <rect x="0" y="336" width="800" height="5" fill="#6E4650" opacity=".13"></rect>
+
+                    <!-- 분위기별 기본 가구 -->
+                    <g class="droom__base droom__base--write">
+                      <rect x="48" y="172" width="156" height="9" rx="4" fill="url(#droomWood)"></rect>
+                      <rect x="64" y="144" width="11" height="28" rx="2" fill="#D7B6C3"></rect>
+                      <rect x="78" y="150" width="9" height="22" rx="2" fill="#C7B5D2"></rect>
+                      <rect x="90" y="140" width="12" height="32" rx="2" fill="#C9D3BE"></rect>
+                      <rect x="105" y="148" width="10" height="24" rx="2" fill="#E3C9A8"></rect>
+                      <path d="M186,144 h12 v28 h-12 Z" fill="#EADCE3" transform="rotate(7 192 158)"></path>
+                      <rect x="232" y="112" width="26" height="34" rx="3" fill="#FFF8F1" transform="rotate(-4 245 129)"></rect>
+                      <path d="M238,124 h13 M238,131 h9" stroke="#D9BFC4" stroke-width="2" stroke-linecap="round"></path>
+                      <rect x="314" y="300" width="172" height="15" rx="6" fill="url(#droomWood)"></rect>
+                      <rect x="328" y="315" width="8" height="22" fill="#B9855F"></rect>
+                      <rect x="464" y="315" width="8" height="22" fill="#B9855F"></rect>
+                      <rect x="322" y="298" width="26" height="20" rx="4" fill="#E7C4CB"></rect>
+                      <rect x="452" y="298" width="24" height="18" rx="4" fill="#CBDCC9"></rect>
+                      <path d="M370,298 L402,290 L402,274 L370,282 Z" fill="#FFF9F4"></path>
+                      <path d="M402,290 L432,298 L432,282 L402,274 Z" fill="#F6EAE0"></path>
+                      <path d="M378,292 L396,288 M408,288 L424,292" stroke="#D9BFC4" stroke-width="1.6" stroke-linecap="round"></path>
+                    </g>
+
+                    <g class="droom__base droom__base--paint">
+                      <g>
+                        <rect x="418" y="262" width="13" height="22" rx="3" fill="#DCC7DE"></rect>
+                        <rect x="434" y="256" width="11" height="28" rx="3" fill="#C6D8D0"></rect>
+                        <rect x="448" y="266" width="14" height="18" rx="3" fill="#EFD3C4"></rect>
+                        <path d="M452,266 l12,-12" stroke="#C9A78F" stroke-width="3" stroke-linecap="round"></path>
+                        <path d="M460,270 l10,-8" stroke="#C9A78F" stroke-width="2.4" stroke-linecap="round"></path>
+                      </g>
+                      <g transform="rotate(-5 512 292)">
+                        <rect x="488" y="246" width="44" height="82" rx="3" fill="#F1E2E8"></rect>
+                        <rect x="488" y="246" width="44" height="82" rx="3" fill="none" stroke="#DCC2C8" stroke-width="2"></rect>
+                      </g>
+                      <g transform="rotate(6 536 292)">
+                        <rect x="516" y="252" width="44" height="78" rx="3" fill="#FFF9F3"></rect>
+                        <circle cx="530" cy="274" r="8" fill="#F3D8B2"></circle>
+                        <path d="M518,320 C528,298 542,302 552,290 L552,330 L518,330 Z" fill="#C9DCC6"></path>
+                        <rect x="516" y="252" width="44" height="78" rx="3" fill="none" stroke="#DFC0AA" stroke-width="3"></rect>
+                      </g>
+                      <circle cx="264" cy="360" r="3.4" fill="#E4B6C0" opacity=".85"></circle>
+                      <circle cx="286" cy="372" r="2.6" fill="#BFD3C0" opacity=".85"></circle>
+                      <circle cx="452" cy="360" r="2.8" fill="#DCC8E0" opacity=".85"></circle>
+                      <circle cx="476" cy="392" r="2.2" fill="#EBD9AC" opacity=".85"></circle>
+                    </g>
+
+                    <g class="droom__base droom__base--music">
+                      <rect x="320" y="296" width="160" height="44" rx="6" fill="url(#droomWood)"></rect>
+                      <rect x="330" y="304" width="140" height="28" rx="4" fill="#EFDAC4" opacity=".55"></rect>
+                      <circle cx="356" cy="318" r="11" fill="#A87A52"></circle>
+                      <circle cx="356" cy="318" r="4" fill="#7E5A40"></circle>
+                      <circle cx="388" cy="318" r="11" fill="#A87A52"></circle>
+                      <circle cx="388" cy="318" r="4" fill="#7E5A40"></circle>
+                      <rect x="412" y="310" width="38" height="5" rx="2.5" fill="#F9EBD4"></rect>
+                      <circle cx="456" cy="313" r="3.4" fill="#F9EBD4"></circle>
+                      <path d="M456,330 l0,10" stroke="#8E6A53" stroke-width="2"></path>
+                      <path d="M270,330 L270,268" stroke="#A98A80" stroke-width="3.4" stroke-linecap="round"></path>
+                      <path d="M258,302 L282,302 M270,268 L252,330 M270,268 L288,330" stroke="#A98A80" stroke-width="3" stroke-linecap="round"></path>
+                      <rect x="246" y="248" width="50" height="32" rx="3" fill="#FBF1E2" stroke="#E0CDB9" stroke-width="1.6" transform="rotate(-6 271 264)"></rect>
+                      <path d="M254,258 h30 M254,265 h22" stroke="#D6C0A8" stroke-width="1.6" stroke-linecap="round" transform="rotate(-6 271 264)"></path>
+                    </g>
+
+                    <g class="droom__base droom__base--craft">
+                      <rect x="36" y="112" width="158" height="76" rx="6" fill="#F3E3D4"></rect>
+                      <rect x="36" y="112" width="158" height="76" rx="6" fill="none" stroke="#DFC7B4" stroke-width="2"></rect>
+                      <path d="M48,128 H182" stroke="#C9A98F" stroke-width="2"></path>
+                      <g fill="#C9A98F">
+                        <circle cx="58" cy="128" r="2.2"></circle>
+                        <circle cx="104" cy="128" r="2.2"></circle>
+                        <circle cx="150" cy="128" r="2.2"></circle>
+                      </g>
+                      <g stroke="#A9856C" stroke-width="2.4" fill="none" stroke-linecap="round">
+                        <circle cx="58" cy="152" r="4.5"></circle>
+                        <circle cx="58" cy="166" r="4.5"></circle>
+                        <path d="M61,154 L84,168 M61,164 L84,150"></path>
+                      </g>
+                      <rect x="100" y="146" width="12" height="20" rx="3" fill="#D8B7A2"></rect>
+                      <path d="M100,152 h12 M100,157 h12 M100,162 h12" stroke="#C29C84" stroke-width="1.4"></path>
+                      <path d="M112,156 q12,4 6,14" stroke="#C29C84" stroke-width="1.6" fill="none"></path>
+                      <g stroke="#C9A0AC" stroke-width="2.6" fill="none" stroke-linecap="round">
+                        <path d="M140,146 q-8,10 0,22 q8,-12 0,-22 Z"></path>
+                        <path d="M148,146 q-8,10 0,22 q8,-12 0,-22 Z"></path>
+                      </g>
+                      <path d="M170,148 L174,170" stroke="#A9856C" stroke-width="1.6"></path>
+                      <circle cx="170" cy="146" r="2.2" fill="none" stroke="#A9856C" stroke-width="1.4"></circle>
+                      <g>
+                        <path d="M554,98 L616,98" stroke="#C08F63" stroke-width="3.4" stroke-linecap="round"></path>
+                        <path d="M560,100 L565,150 L605,150 L610,100 Z" fill="#E7CDB6"></path>
+                        <path d="M565,112 h40 M565,124 h40 M565,136 h40" stroke="#D3B39A" stroke-width="2"></path>
+                        <path d="M565,150 l-2,14 M575,150 l0,16 M585,150 l2,14 M597,150 l-2,16 M605,150 l2,14" stroke="#E7CDB6" stroke-width="3" stroke-linecap="round"></path>
+                      </g>
+                      <path d="M348,284 c0,-11 9,-17 17,-17 c8,0 13,7 13,17 Z" fill="#D8B3A0"></path>
+                      <path d="M378,284 c0,-8 6,-13 12,-13 c6,0 10,5 10,13 Z" fill="#C9A48F"></path>
+                      <path d="M406,284 c0,-6 5,-10 10,-10 c5,0 9,4 9,10 Z" fill="#E3CBBB"></path>
+                      <circle cx="444" cy="274" r="10" fill="#E3C3C9"></circle>
+                      <path d="M440,268 q7,6 0,12 M449,268 q-7,6 0,12" stroke="#C49CA6" stroke-width="1.5" fill="none"></path>
+                      <ellipse cx="470" cy="282" rx="12" ry="5" fill="#D9C6A8"></ellipse>
+                    </g>
+                      <path d="M348,284 c0,-11 9,-17 17,-17 c8,0 13,7 13,17 Z" fill="#D8B3A0"></path>
+                      <path d="M378,284 c0,-8 6,-13 12,-13 c6,0 10,5 10,13 Z" fill="#C9A48F"></path>
+                      <path d="M406,284 c0,-6 5,-10 10,-10 c5,0 9,4 9,10 Z" fill="#E3CBBB"></path>
+                      <circle cx="444" cy="274" r="10" fill="#E3C3C9"></circle>
+                      <path d="M440,268 q7,6 0,12 M449,268 q-7,6 0,12" stroke="#C49CA6" stroke-width="1.5" fill="none"></path>
+                      <ellipse cx="470" cy="282" rx="12" ry="5" fill="#D9C6A8"></ellipse>
+                    </g>
+
+                    <!-- 소품 (누르면 켜짐) -->
+                    <g class="droom__prop" data-prop="vinyl">
+                      <rect x="616" y="146" width="98" height="98" rx="5" fill="url(#droomWood)"></rect>
+                      <rect x="624" y="154" width="82" height="82" rx="2" fill="#F1E6EF"></rect>
+                      <circle cx="665" cy="195" r="30" fill="#6A5866"></circle>
+                      <circle cx="665" cy="195" r="24" fill="none" stroke="#8B7788" stroke-width="1"></circle>
+                      <circle cx="665" cy="195" r="18" fill="none" stroke="#8B7788" stroke-width="1"></circle>
+                      <circle cx="665" cy="195" r="8" fill="#E9D2B4"></circle>
+                      <circle cx="665" cy="195" r="2" fill="#B4926F"></circle>
+                    </g>
+
+                    <g class="droom__prop" data-prop="plant">
+                      <ellipse cx="58" cy="466" rx="36" ry="8" fill="#7A4A3E" opacity=".14"></ellipse>
+                      <path d="M56,424 C40,398 33,372 46,354 C60,372 62,400 56,424 Z" fill="#A7C0A1"></path>
+                      <path d="M56,424 C73,402 85,382 78,362 C60,376 54,400 56,424 Z" fill="#93B08D"></path>
+                      <path d="M56,424 C57,394 54,368 60,346 C70,370 64,402 56,424 Z" fill="#B4C9AC"></path>
+                      <path d="M38,428 L74,428 L70,466 L42,466 Z" fill="#D8A492"></path>
+                      <rect x="34" y="421" width="44" height="11" rx="5" fill="#E7BBA7"></rect>
+                    </g>
+
+                    <g class="droom__prop" data-prop="easel">
+                      <ellipse cx="162" cy="432" rx="60" ry="10" fill="#7A4A3E" opacity=".14"></ellipse>
+                      <g stroke="#B5866A" stroke-width="7" stroke-linecap="round">
+                        <path d="M162,300 L120,430"></path>
+                        <path d="M162,300 L204,430"></path>
+                        <path d="M162,308 L162,436"></path>
+                      </g>
+                      <rect x="112" y="196" width="100" height="112" rx="4" fill="#FFF9F2" stroke="#DDB394" stroke-width="5"></rect>
+                      <circle cx="142" cy="226" r="12" fill="#F3D8B2"></circle>
+                      <path d="M116,296 C136,262 160,272 176,250 C192,234 202,250 208,240 L208,302 L116,302 Z" fill="#CBDCC9"></path>
+                      <path d="M116,300 C140,288 176,300 208,286 L208,302 L116,302 Z" fill="#B9D0BC"></path>
+                      <rect x="110" y="300" width="104" height="8" rx="3" fill="#C79A78"></rect>
+                    </g>
+
+                    <g class="droom__prop" data-prop="desk">
+                      <ellipse cx="335" cy="466" rx="102" ry="10" fill="#7A4A3E" opacity=".14"></ellipse>
+                      <rect x="240" y="368" width="192" height="13" rx="6" fill="url(#droomWood)"></rect>
+                      <rect x="252" y="381" width="9" height="80" rx="3" fill="#C09473"></rect>
+                      <rect x="410" y="381" width="9" height="80" rx="3" fill="#C09473"></rect>
+                      <path d="M300,334 L364,334 L364,368 L300,368 Z" fill="#E9E1EF" stroke="#FFF9F4" stroke-width="3"></path>
+                      <rect x="308" y="341" width="48" height="4" rx="2" fill="#C9BFD8"></rect>
+                      <rect x="308" y="349" width="34" height="3" rx="1.5" fill="#D8CFE4"></rect>
+                      <path d="M296,368 L368,368 L374,376 L290,376 Z" fill="#D9D0E4"></path>
+                      <rect x="384" y="354" width="34" height="9" rx="2" fill="#FBF1E4" transform="rotate(-6 401 358)"></rect>
+                      <circle cx="400" cy="356" r="4.6" fill="#F3E2CF" stroke="#DCC3A8" stroke-width="1.4"></circle>
+                    </g>
+
+                    <g class="droom__prop" data-prop="books">
+                      <ellipse cx="532" cy="468" rx="38" ry="8" fill="#7A4A3E" opacity=".16"></ellipse>
+                      <rect x="498" y="450" width="66" height="14" rx="3" fill="#C6AFC2"></rect>
+                      <rect x="502" y="436" width="58" height="15" rx="3" fill="#D8C5A4"></rect>
+                      <rect x="506" y="422" width="52" height="14" rx="3" fill="#B5C9C0"></rect>
+                      <rect x="512" y="409" width="40" height="13" rx="3" fill="#E0C1C2"></rect>
+                      <rect x="546" y="410" width="10" height="42" rx="2" fill="#C6B0D0" transform="rotate(9 551 431)"></rect>
+                    </g>
+
+                    <g class="droom__prop" data-prop="tea">
+                      <ellipse cx="466" cy="458" rx="30" ry="7" fill="#7A4A3E" opacity=".14"></ellipse>
+                      <rect x="463" y="410" width="6" height="46" fill="#C09473"></rect>
+                      <ellipse cx="466" cy="409" rx="37" ry="10" fill="url(#droomWood)"></ellipse>
+                      <ellipse cx="466" cy="406" rx="31" ry="8" fill="#EAD5C0"></ellipse>
+                      <path d="M436,382 q-8,4 0,10" stroke="#E1CBBA" stroke-width="3" fill="none" stroke-linecap="round"></path>
+                      <circle cx="450" cy="390" r="14" fill="#FBF0E6" stroke="#E6D2C1" stroke-width="1.6"></circle>
+                      <path d="M463,386 q9,-1 7,7" stroke="#E6D2C1" stroke-width="3" fill="none" stroke-linecap="round"></path>
+                      <rect x="446" y="372" width="9" height="5" rx="2.5" fill="#E6D2C1"></rect>
+                      <circle cx="450" cy="390" r="3" fill="#EFD9C9"></circle>
+                      <path d="M478,392 h13 v8 a4,4 0 0 1 -4,4 h-5 a4,4 0 0 1 -4,-4 Z" fill="#FBF0E6" stroke="#E6D2C1" stroke-width="1.4"></path>
+                      <path class="droom__steam" d="M447,366 q5,-7 0,-13 M457,364 q5,-7 0,-12" stroke="#FFFFFF" stroke-width="2.2" fill="none" stroke-linecap="round" opacity=".7"></path>
+                    </g>
+
+                    <g class="droom__prop" data-prop="guitar">
+                      <ellipse cx="600" cy="452" rx="40" ry="10" fill="#7A4A3E" opacity=".16"></ellipse>
+                      <g transform="rotate(-8 600 430)">
+                        <path d="M600,336 C585,336 574,346 574,360 C574,372 580,380 582,388 C570,396 562,414 568,430 C576,448 624,448 632,430 C638,414 630,396 618,388 C620,380 626,372 626,360 C626,346 615,336 600,336 Z" fill="url(#droomWood)"></path>
+                        <path d="M576,352 C580,346 588,340 596,340 C586,352 584,368 586,378 C580,370 576,362 576,352 Z" fill="#F4E4CA" opacity=".35"></path>
+                        <circle cx="600" cy="396" r="12.5" fill="#6E4B33"></circle>
+                        <circle cx="600" cy="396" r="7.5" fill="#3F2C22"></circle>
+                        <rect x="588" y="430" width="24" height="5" rx="2" fill="#8B6244"></rect>
+                        <rect x="596" y="268" width="8" height="72" rx="3" fill="#C08F63"></rect>
+                        <rect x="586" y="248" width="28" height="20" rx="4" fill="#A87A52"></rect>
+                        <circle cx="592" cy="256" r="1.6" fill="#E8D3B4"></circle>
+                        <circle cx="600" cy="254" r="1.6" fill="#E8D3B4"></circle>
+                        <circle cx="608" cy="256" r="1.6" fill="#E8D3B4"></circle>
+                        <path d="M596,320 L596,430 M600,320 L600,430 M604,320 L604,430" stroke="#F6E9D0" stroke-width="1.1"></path>
+                      </g>
+                    </g>
+
+                    <g class="droom__prop" data-prop="lamp">
+                      <ellipse cx="768" cy="468" rx="26" ry="8" fill="#7A4A3E" opacity=".16"></ellipse>
+                      <ellipse cx="768" cy="272" rx="70" ry="56" fill="url(#droomGlow)" opacity=".95"></ellipse>
+                      <path d="M740,254 L796,254 L785,198 L751,198 Z" fill="#F2DAB0"></path>
+                      <path d="M752,202 L784,202 L790,250 L746,250 Z" fill="#FFF1D2"></path>
+                      <path d="M740,254 L796,254" stroke="#D9BE8E" stroke-width="3"></path>
+                      <ellipse cx="768" cy="254" rx="26" ry="5" fill="#FFE9BC"></ellipse>
+                      <rect x="765" y="254" width="6" height="206" rx="3" fill="#A9867C"></rect>
+                      <ellipse cx="768" cy="462" rx="24" ry="7" fill="#B4938A"></ellipse>
+                    </g>
+
+                    <g class="droom__prop" data-prop="cat">
+                      <ellipse cx="694" cy="458" rx="58" ry="18" fill="#EFD3DA"></ellipse>
+                      <ellipse cx="694" cy="453" rx="45" ry="14" fill="#F9E6EA"></ellipse>
+                      <path d="M660,450 C660,430 677,421 692,426 C707,421 724,430 724,448 C724,457 713,461 694,461 C673,461 660,458 660,450 Z" fill="#DEBCAF"></path>
+                      <circle cx="675" cy="439" r="13" fill="#DEBCAF"></circle>
+                      <path d="M664,431 l2,-11 9,7 Z" fill="#CFA99B"></path>
+                      <path d="M683,429 l7,-9 4,11 Z" fill="#CFA99B"></path>
+                      <path d="M724,447 c11,-2 13,-13 4,-17" stroke="#CFA99B" stroke-width="5.5" fill="none" stroke-linecap="round"></path>
+                      <path d="M668,439 q3,3 6,0 M678,439 q3,3 6,0" stroke="#8E6C62" stroke-width="1.8" fill="none" stroke-linecap="round"></path>
+                      <path d="M674,446 q2,2 4,0" stroke="#B08A7C" stroke-width="1.4" fill="none" stroke-linecap="round"></path>
+                    </g>
+
+                    <g class="droom__prop" data-prop="garland">
+                      <path class="droom__garlandGlow" d="M12,90 Q120,160 250,120"></path>
+                      <path class="droom__garlandBulbs" d="M12,90 Q120,160 250,120"></path>
+                      <path class="droom__garlandWire" d="M12,90 Q120,160 250,120"></path>
+                      <path class="droom__garlandGlow" d="M550,120 Q676,162 788,92"></path>
+                      <path class="droom__garlandBulbs" d="M550,120 Q676,162 788,92"></path>
+                      <path class="droom__garlandWire" d="M550,120 Q676,162 788,92"></path>
+                    </g>
+
+                    <!-- 방 안 캐릭터 — 고른 캐릭터 한 명이 러그 옆에 서 있어요. 누르면 인사해요. -->
+                    <g class="droom__char" data-room-char>
+                      <!-- 다락방의 기록자 -->
+                      <g class="droom__char-figure" data-char="seoyun" role="button" tabindex="0"
+                         aria-label="다락방의 기록자 캐릭터와 인사하기" transform="translate(392,252) scale(1.28)">
+                        <rect class="droom__char-hit" x="24" y="12" width="72" height="160" fill="none" pointer-events="all"></rect>
+                        <ellipse class="droom__char-shadow" cx="60" cy="166" rx="29" ry="6"></ellipse>
+                        <ellipse class="droom__char-ring" cx="60" cy="168" rx="35" ry="9"></ellipse>
+                        <g class="droom__char-bob">
+                          <g class="droom__char-body">
+                            <rect x="49" y="119" width="10" height="38" rx="5" fill="#7E7168"></rect>
+                            <rect x="61" y="119" width="10" height="38" rx="5" fill="#7E7168"></rect>
+                            <ellipse cx="53" cy="160" rx="9" ry="5.2" fill="#8A5F4B"></ellipse>
+                            <ellipse cx="67" cy="160" rx="9" ry="5.2" fill="#8A5F4B"></ellipse>
+                            <rect x="55" y="63" width="10" height="15" rx="3" fill="#EDC6AF"></rect>
+                            <path d="M44,84 C44,78 51,75 60,75 C69,75 76,78 76,84 L78,123 C78,128 72,130 60,130 C48,130 42,128 42,123 Z" fill="#FBF6EC"></path>
+                            <path d="M46,88 C46,83 52,80 60,80 C68,80 74,83 74,88 L76,123 C76,127 71,129 60,129 C49,129 44,127 44,123 Z" fill="#AAB68D"></path>
+                            <path d="M60,81 L57,94 L60,106 L63,94 Z" fill="#FBF6EC"></path>
+                            <path d="M53,99 V122 M67,99 V122" stroke="#98A47A" stroke-width="1.2" opacity=".55"></path>
+                            <path d="M54,78 L60,86 L66,78" fill="none" stroke="#FFFDF7" stroke-width="2.2" stroke-linejoin="round"></path>
+                          </g>
+                          <g class="droom__char-arm droom__char-arm--l">
+                            <path d="M45,88 C41,97 40,107 42,116" fill="none" stroke="#FBF6EC" stroke-width="7" stroke-linecap="round"></path>
+                            <circle cx="42" cy="117" r="3.4" fill="#F4D5C0"></circle>
+                          </g>
+                          <g class="droom__char-arm droom__char-arm--r">
+                            <path d="M75,88 C79,97 80,107 78,116" fill="none" stroke="#FBF6EC" stroke-width="7" stroke-linecap="round"></path>
+                            <g transform="rotate(-8 73 107)">
+                              <rect x="62" y="97" width="23" height="18" rx="2.4" fill="#B0805F"></rect>
+                              <rect x="65" y="99" width="17" height="14" rx="1.6" fill="#FBF3E8"></rect>
+                              <path d="M69,103 H79 M69,106.5 H76" stroke="#D3BEA9" stroke-width="1.1" stroke-linecap="round"></path>
+                            </g>
+                            <path d="M79,112 L86,103" stroke="#8E6A53" stroke-width="1.8" stroke-linecap="round"></path>
+                            <circle cx="78" cy="117" r="3.4" fill="#F4D5C0"></circle>
+                          </g>
+                          <g class="droom__char-head">
+                            <path d="M34,54 C34,26 46,16 60,16 C74,16 86,26 86,54 L86,116 C86,121 80,122 78,117 L74,58 L46,58 L42,117 C40,122 34,121 34,116 Z" fill="#6B4A3E"></path>
+                            <path d="M40,68 C36,88 37,104 40,114" fill="none" stroke="#5C3E35" stroke-width="3.4" stroke-linecap="round" opacity=".55"></path>
+                            <path d="M80,68 C84,88 83,104 80,114" fill="none" stroke="#5C3E35" stroke-width="3.4" stroke-linecap="round" opacity=".55"></path>
+                            <ellipse cx="60" cy="50" rx="21" ry="23" fill="#F7DBC6"></ellipse>
+                            <ellipse cx="39.4" cy="53" rx="3" ry="4" fill="#EFCDB6"></ellipse>
+                            <ellipse cx="80.6" cy="53" rx="3" ry="4" fill="#EFCDB6"></ellipse>
+                            <path d="M39,55 C39,26 47,17 60,17 C73,17 81,26 81,55 C81,57 80,58 79,58 C78,47 72,41 63,40 C62,43 61,45 60,45 C59,45 58,43 57,40 C48,41 42,47 41,58 C40,58 39,57 39,55 Z" fill="#6B4A3E"></path>
+                            <path d="M47,27 C51,23 56,21 61,21" fill="none" stroke="#835D4F" stroke-width="2.6" stroke-linecap="round" opacity=".7"></path>
+                            <ellipse cx="46.5" cy="58" rx="4.4" ry="2.6" fill="#F1AEB4" opacity=".4"></ellipse>
+                            <ellipse cx="73.5" cy="58" rx="4.4" ry="2.6" fill="#F1AEB4" opacity=".4"></ellipse>
+                            <ellipse cx="52.5" cy="53" rx="2" ry="2.5" fill="#63454B"></ellipse>
+                            <ellipse cx="67.5" cy="53" rx="2" ry="2.5" fill="#63454B"></ellipse>
+                            <path d="M57,61 q3,2.6 6,0" fill="none" stroke="#C1848C" stroke-width="1.3" stroke-linecap="round"></path>
+                            <g fill="none" stroke="#A58267" stroke-width="1.4">
+                              <circle cx="52.5" cy="52.5" r="6.6"></circle>
+                              <circle cx="67.5" cy="52.5" r="6.6"></circle>
+                              <path d="M59.1,52.5 H60.9 M45.9,51.6 L40.2,49.8 M74.1,51.6 L79.8,49.8"></path>
+                            </g>
+                          </g>
+                        </g>
+                      </g>
+
+                      <!-- 색을 쫓는 몽상가 -->
+                      <g class="droom__char-figure" data-char="haemil" role="button" tabindex="0"
+                         aria-label="색을 쫓는 몽상가 캐릭터와 인사하기" transform="translate(392,252) scale(1.28)">
+                        <rect class="droom__char-hit" x="24" y="12" width="72" height="160" fill="none" pointer-events="all"></rect>
+                        <ellipse class="droom__char-shadow" cx="60" cy="166" rx="29" ry="6"></ellipse>
+                        <ellipse class="droom__char-ring" cx="60" cy="168" rx="35" ry="9"></ellipse>
+                        <g class="droom__char-bob">
+                          <g class="droom__char-body">
+                            <rect x="49" y="118" width="10" height="38" rx="5" fill="#C4765F"></rect>
+                            <rect x="61" y="118" width="10" height="38" rx="5" fill="#C4765F"></rect>
+                            <ellipse cx="53" cy="160" rx="9" ry="5.2" fill="#D9B79E"></ellipse>
+                            <ellipse cx="67" cy="160" rx="9" ry="5.2" fill="#D9B79E"></ellipse>
+                            <rect x="55" y="63" width="10" height="15" rx="3" fill="#EDC6AF"></rect>
+                            <path d="M44,84 C44,78 51,75 60,75 C69,75 76,78 76,84 L78,123 C78,128 72,130 60,130 C48,130 42,128 42,123 Z" fill="#FFF9F2"></path>
+                            <path d="M47,86 C47,82 53,79 60,79 C67,79 73,82 73,86 L75,124 C75,128 69,130 60,130 C51,130 45,128 45,124 Z" fill="#C4765F"></path>
+                            <path d="M50,80 L52,70 M70,80 L68,70" fill="none" stroke="#C4765F" stroke-width="4" stroke-linecap="round"></path>
+                            <rect x="53" y="89" width="14" height="9" rx="2" fill="#CE876F"></rect>
+                            <circle cx="45.6" cy="93" r="1.4" fill="#E7B7C1"></circle>
+                            <circle cx="74.4" cy="96" r="1.3" fill="#B9C9A6"></circle>
+                            <circle cx="45.4" cy="102" r="1.2" fill="#F0C79A"></circle>
+                          </g>
+                          <g class="droom__char-arm droom__char-arm--l">
+                            <path d="M45,87 C41,96 40,107 42,116" fill="none" stroke="#FFF9F2" stroke-width="7" stroke-linecap="round"></path>
+                            <g transform="rotate(-14 39 111)">
+                              <ellipse cx="38" cy="110" rx="11" ry="8.4" fill="#F6E7D8" stroke="#DFC9B4" stroke-width="1.2"></ellipse>
+                              <circle cx="33.6" cy="107" r="1.9" fill="#E89AA8"></circle>
+                              <circle cx="39.6" cy="105.6" r="1.8" fill="#A9C0A0"></circle>
+                              <circle cx="42.4" cy="111" r="1.8" fill="#F0C79A"></circle>
+                              <circle cx="35" cy="112.6" r="1.6" fill="#B3A8CE"></circle>
+                            </g>
+                            <circle cx="42" cy="117" r="3.4" fill="#F4D5C0"></circle>
+                          </g>
+                          <g class="droom__char-arm droom__char-arm--r">
+                            <path d="M75,87 C79,96 80,107 78,116" fill="none" stroke="#FFF9F2" stroke-width="7" stroke-linecap="round"></path>
+                            <path d="M79,112 L88,99" stroke="#C9A78F" stroke-width="2.6" stroke-linecap="round"></path>
+                            <path d="M88,99 l3.4,-5" stroke="#C4765F" stroke-width="3.2" stroke-linecap="round"></path>
+                            <circle cx="78" cy="117" r="3.4" fill="#F4D5C0"></circle>
+                          </g>
+                          <g class="droom__char-head">
+                            <path d="M36,52 C36,25 47,15 60,15 C73,15 84,25 84,52 C84,62 86,70 82,74 C78,76 76,70 75,63 L45,63 C44,70 42,76 38,74 C34,70 36,62 36,52 Z" fill="#B27B4F"></path>
+                            <path d="M38,68 q4,8 -1,10 M80,68 q-4,8 1,10" fill="none" stroke="#B27B4F" stroke-width="3.4" stroke-linecap="round"></path>
+                            <ellipse cx="60" cy="50" rx="21" ry="23" fill="#F7DBC6"></ellipse>
+                            <ellipse cx="39.4" cy="53" rx="3" ry="4" fill="#EFCDB6"></ellipse>
+                            <ellipse cx="80.6" cy="53" rx="3" ry="4" fill="#EFCDB6"></ellipse>
+                            <path d="M37,54 C37,25 47,16 60,16 C73,16 83,25 83,54 C83,56 82,57 81,57 C78,46 73,44 66,45 C62,47 58,47 54,45 C47,44 41,47 39,57 C38,57 37,56 37,54 Z" fill="#C08A5C"></path>
+                            <path d="M46,26 C50,23 55,21 60,21" fill="none" stroke="#CE9A6E" stroke-width="2.6" stroke-linecap="round" opacity=".85"></path>
+                            <ellipse cx="46.5" cy="58" rx="4.4" ry="2.6" fill="#F1AEB4" opacity=".4"></ellipse>
+                            <ellipse cx="73.5" cy="58" rx="4.4" ry="2.6" fill="#F1AEB4" opacity=".4"></ellipse>
+                            <ellipse cx="52.5" cy="53" rx="2" ry="2.5" fill="#63454B"></ellipse>
+                            <ellipse cx="67.5" cy="53" rx="2" ry="2.5" fill="#63454B"></ellipse>
+                            <path d="M56,60.5 q4,3.4 8,0" fill="none" stroke="#C1848C" stroke-width="1.4" stroke-linecap="round"></path>
+                          </g>
+                        </g>
+                      </g>
+
+                      <!-- 밤을 지키는 작은 수집가 -->
+                      <g class="droom__char-figure" data-char="momo" role="button" tabindex="0"
+                         aria-label="밤을 지키는 작은 수집가 캐릭터와 인사하기" transform="translate(392,252) scale(1.28)">
+                        <rect class="droom__char-hit" x="24" y="12" width="72" height="160" fill="none" pointer-events="all"></rect>
+                        <ellipse class="droom__char-shadow" cx="60" cy="166" rx="29" ry="6"></ellipse>
+                        <ellipse class="droom__char-ring" cx="60" cy="168" rx="35" ry="9"></ellipse>
+                        <g class="droom__char-bob">
+                          <g class="droom__char-body">
+                            <rect x="49" y="118" width="10" height="38" rx="5" fill="#E7CBB6"></rect>
+                            <rect x="61" y="118" width="10" height="38" rx="5" fill="#E7CBB6"></rect>
+                            <ellipse cx="53" cy="160" rx="9" ry="5.2" fill="#C0A08E"></ellipse>
+                            <ellipse cx="67" cy="160" rx="9" ry="5.2" fill="#C0A08E"></ellipse>
+                            <rect x="55" y="63" width="10" height="15" rx="3" fill="#EDC6AF"></rect>
+                            <path d="M44,84 C44,78 51,75 60,75 C69,75 76,78 76,84 L78,123 C78,128 72,130 60,130 C48,130 42,128 42,123 Z" fill="#F3C3C8"></path>
+                            <path d="M50,77 C53,81.5 67,81.5 70,77" fill="none" stroke="#ECB4BB" stroke-width="2"></path>
+                            <path d="M50,92 V121 M60,92 V121 M70,92 V121" stroke="#EAB0B7" stroke-width="1.5" opacity=".75"></path>
+                          </g>
+                          <g class="droom__char-prop">
+                            <g transform="rotate(-6 60 108)">
+                              <circle cx="60" cy="108" r="13" fill="#FBF4EA"></circle>
+                              <circle cx="60" cy="108" r="10.6" fill="none" stroke="#E5C9AC" stroke-width="1"></circle>
+                              <circle cx="56.6" cy="106.4" r="1.9" fill="#EFA9B6"></circle>
+                              <circle cx="60.4" cy="104.6" r="1.7" fill="#EFA9B6"></circle>
+                              <circle cx="63.6" cy="108.2" r="1.7" fill="#EFA9B6"></circle>
+                              <path d="M59,111 q4,2 2,5" fill="none" stroke="#A9C0A0" stroke-width="1.5" stroke-linecap="round"></path>
+                              <circle cx="60" cy="108" r="13" fill="none" stroke="#D9A97E" stroke-width="2.6"></circle>
+                            </g>
+                          </g>
+                          <g class="droom__char-arm droom__char-arm--l">
+                            <path d="M45,88 C42,96 44,104 47,110" fill="none" stroke="#F3C3C8" stroke-width="7" stroke-linecap="round"></path>
+                            <circle cx="47" cy="110" r="3.4" fill="#F4D5C0"></circle>
+                          </g>
+                          <g class="droom__char-arm droom__char-arm--r">
+                            <path d="M75,88 C78,96 76,104 73,110" fill="none" stroke="#F3C3C8" stroke-width="7" stroke-linecap="round"></path>
+                            <circle cx="73" cy="110" r="3.4" fill="#F4D5C0"></circle>
+                          </g>
+                          <g class="droom__char-head">
+                            <path d="M82,29 C94,26 100,38 96,50 C94,56 97,62 91,66 C87,60 86,50 87,42 C82,40 80,32 82,29 Z" fill="#4B3A3F"></path>
+                            <circle cx="82" cy="33" r="3" fill="#E8A9B8"></circle>
+                            <path d="M37,52 C37,25 48,16 60,16 C72,16 83,25 83,52 L83,58 C83,62 79,62 78,58 L77,54 L43,54 L42,58 C41,62 37,62 37,58 Z" fill="#4B3A3F"></path>
+                            <ellipse cx="60" cy="50" rx="21" ry="23" fill="#F7DBC6"></ellipse>
+                            <ellipse cx="39.4" cy="53" rx="3" ry="4" fill="#EFCDB6"></ellipse>
+                            <ellipse cx="80.6" cy="53" rx="3" ry="4" fill="#EFCDB6"></ellipse>
+                            <path d="M38,52 C38,25 48,16 60,16 C72,16 82,25 82,52 C82,56 81,58 80,58 C79,47 73,41 60,41 C47,41 41,47 40,58 C39,58 38,56 38,52 Z" fill="#4B3A3F"></path>
+                            <path d="M47,25 C51,22 56,20 61,20" fill="none" stroke="#635055" stroke-width="2.4" stroke-linecap="round" opacity=".8"></path>
+                            <ellipse cx="46.5" cy="58" rx="4.4" ry="2.6" fill="#F1AEB4" opacity=".4"></ellipse>
+                            <ellipse cx="73.5" cy="58" rx="4.4" ry="2.6" fill="#F1AEB4" opacity=".4"></ellipse>
+                            <ellipse cx="52.5" cy="53" rx="2" ry="2.5" fill="#63454B"></ellipse>
+                            <ellipse cx="67.5" cy="53" rx="2" ry="2.5" fill="#63454B"></ellipse>
+                            <path d="M57,61 q3,2.6 6,0" fill="none" stroke="#C1848C" stroke-width="1.3" stroke-linecap="round"></path>
+                          </g>
+                        </g>
+                      </g>
+
+                      <!-- 고요한 손끝의 연금술사 -->
+                      <g class="droom__char-figure" data-char="ian" role="button" tabindex="0"
+                         aria-label="고요한 손끝의 연금술사 캐릭터와 인사하기" transform="translate(392,252) scale(1.28)">
+                        <rect class="droom__char-hit" x="24" y="12" width="72" height="160" fill="none" pointer-events="all"></rect>
+                        <ellipse class="droom__char-shadow" cx="60" cy="166" rx="29" ry="6"></ellipse>
+                        <ellipse class="droom__char-ring" cx="60" cy="168" rx="35" ry="9"></ellipse>
+                        <g class="droom__char-bob">
+                          <g class="droom__char-body">
+                            <rect x="49" y="118" width="10" height="38" rx="5" fill="#6B5C58"></rect>
+                            <rect x="61" y="118" width="10" height="38" rx="5" fill="#6B5C58"></rect>
+                            <ellipse cx="53" cy="160" rx="9" ry="5.2" fill="#4F4340"></ellipse>
+                            <ellipse cx="67" cy="160" rx="9" ry="5.2" fill="#4F4340"></ellipse>
+                            <rect x="55" y="63" width="10" height="15" rx="3" fill="#EDC6AF"></rect>
+                            <path d="M44,84 C44,78 51,75 60,75 C69,75 76,78 76,84 L78,123 C78,128 72,130 60,130 C48,130 42,128 42,123 Z" fill="#8B90A4"></path>
+                            <path d="M52,78 L60,88 L68,78" fill="none" stroke="#7C8095" stroke-width="2" stroke-linejoin="round"></path>
+                            <path d="M47,90 C47,86 53,83 60,83 C67,83 73,86 73,90 L75,124 C75,128 69,130 60,130 C51,130 45,128 45,124 Z" fill="#AA754F"></path>
+                            <path d="M53,85 L58,76 M67,85 L62,76" fill="none" stroke="#AA754F" stroke-width="3.2" stroke-linecap="round"></path>
+                            <path d="M52,100 H68 V113 C68,116 65,117 60,117 C55,117 52,116 52,113 Z" fill="#B9805A"></path>
+                            <path d="M52,106 H68" stroke="#96653F" stroke-width="1.1"></path>
+                          </g>
+                          <g class="droom__char-arm droom__char-arm--l">
+                            <path d="M45,88 C41,97 40,107 42,116" fill="none" stroke="#8B90A4" stroke-width="7" stroke-linecap="round"></path>
+                            <circle cx="42" cy="117" r="3.4" fill="#F4D5C0"></circle>
+                          </g>
+                          <g class="droom__char-arm droom__char-arm--r">
+                            <path d="M75,88 C79,97 80,107 78,116" fill="none" stroke="#8B90A4" stroke-width="7" stroke-linecap="round"></path>
+                            <path d="M78,114 L87,102" stroke="#8B6A4C" stroke-width="3.6" stroke-linecap="round"></path>
+                            <path d="M87,102 L92,95" stroke="#B9BFC6" stroke-width="2.4" stroke-linecap="round"></path>
+                            <circle cx="78" cy="117" r="3.4" fill="#F4D5C0"></circle>
+                          </g>
+                          <g class="droom__char-head">
+                            <path d="M37,54 C37,26 48,16 61,16 C74,16 83,26 82,44 C82,51 81,56 79,58 C78,50 75,45 70,42 C64,46 54,46 47,42 C43,45 41,50 40,56 C39,58 37,58 37,54 Z" fill="#3E3438"></path>
+                            <ellipse cx="60" cy="50" rx="21" ry="23" fill="#F7DBC6"></ellipse>
+                            <ellipse cx="39.4" cy="53" rx="3" ry="4" fill="#EFCDB6"></ellipse>
+                            <ellipse cx="80.6" cy="53" rx="3" ry="4" fill="#EFCDB6"></ellipse>
+                            <path d="M38,52 C38,26 48,16 60,16 C72,16 82,27 81,45 C81,50 80,54 79,56 C77,47 73,43 67,41 C61,45 53,45 47,42 C43,45 41,49 40,56 C39,56 38,55 38,52 Z" fill="#3E3438"></path>
+                            <path d="M55,24 C57,31 58,38 57,45" fill="none" stroke="#332B2F" stroke-width="1.6" stroke-linecap="round" opacity=".8"></path>
+                            <path d="M47,25 C51,22 56,20 61,20" fill="none" stroke="#4E4247" stroke-width="2.6" stroke-linecap="round" opacity=".9"></path>
+                            <ellipse cx="46.5" cy="58" rx="4.4" ry="2.6" fill="#E7A2AA" opacity=".3"></ellipse>
+                            <ellipse cx="73.5" cy="58" rx="4.4" ry="2.6" fill="#E7A2AA" opacity=".3"></ellipse>
+                            <ellipse cx="52.5" cy="53" rx="1.9" ry="2.4" fill="#4C3A40"></ellipse>
+                            <ellipse cx="67.5" cy="53" rx="1.9" ry="2.4" fill="#4C3A40"></ellipse>
+                            <path d="M57,61 q3,1.8 6,0" fill="none" stroke="#B87F86" stroke-width="1.3" stroke-linecap="round"></path>
+                          </g>
+                        </g>
+                      </g>
+
+                      <!-- 선율을 엮는 몽상가 -->
+                      <g class="droom__char-figure" data-char="haon" role="button" tabindex="0"
+                         aria-label="선율을 엮는 몽상가 캐릭터와 인사하기" transform="translate(392,252) scale(1.28)">
+                        <rect class="droom__char-hit" x="24" y="12" width="72" height="160" fill="none" pointer-events="all"></rect>
+                        <ellipse class="droom__char-shadow" cx="60" cy="166" rx="29" ry="6"></ellipse>
+                        <ellipse class="droom__char-ring" cx="60" cy="168" rx="35" ry="9"></ellipse>
+                        <g class="droom__char-bob">
+                          <g class="droom__char-body">
+                            <rect x="49" y="118" width="10" height="38" rx="5" fill="#B9AE9C"></rect>
+                            <rect x="61" y="118" width="10" height="38" rx="5" fill="#B9AE9C"></rect>
+                            <ellipse cx="53" cy="160" rx="9" ry="5.2" fill="#97785F"></ellipse>
+                            <ellipse cx="67" cy="160" rx="9" ry="5.2" fill="#97785F"></ellipse>
+                            <rect x="55" y="63" width="10" height="15" rx="3" fill="#EDC6AF"></rect>
+                            <path d="M44,84 C44,78 51,75 60,75 C69,75 76,78 76,84 L78,123 C78,128 72,130 60,130 C48,130 42,128 42,123 Z" fill="#F6EDDD"></path>
+                            <path d="M50,77 C53,82 67,82 70,77" fill="none" stroke="#E4D6C0" stroke-width="2.2"></path>
+                            <path d="M50,92 V118 M60,92 V118 M70,92 V118" stroke="#E8D9C2" stroke-width="1.2" opacity=".75"></path>
+                            <path d="M46,120 C52,124 68,124 74,120" fill="none" stroke="#E8D9C2" stroke-width="2"></path>
+                          </g>
+                          <g class="droom__char-prop">
+                            <g transform="rotate(-16 58 112)">
+                              <path d="M54,96 C46,96 41,102 41,108 C41,112 43,114 45,116 C40,120 37,127 40,133 C44,141 62,141 66,133 C69,127 66,120 61,116 C63,114 65,112 65,108 C65,102 62,96 54,96 Z" fill="#C99A6E"></path>
+                              <path d="M54,96 C46,96 41,102 41,108 C41,112 43,114 45,116 C40,120 37,127 40,133 C44,141 62,141 66,133 C69,127 66,120 61,116 C63,114 65,112 65,108 C65,102 62,96 54,96 Z" fill="none" stroke="#B4855C" stroke-width="1.4"></path>
+                              <circle cx="53" cy="120" r="5" fill="#7A5340"></circle>
+                              <rect x="50" y="74" width="7" height="24" rx="2.5" fill="#A87A52"></rect>
+                              <rect x="47" y="66" width="13" height="10" rx="2.5" fill="#8B6244"></rect>
+                              <circle cx="50" cy="70" r="1.1" fill="#E8D3B4"></circle>
+                              <circle cx="57" cy="70" r="1.1" fill="#E8D3B4"></circle>
+                              <path d="M52,74 H55 M52,78 H55 M52,82 H55 M52,86 H55 M52,90 H55 M52,94 H55" stroke="#F7EAD3" stroke-width=".8" opacity=".85"></path>
+                            </g>
+                          </g>
+                          <g class="droom__char-arm droom__char-arm--l">
+                            <path d="M45,88 C41,97 40,107 42,116" fill="none" stroke="#F6EDDD" stroke-width="7" stroke-linecap="round"></path>
+                            <circle cx="42" cy="117" r="3.4" fill="#F4D5C0"></circle>
+                          </g>
+                          <g class="droom__char-arm droom__char-arm--r">
+                            <path d="M75,88 C78,95 76,101 71,105" fill="none" stroke="#F6EDDD" stroke-width="7" stroke-linecap="round"></path>
+                            <circle cx="70" cy="105" r="3.4" fill="#F4D5C0"></circle>
+                          </g>
+                          <g class="droom__char-head">
+                            <path d="M36,54 C36,26 47,16 60,16 C73,16 84,26 84,54 C85,62 84,68 81,70 C80,64 79,60 77,57 L43,57 C41,60 40,64 39,70 C36,68 35,62 36,54 Z" fill="#8B6350"></path>
+                            <path d="M37,64 q4,6 -1,9 M83,64 q-4,6 1,9" fill="none" stroke="#8B6350" stroke-width="2.8" stroke-linecap="round"></path>
+                            <ellipse cx="60" cy="50" rx="21" ry="23" fill="#F7DBC6"></ellipse>
+                            <ellipse cx="39.4" cy="53" rx="3" ry="4" fill="#EFCDB6"></ellipse>
+                            <ellipse cx="80.6" cy="53" rx="3" ry="4" fill="#EFCDB6"></ellipse>
+                            <path d="M37,54 C37,26 47,16 60,16 C73,16 83,26 83,54 C83,56 82,57 81,57 C78,46 73,43 66,44 C62,46 58,46 54,44 C47,43 41,46 39,57 C38,57 37,56 37,54 Z" fill="#9A7159"></path>
+                            <path d="M46,26 C50,22 55,20 60,20" fill="none" stroke="#A87F65" stroke-width="2.8" stroke-linecap="round" opacity=".9"></path>
+                            <ellipse cx="46.5" cy="58" rx="4.4" ry="2.6" fill="#F1AEB4" opacity=".4"></ellipse>
+                            <ellipse cx="73.5" cy="58" rx="4.4" ry="2.6" fill="#F1AEB4" opacity=".4"></ellipse>
+                            <ellipse cx="52.5" cy="53" rx="2" ry="2.5" fill="#63454B"></ellipse>
+                            <ellipse cx="67.5" cy="53" rx="2" ry="2.5" fill="#63454B"></ellipse>
+                            <path d="M56,60.5 q4,3.2 8,0" fill="none" stroke="#C1848C" stroke-width="1.4" stroke-linecap="round"></path>
+                          </g>
+                        </g>
+                      </g>
+
+                      <!-- 문장을 빚는 산책자 -->
+                      <g class="droom__char-figure" data-char="doyun" role="button" tabindex="0"
+                         aria-label="문장을 빚는 산책자 캐릭터와 인사하기" transform="translate(392,252) scale(1.28)">
+                        <rect class="droom__char-hit" x="24" y="12" width="72" height="160" fill="none" pointer-events="all"></rect>
+                        <ellipse class="droom__char-shadow" cx="60" cy="166" rx="29" ry="6"></ellipse>
+                        <ellipse class="droom__char-ring" cx="60" cy="168" rx="35" ry="9"></ellipse>
+                        <g class="droom__char-bob">
+                          <g class="droom__char-body">
+                            <rect x="49" y="118" width="10" height="38" rx="5" fill="#8A8177"></rect>
+                            <rect x="61" y="118" width="10" height="38" rx="5" fill="#8A8177"></rect>
+                            <ellipse cx="53" cy="160" rx="9" ry="5.2" fill="#6E5A4E"></ellipse>
+                            <ellipse cx="67" cy="160" rx="9" ry="5.2" fill="#6E5A4E"></ellipse>
+                            <rect x="55" y="63" width="10" height="15" rx="3" fill="#EDC6AF"></rect>
+                            <path d="M44,84 C44,78 51,75 60,75 C69,75 76,78 76,84 L78,123 C78,128 72,130 60,130 C48,130 42,128 42,123 Z" fill="#FBF6EC"></path>
+                            <path d="M45,88 C45,83 51,80 57,80 L57,129 C48,129 44,127 44,123 Z" fill="#9DAA8C"></path>
+                            <path d="M75,88 C75,83 69,80 63,80 L63,129 C72,129 76,127 76,123 Z" fill="#9DAA8C"></path>
+                            <path d="M57,80 L60,94 L63,80" fill="none" stroke="#E7D6C2" stroke-width="1.6" stroke-linejoin="round"></path>
+                            <circle cx="65.5" cy="98" r="1.3" fill="#7F8B6E"></circle>
+                            <circle cx="65.5" cy="108" r="1.3" fill="#7F8B6E"></circle>
+                            <circle cx="65.5" cy="118" r="1.3" fill="#7F8B6E"></circle>
+                          </g>
+                          <g class="droom__char-prop">
+                            <g transform="rotate(-6 60 111)">
+                              <path d="M42,104 L60,100 L60,119 L42,123 Z" fill="#FBF4E8" stroke="#DCCBB8" stroke-width="1.1"></path>
+                              <path d="M78,104 L60,100 L60,119 L78,123 Z" fill="#FBF4E8" stroke="#DCCBB8" stroke-width="1.1"></path>
+                              <path d="M46,108 H57 M46,112 H56" stroke="#DFD0BC" stroke-width="1" stroke-linecap="round"></path>
+                              <path d="M64,108 H74 M64,112 H73" stroke="#DFD0BC" stroke-width="1" stroke-linecap="round"></path>
+                            </g>
+                          </g>
+                          <g class="droom__char-arm droom__char-arm--l">
+                            <path d="M45,88 C41,96 42,104 45,110" fill="none" stroke="#9DAA8C" stroke-width="7" stroke-linecap="round"></path>
+                            <circle cx="45" cy="110" r="3.4" fill="#F4D5C0"></circle>
+                          </g>
+                          <g class="droom__char-arm droom__char-arm--r">
+                            <path d="M75,88 C79,96 78,104 75,110" fill="none" stroke="#9DAA8C" stroke-width="7" stroke-linecap="round"></path>
+                            <path d="M78,108 L86,98" stroke="#4E4340" stroke-width="1.9" stroke-linecap="round"></path>
+                            <path d="M86,98 l2.4,-3.4" stroke="#B48A6A" stroke-width="1.8" stroke-linecap="round"></path>
+                            <circle cx="75" cy="110" r="3.4" fill="#F4D5C0"></circle>
+                          </g>
+                          <g class="droom__char-head">
+                            <path d="M36,52 C36,26 47,16 60,16 C73,16 84,26 84,52 C84,58 83,61 82,61 C80,45 72,37 58,37 C46,37 40,45 38,61 C37,61 36,58 36,52 Z" fill="#5A4A46"></path>
+                            <ellipse cx="60" cy="50" rx="21" ry="23" fill="#F7DBC6"></ellipse>
+                            <ellipse cx="39.4" cy="53" rx="3" ry="4" fill="#EFCDB6"></ellipse>
+                            <ellipse cx="80.6" cy="53" rx="3" ry="4" fill="#EFCDB6"></ellipse>
+                            <path d="M38,52 C38,26 48,16 60,16 C72,16 82,27 82,50 C82,54 81,57 80,58 C78,48 73,44 66,42 C60,45 52,45 47,41 C43,44 41,48 40,57 C39,57 38,55 38,52 Z" fill="#5A4A46"></path>
+                            <path d="M53,25 C55,32 56,38 55,44" fill="none" stroke="#4A3C39" stroke-width="1.4" stroke-linecap="round" opacity=".75"></path>
+                            <path d="M47,26 C51,22 56,20 61,20" fill="none" stroke="#6B5A55" stroke-width="2.6" stroke-linecap="round" opacity=".9"></path>
+                            <ellipse cx="46.5" cy="58" rx="4.4" ry="2.6" fill="#F1AEB4" opacity=".38"></ellipse>
+                            <ellipse cx="73.5" cy="58" rx="4.4" ry="2.6" fill="#F1AEB4" opacity=".38"></ellipse>
+                            <ellipse cx="52.5" cy="53" rx="2" ry="2.5" fill="#63454B"></ellipse>
+                            <ellipse cx="67.5" cy="53" rx="2" ry="2.5" fill="#63454B"></ellipse>
+                            <path d="M57,61 q3,2.4 6,0" fill="none" stroke="#C1848C" stroke-width="1.3" stroke-linecap="round"></path>
+                          </g>
+                        </g>
+                      </g>
+                    </g>
+
+                    <!-- 빛 · 먼지 -->
+                    <path class="droom__beam" d="M310,272 L490,272 L620,470 L180,470 Z" fill="url(#droomBeamGrad)"></path>
+                    <g class="droom__dust" fill="#FFFDF6" opacity=".75">
+                      <circle cx="250" cy="300" r="2"></circle><circle cx="330" cy="340" r="1.6"></circle>
+                      <circle cx="420" cy="316" r="2.2"></circle><circle cx="500" cy="356" r="1.5"></circle>
+                      <circle cx="580" cy="330" r="1.8"></circle>
+                    </g>
+                  </svg>
+                  <p class="droom__say" data-room-say role="status" aria-live="polite"></p>
+                  <div class="droom__sparks" data-room-sparks aria-hidden="true"></div>
+                </div>
+              </div>
+              <figcaption class="droom-cap">
+                <span class="droom-cap__mood"><i aria-hidden="true"></i><b data-studio-mood>창가 서재</b></span>
+                <span class="droom-cap__theme" data-studio-theme>연분홍 벽</span>
+                <span class="droom-cap__count" data-studio-count>소품 0개</span>
+              </figcaption>
+            </figure>
+
+            <!-- 다락방 숨 고르기 — 사무실 그림 아래에서 가볍게 눌러 여는 호흡 코너입니다. -->
+            <button class="calm-card" type="button" data-calm-open aria-haspopup="dialog" aria-controls="calm-modal"
+                    aria-label="🕯️ 작업 전 숨 고르기 (1분 명상) 열기">
+              <span class="calm-card__emoji" aria-hidden="true">🕯️</span>
+              <span class="calm-card__text">
+                <b>작업 전 숨 고르기</b>
+                <small>1분 명상 · 3분 명상 · 들이쉬기 4초, 멈추기 2초, 내쉬기 4초</small>
+              </span>
+              <span class="calm-card__go" aria-hidden="true">시작 →</span>
+            </button>
+
+            <div class="stats">
+              <div class="stat"><b data-stat-works>0</b><span>작품</span></div>
+              <div class="stat"><b data-stat-comments>0</b><span>받은 감상</span></div>
+              <div class="stat"><b data-stat-likes>0</b><span>받은 마음</span></div>
+              <div class="stat"><b data-stat-days>1</b><span>함께한 날</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 다락방 사무실 꾸미기 (내 다락방일 때만) -->
+        <article class="studio-editor" id="studio-editor" hidden>
+          <div class="studio-editor__head">
+            <p class="kicker">다락방 사무실</p>
+            <h2>캐릭터와 방 분위기를 골라 보세요 <span class="spark" aria-hidden="true"></span></h2>
+            <p class="studio-editor__desc">캐릭터를 고르면 다락방 프로필 사진과 위쪽 버튼에 그 사람이 나타나요. 작업실 분위기를 고르면 창밖 풍경과 기본 가구가 바뀌고, 소품은 누른 만큼 방 안에 놓입니다. 바꾼 모습은 바로 저장돼요.</p>
+          </div>
+
+          <div class="studio-group">
+            <p class="studio-group__label">다락방 캐릭터 <span class="studio-value" data-avatar-name>글자 기본</span></p>
+            <div data-studio-avatar></div>
+          </div>
+
+          <div class="studio-group">
+            <p class="studio-group__label">벽지 <span class="studio-value" data-theme-name>연분홍 벽</span></p>
+            <div class="attic-swatches" data-theme-picker role="group" aria-label="다락방 벽지 고르기"></div>
+          </div>
+
+          <div class="studio-group">
+            <p class="studio-group__label">작업실 분위기 <span class="studio-value" data-mood-name>창가 서재</span></p>
+            <div class="mood-grid" data-mood-picker role="group" aria-label="작업실 분위기 고르기"></div>
+          </div>
+
+          <div class="studio-group">
+            <p class="studio-group__label">소품 <span class="studio-value" data-props-count>0개 놓임</span> <em class="studio-group__hint">누르면 바로 방에 놓여요</em></p>
+            <div class="prop-grid" data-prop-picker role="group" aria-label="다락방 소품 고르기"></div>
+          </div>
+        </article>
+
+        <!-- 대표 작품 -->
+        <div class="section__head" style="margin-top:clamp(2rem,4vw,2.8rem);">
+          <div class="section__title">
+            <p class="kicker">대표 작품</p>
+            <h2>이 다락방의 얼굴 <span class="spark" aria-hidden="true"></span></h2>
+            <p class="section__desc">가장 최근에 건 작품이 대표로 걸립니다. 다른 사람이 다락방에 들어왔을 때 가장 먼저 보이는 작품이에요.</p>
+          </div>
+          <a class="link-more" href="register.html">새 작품 걸기 →</a>
+        </div>
+
+        <div id="my-featured"></div>
+
+        <!-- 내 작품 -->
+        <div class="section__head" style="margin-top:clamp(2.2rem,4vw,3rem);">
+          <div class="section__title">
+            <p class="kicker">작품 목록</p>
+            <h2>다락방에 걸린 작품 <span class="spark" aria-hidden="true"></span></h2>
+            <p class="section__desc">완성 표시가 없는 작품은 아직 만들어지는 중입니다. 그대로 걸어 두어도 괜찮아요.</p>
+          </div>
+          <a class="link-more" href="gallery.html">갤러리에서 더 보기 →</a>
+        </div>
+
+        <div class="work-grid" id="my-works"></div>
+
+        <div class="empty" id="my-empty">
+          <span class="empty__emoji" aria-hidden="true">🪜</span>
+          <p><b>아직 걸린 작품이 없어요.</b><br>첫 작품을 걸면 이 자리가 다락방의 얼굴이 됩니다.</p>
+          <a class="btn btn--primary btn--sm" href="register.html">첫 작품 걸기</a>
+        </div>
+
+        <!-- 받은 감상 -->
+        <div class="section__head" id="received-head" style="margin-top:clamp(2.2rem,4vw,3rem);">
+          <div class="section__title">
+            <p class="kicker">받은 감상</p>
+            <h2>찾아온 사람들이 남긴 말 <span class="spark" aria-hidden="true"></span></h2>
+            <p class="section__desc">내 작품에 남겨진 감상이에요. 답을 달고 싶다면 작품을 열어 그 자리에서 남길 수 있어요.</p>
+          </div>
+        </div>
+
+        <ul class="comment-list" id="received-comments"></ul>
+        <div class="empty" id="received-empty">
+          <span class="empty__emoji" aria-hidden="true">💬</span>
+          <p><b>아직 받은 감상이 없어요.</b><br>작품을 걸어 두면 누군가 한 줄 남겨 줄지도 몰라요.</p>
+          <a class="btn btn--ghost btn--sm" href="gallery.html">다른 작품 구경하기</a>
+        </div>
+
+        <div class="invite" id="darak-invite" style="margin-top:clamp(2.2rem,4vw,3rem);">
+          <span class="spark invite__spark" aria-hidden="true"></span>
+          <div>
+            <p class="ribbon ribbon--gold">다른 다락방</p>
+            <h2 style="margin-top:.7rem;">다른 사람의 다락방도 구경해 보세요</h2>
+            <p>필명만 보면 알 수 없는 이야기가 방마다 있습니다. 갤러리에서 마음에 드는 작품을 찾아 들어가 보세요.</p>
+          </div>
+          <a class="btn btn--primary" href="gallery.html">갤러리 둘러보기 <span aria-hidden="true">→</span></a>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer__inner">
+      <div class="footer__brand">
+        <a class="logo" href="index.html">
+          <span class="logo__mark" aria-hidden="true">✦</span>
+          <span class="logo__text">아트다락방<em>ART DARAK</em></span>
+        </a>
+        <p>당신의 창작으로 모든 것이 만들어지는 곳.<br>문학 · 미술 · 음악 · 사진 · 공예 · 디자인을 가리지 않는 창작 커뮤니티.</p>
+      </div>
+      <div class="footer__col">
+        <h4>둘러보기</h4>
+        <ul>
+          <li><a href="gallery.html">갤러리</a></li>
+          <li><a href="register.html">작품 등록</a></li>
+          <li><a href="darakbang.html">내 다락방</a></li>
+          <li><a href="soon.html">창작자</a></li>
+        </ul>
+      </div>
+      <div class="footer__col">
+        <h4>운영 안내</h4>
+        <ul>
+          <li><a href="soon.html">커뮤니티</a></li>
+          <li><a href="soon.html">이용 약관</a></li>
+          <li><a href="soon.html">개인정보 처리방침</a></li>
+          <li><a href="admin.html">관리자</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer__bottom">
+      <span>© 2026 아트다락방 · 1단계</span>
+      <span>광고가 아니라 작품으로 운영되는 곳을 목표로 합니다</span>
+    </div>
+  </div>
+</footer>
+
+<!-- 다락방 숨 고르기 (1분 · 3분 명상) — 방문자도 함께 쓸 수 있어요. -->
+<div class="modal calm-modal" id="calm-modal" hidden>
+  <div class="modal__backdrop" data-calm-close></div>
+  <div class="modal__card calm-panel" role="dialog" aria-modal="true" aria-labelledby="calm-title" aria-describedby="calm-desc">
+    <button class="modal__close" type="button" data-calm-close aria-label="닫기">✕</button>
+    <p class="kicker">다락방 숨 고르기</p>
+    <h2 id="calm-title">🕯️ 작업 전 숨 고르기</h2>
+    <p class="modal__desc" id="calm-desc">창가의 촛불을 바라보듯 천천히 숨을 골라 보세요. 빛망울이 커지면 들이쉬고, 작아지면 내쉬면 됩니다.</p>
+
+    <div class="calm-pick" data-calm-pick role="group" aria-label="명상 시간 고르기">
+      <button class="calm-chip is-active" type="button" data-calm-minutes="1" aria-pressed="true">
+        <b>1분</b><small>가볍게</small>
+      </button>
+      <button class="calm-chip" type="button" data-calm-minutes="3" aria-pressed="false">
+        <b>3분</b><small>차분히</small>
+      </button>
+    </div>
+
+    <div class="calm-stage">
+      <p class="calm-phase"><span data-calm-phase role="status" aria-live="polite">준비되면 시작을 눌러 주세요.</span> <b class="calm-beat" data-calm-beat aria-hidden="true"></b></p>
+      <div class="calm-orb-wrap">
+        <span class="calm-halo" data-calm-glow aria-hidden="true"></span>
+        <span class="calm-orb" data-calm-orb aria-hidden="true"></span>
+        <span class="calm-candle" aria-hidden="true"><i class="calm-flame"></i></span>
+      </div>
+      <p class="calm-time"><span data-calm-time>1:00</span> <small data-calm-time-note>남음</small></p>
+    </div>
+
+    <div class="calm-actions">
+      <button class="btn btn--primary" type="button" data-calm-start>시작하기</button>
+      <button class="btn btn--ghost" type="button" data-calm-pause hidden>잠시 멈춤</button>
+      <button class="btn btn--ghost" type="button" data-calm-stop hidden>그만하기</button>
+    </div>
+
+    <p class="calm-done" data-calm-done role="status" aria-live="polite" hidden>이제 가벼운 마음으로 한 줄이나 한 획을 시작해 볼까요?</p>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="assets/seed.js"></script>
+<script src="assets/supabase-config.js"></script>
+<script src="assets/store.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>작품 등록 · 아트다락방</title>
+<meta name="description" content="아트다락방에 내 작품을 겁니다. 제목, 분야, 지금의 단계, 소개와 사진을 남겨 주세요.">
+<meta name="theme-color" content="#FDF2F3">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/styles.css">
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="192x192" href="images/icon-192.png">
+<link rel="apple-touch-icon" sizes="180x180" href="images/apple-touch-icon.png">
+<link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="아트다락방">
+</head>
+<body data-page="register">
+
+<div class="mode-note" data-mode-note hidden>
+  <span class="spark spark--sm" aria-hidden="true"></span>
+  <span data-mode-text>체험 모드 · 지금 남긴 필명과 작품은 이 브라우저에만 저장돼요</span>
+</div>
+
+<header class="site-header">
+  <div class="container header__inner">
+    <a class="logo" href="index.html">
+      <span class="logo__mark" aria-hidden="true">✦</span>
+      <span class="logo__text">아트다락방<em>ART DARAK</em></span>
+    </a>
+    <nav class="site-nav" id="site-nav" aria-label="주요 메뉴">
+      <a href="index.html">홈</a>
+      <a href="gallery.html">갤러리</a>
+      <a href="register.html" class="nav__cta is-active" aria-current="page">작품 등록</a>
+      <a href="soon.html">창작자</a>
+      <a href="soon.html">커뮤니티</a>
+      <a href="darakbang.html">내 다락방</a>
+    </nav>
+    <div class="header__actions">
+      <button class="account-btn" type="button" data-account aria-label="필명으로 가입하거나 로그인하기">
+        <span class="account-btn__avatar" data-account-avatar aria-hidden="true">✦</span>
+        <span class="account-btn__text" data-account-text>필명으로 시작</span>
+      </button>
+      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav">
+        <span class="nav-toggle__bars" aria-hidden="true"><i></i><i></i><i></i></span>
+        메뉴
+      </button>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <section class="page-head">
+    <div class="container">
+      <p class="breadcrumb"><a href="index.html">홈</a> · 작품 등록</p>
+      <h1>다락방에 작품 걸기 <span class="spark" aria-hidden="true"></span></h1>
+      <p>완성된 작품이 아니어도 괜찮아요. 지금 어느 단계인지 함께 적어 주시면, 그 과정도 하나의 작품이 됩니다.</p>
+    </div>
+  </section>
+
+  <section class="section" style="padding-top:0;">
+    <div class="container">
+
+      <div class="register-gate" id="register-gate" hidden>
+        <span class="register-gate__emoji" aria-hidden="true">🪄</span>
+        <h2>필명으로 시작하면 작품을 걸 수 있어요</h2>
+        <p>이메일 없이 필명과 비밀번호만 정하면 됩니다. 실력이나 경력은 묻지 않아요.</p>
+        <button class="btn btn--primary" type="button" data-open-auth="signup">필명 정하기</button>
+      </div>
+
+      <form class="work-form" id="work-form" novalidate hidden>
+        <div class="work-form__author">
+          <span aria-hidden="true">✦</span>
+          <span>필명 <b data-author></b> 님으로 겁니다</span>
+        </div>
+
+        <label class="form-field">
+          <span>제목 <em>*</em></span>
+          <input class="input" name="title" type="text" maxlength="60" placeholder="작품 제목을 적어 주세요" required>
+        </label>
+
+        <div class="form-field">
+          <span>분야 <em>*</em></span>
+          <div class="opt-chips" data-field-picker>
+            <button class="chip is-active" type="button" data-pick-field="문학" data-field="문학" aria-pressed="true"><i class="dot" aria-hidden="true"></i>문학</button>
+            <button class="chip" type="button" data-pick-field="미술" data-field="미술" aria-pressed="false"><i class="dot" aria-hidden="true"></i>미술</button>
+            <button class="chip" type="button" data-pick-field="음악" data-field="음악" aria-pressed="false"><i class="dot" aria-hidden="true"></i>음악</button>
+            <button class="chip" type="button" data-pick-field="사진" data-field="사진" aria-pressed="false"><i class="dot" aria-hidden="true"></i>사진</button>
+            <button class="chip" type="button" data-pick-field="공예" data-field="공예" aria-pressed="false"><i class="dot" aria-hidden="true"></i>공예</button>
+            <button class="chip" type="button" data-pick-field="디자인" data-field="디자인" aria-pressed="false"><i class="dot" aria-hidden="true"></i>디자인</button>
+          </div>
+          <p class="form-note" data-field-hint>문학 작품으로 걸립니다.</p>
+        </div>
+
+        <div class="form-field">
+          <span>지금 어느 단계인가요?</span>
+          <div class="status-options">
+            <label class="status-opt">
+              <input type="radio" name="status" value="완성" checked>
+              <span><b>완성</b><small>한 번 마무리한 작품이에요</small></span>
+            </label>
+            <label class="status-opt">
+              <input type="radio" name="status" value="과정 공개">
+              <span><b>과정 공개</b><small>만드는 중인 모습을 함께 보여 줘요</small></span>
+            </label>
+            <label class="status-opt">
+              <input type="radio" name="status" value="첫 도전">
+              <span><b>첫 도전</b><small>이 분야에 처음 도전한 작품이에요</small></span>
+            </label>
+          </div>
+        </div>
+
+        <label class="form-field">
+          <span>작품 소개</span>
+          <textarea class="textarea" name="description" maxlength="2000" rows="6" placeholder="어떤 마음으로 만들었는지, 어디서 막혔는지 적어 주세요. 과정도 충분한 작품이에요."></textarea>
+        </label>
+
+        <div class="form-field">
+          <span>사진 <em>(선택)</em></span>
+          <div class="image-picker">
+            <div class="image-picker__row">
+              <input type="file" id="work-image-file" accept="image/*" class="sr-only">
+              <label class="btn btn--ghost btn--sm" for="work-image-file">사진 고르기</label>
+              <input class="input" type="url" name="image_url" placeholder="또는 이미지 주소 https://...">
+            </div>
+            <p class="form-note">휴대폰에서 고른 사진은 최대 1200px로 자동으로 줄여 올려요.</p>
+            <div class="image-preview" id="image-preview" hidden>
+              <img alt="고른 사진 미리보기">
+              <span class="image-preview__note" data-image-note></span>
+              <button class="image-preview__clear" type="button" id="image-clear">빼기</button>
+            </div>
+          </div>
+        </div>
+
+        <label class="form-field">
+          <span>작품 링크 <em>(선택)</em></span>
+          <input class="input" type="url" name="link_url" placeholder="음악·영상은 링크로 걸 수 있어요">
+          <small class="form-note">파일을 올리는 대신 링크를 쓰면 저장 공간을 아낄 수 있어요.</small>
+        </label>
+
+        <p class="form-error" data-form-error role="alert" hidden></p>
+
+        <div class="form-foot">
+          <p class="form-note">올린 작품은 갤러리와 내 다락방에 바로 걸립니다.</p>
+          <button class="btn btn--primary" type="submit">다락방에 걸기</button>
+        </div>
+      </form>
+
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer__inner">
+      <div class="footer__brand">
+        <a class="logo" href="index.html">
+          <span class="logo__mark" aria-hidden="true">✦</span>
+          <span class="logo__text">아트다락방<em>ART DARAK</em></span>
+        </a>
+        <p>당신의 창작으로 모든 것이 만들어지는 곳.<br>문학 · 미술 · 음악 · 사진 · 공예 · 디자인을 가리지 않는 창작 커뮤니티.</p>
+      </div>
+      <div class="footer__col">
+        <h4>둘러보기</h4>
+        <ul>
+          <li><a href="gallery.html">갤러리</a></li>
+          <li><a href="register.html">작품 등록</a></li>
+          <li><a href="darakbang.html">내 다락방</a></li>
+          <li><a href="soon.html">창작자</a></li>
+        </ul>
+      </div>
+      <div class="footer__col">
+        <h4>운영 안내</h4>
+        <ul>
+          <li><a href="soon.html">커뮤니티</a></li>
+          <li><a href="soon.html">이용 약관</a></li>
+          <li><a href="soon.html">개인정보 처리방침</a></li>
+          <li><a href="admin.html">관리자</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer__bottom">
+      <span>© 2026 아트다락방 · 1단계</span>
+      <span>광고가 아니라 작품으로 운영되는 곳을 목표로 합니다</span>
+    </div>
+  </div>
+</footer>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="assets/seed.js"></script>
+<script src="assets/supabase-config.js"></script>
+<script src="assets/store.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

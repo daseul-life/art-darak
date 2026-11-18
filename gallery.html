@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>갤러리 · 아트다락방</title>
+<meta name="description" content="문학·미술·음악·사진·공예·디자인, 아트다락방에 걸린 작품을 분야별로 둘러보세요.">
+<meta name="theme-color" content="#FDF2F3">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/styles.css">
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="192x192" href="images/icon-192.png">
+<link rel="apple-touch-icon" sizes="180x180" href="images/apple-touch-icon.png">
+<link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="아트다락방">
+</head>
+<body data-page="gallery">
+
+<div class="mode-note" data-mode-note hidden>
+  <span class="spark spark--sm" aria-hidden="true"></span>
+  <span data-mode-text>체험 모드 · 지금 남긴 필명과 작품은 이 브라우저에만 저장돼요</span>
+</div>
+
+<header class="site-header">
+  <div class="container header__inner">
+    <a class="logo" href="index.html">
+      <span class="logo__mark" aria-hidden="true">✦</span>
+      <span class="logo__text">아트다락방<em>ART DARAK</em></span>
+    </a>
+    <nav class="site-nav" id="site-nav" aria-label="주요 메뉴">
+      <a href="index.html">홈</a>
+      <a href="gallery.html" class="is-active" aria-current="page">갤러리</a>
+      <a href="register.html" class="nav__cta">작품 등록</a>
+      <a href="soon.html">창작자</a>
+      <a href="soon.html">커뮤니티</a>
+      <a href="darakbang.html">내 다락방</a>
+    </nav>
+    <div class="header__actions">
+      <button class="account-btn" type="button" data-account aria-label="필명으로 가입하거나 로그인하기">
+        <span class="account-btn__avatar" data-account-avatar aria-hidden="true">✦</span>
+        <span class="account-btn__text" data-account-text>필명으로 시작</span>
+      </button>
+      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav">
+        <span class="nav-toggle__bars" aria-hidden="true"><i></i><i></i><i></i></span>
+        메뉴
+      </button>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <section class="page-head">
+    <div class="container">
+      <p class="breadcrumb"><a href="index.html">홈</a> · 갤러리</p>
+      <h1>갤러리 <span class="spark" aria-hidden="true"></span></h1>
+      <p>완성된 작품도, 아직 만들어지는 중인 작품도 같은 벽에 걸립니다. 마음에 드는 분야를 골라 천천히 둘러보세요.</p>
+    </div>
+  </section>
+
+  <section class="section" style="padding-top:0;">
+    <div class="container">
+
+      <div class="toolbar">
+        <div class="search" id="search-box">
+          <span class="search__icon" aria-hidden="true">🔍</span>
+          <label class="sr-only" for="gallery-search">작품 검색</label>
+          <input type="search" id="gallery-search" placeholder="작품명이나 필명으로 찾아보세요" autocomplete="off">
+          <button class="search__clear" type="button" id="search-clear" aria-label="검색어 지우기">✕</button>
+        </div>
+        <div class="sort">
+          <label for="gallery-status">상태</label>
+          <select id="gallery-status">
+            <option value="전체">전체</option>
+            <option value="완성">완성</option>
+            <option value="과정 공개">과정 공개</option>
+            <option value="첫 도전">첫 도전</option>
+          </select>
+        </div>
+        <div class="sort">
+          <label for="gallery-sort">정렬</label>
+          <select id="gallery-sort">
+            <option value="new">최신순</option>
+            <option value="likes">마음 많은 순</option>
+            <option value="comments">감상 많은 순</option>
+            <option value="title">가나다순</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="filters" role="group" aria-label="분야 필터">
+        <button class="chip is-active" type="button" data-filter="전체" aria-pressed="true">
+          전체 <span class="chip__count">0</span>
+        </button>
+        <button class="chip" type="button" data-field="문학" data-filter="문학" aria-pressed="false">
+          <i class="dot" aria-hidden="true"></i>문학 <span class="chip__count">0</span>
+        </button>
+        <button class="chip" type="button" data-field="미술" data-filter="미술" aria-pressed="false">
+          <i class="dot" aria-hidden="true"></i>미술 <span class="chip__count">0</span>
+        </button>
+        <button class="chip" type="button" data-field="음악" data-filter="음악" aria-pressed="false">
+          <i class="dot" aria-hidden="true"></i>음악 <span class="chip__count">0</span>
+        </button>
+        <button class="chip" type="button" data-field="사진" data-filter="사진" aria-pressed="false">
+          <i class="dot" aria-hidden="true"></i>사진 <span class="chip__count">0</span>
+        </button>
+        <button class="chip" type="button" data-field="공예" data-filter="공예" aria-pressed="false">
+          <i class="dot" aria-hidden="true"></i>공예 <span class="chip__count">0</span>
+        </button>
+        <button class="chip" type="button" data-field="디자인" data-filter="디자인" aria-pressed="false">
+          <i class="dot" aria-hidden="true"></i>디자인 <span class="chip__count">0</span>
+        </button>
+      </div>
+
+      <div class="result-line">
+        <p><b id="result-count">0</b>점의 작품</p>
+        <p class="result-hint" id="result-line-hint">카드를 누르면 작품 소개와 감상을 볼 수 있어요.</p>
+      </div>
+
+      <div class="work-grid" id="gallery-grid"></div>
+
+      <div class="empty" id="gallery-empty">
+        <span class="empty__emoji" aria-hidden="true">🔍</span>
+        <p><b>조건에 맞는 작품이 아직 없어요.</b><br>다른 분야를 골라 보거나 검색어를 짧게 바꿔 보세요.</p>
+        <button class="btn btn--ghost btn--sm" type="button" id="reset-filters">필터 초기화</button>
+      </div>
+
+    </div>
+  </section>
+
+  <section class="section" style="padding-top:0;">
+    <div class="container">
+      <div class="invite">
+        <span class="spark invite__spark" aria-hidden="true"></span>
+        <div>
+          <p class="ribbon ribbon--gold">첫 작품 환영</p>
+          <h2 style="margin-top:.7rem;">이 벽에 당신의 작품도 걸어 보세요</h2>
+          <p>완성되지 않아도 괜찮아요. 과정을 함께 보여 주는 것만으로도 이곳에서는 충분한 작품이 됩니다.</p>
+        </div>
+        <a class="btn btn--primary" href="register.html">작품 등록하기 <span aria-hidden="true">→</span></a>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer__inner">
+      <div class="footer__brand">
+        <a class="logo" href="index.html">
+          <span class="logo__mark" aria-hidden="true">✦</span>
+          <span class="logo__text">아트다락방<em>ART DARAK</em></span>
+        </a>
+        <p>당신의 창작으로 모든 것이 만들어지는 곳.<br>문학 · 미술 · 음악 · 사진 · 공예 · 디자인을 가리지 않는 창작 커뮤니티.</p>
+      </div>
+      <div class="footer__col">
+        <h4>둘러보기</h4>
+        <ul>
+          <li><a href="gallery.html">갤러리</a></li>
+          <li><a href="register.html">작품 등록</a></li>
+          <li><a href="darakbang.html">내 다락방</a></li>
+          <li><a href="soon.html">창작자</a></li>
+        </ul>
+      </div>
+      <div class="footer__col">
+        <h4>운영 안내</h4>
+        <ul>
+          <li><a href="soon.html">커뮤니티</a></li>
+          <li><a href="soon.html">이용 약관</a></li>
+          <li><a href="soon.html">개인정보 처리방침</a></li>
+          <li><a href="admin.html">관리자</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer__bottom">
+      <span>© 2026 아트다락방 · 1단계</span>
+      <span>광고가 아니라 작품으로 운영되는 곳을 목표로 합니다</span>
+    </div>
+  </div>
+</footer>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="assets/seed.js"></script>
+<script src="assets/supabase-config.js"></script>
+<script src="assets/store.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

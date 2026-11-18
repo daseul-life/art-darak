@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>아트다락방 · 오늘은 어떤 작품을 만들어 볼까요?</title>
+<meta name="description" content="문학·미술·음악·사진·공예·디자인을 가리지 않는 창작 커뮤니티, 아트다락방. 완성되지 않은 과정도 함께 모읍니다.">
+<meta name="theme-color" content="#FDF2F3">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/styles.css">
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="192x192" href="images/icon-192.png">
+<link rel="apple-touch-icon" sizes="180x180" href="images/apple-touch-icon.png">
+<link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="아트다락방">
+<meta property="og:type" content="website">
+<meta property="og:title" content="아트다락방 · 오늘은 어떤 작품을 만들어 볼까요?">
+<meta property="og:description" content="완성된 작품만이 아니라, 그 작품이 나오기까지의 과정도 함께 모으는 창작 커뮤니티.">
+</head>
+<body data-page="home">
+
+<div class="mode-note" data-mode-note hidden>
+  <span class="spark spark--sm" aria-hidden="true"></span>
+  <span data-mode-text>체험 모드 · 지금 남긴 필명과 작품은 이 브라우저에만 저장돼요</span>
+</div>
+
+<header class="site-header">
+  <div class="container header__inner">
+    <a class="logo" href="index.html">
+      <span class="logo__mark" aria-hidden="true">✦</span>
+      <span class="logo__text">아트다락방<em>ART DARAK</em></span>
+    </a>
+    <nav class="site-nav" id="site-nav" aria-label="주요 메뉴">
+      <a href="index.html" class="is-active" aria-current="page">홈</a>
+      <a href="gallery.html">갤러리</a>
+      <a href="register.html" class="nav__cta">작품 등록</a>
+      <a href="soon.html">창작자</a>
+      <a href="soon.html">커뮤니티</a>
+      <a href="darakbang.html">내 다락방</a>
+    </nav>
+    <div class="header__actions">
+      <button class="account-btn" type="button" data-account aria-label="필명으로 가입하거나 로그인하기">
+        <span class="account-btn__avatar" data-account-avatar aria-hidden="true">✦</span>
+        <span class="account-btn__text" data-account-text>필명으로 시작</span>
+      </button>
+      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav">
+        <span class="nav-toggle__bars" aria-hidden="true"><i></i><i></i><i></i></span>
+        메뉴
+      </button>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <!-- ===== 공지 띠 (관리자 화면에서 쓴 공지가 여기에 보입니다) ===== -->
+  <div class="notice-band" data-notice-band hidden>
+    <div class="container notice-band__inner">
+      <span class="notice-band__label">📌 공지</span>
+      <span class="notice-band__title" data-notice-title></span>
+      <span class="notice-band__body" data-notice-body></span>
+      <button class="notice-band__close" type="button" data-notice-close aria-label="공지 닫기">✕</button>
+    </div>
+  </div>
+
+  <!-- ===== 짧은 소개 히어로 ===== -->
+  <section class="hero hero--intro">
+    <div class="bokeh" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+
+    <div class="container hero__inner">
+      <div class="hero__copy">
+        <div class="hero__fields">
+          <span>문학</span><i></i><span>미술</span><i></i><span>음악</span><i></i>
+          <span>사진</span><i></i><span>공예</span><i></i><span>디자인</span>
+        </div>
+        <h1>오늘은 어떤 작품을<br><span class="hl">만들어 볼까요?</span></h1>
+        <p class="hero__lead">
+          완성된 작품만이 아니라, 그 작품이 나오기까지의 과정도 함께 모으는 곳이에요.
+          필명 하나면 시작할 수 있고, 잘 그리지 못해도 괜찮습니다.
+          <strong>당신의 창작으로 모든 것이 만들어지는 곳.</strong>
+        </p>
+        <div class="hero__actions">
+          <a class="btn btn--primary" href="gallery.html">갤러리 둘러보기 <span aria-hidden="true">→</span></a>
+          <a class="btn btn--ghost" href="darakbang.html">내 다락방 열기</a>
+        </div>
+        <div class="hero__note">
+          <span><b>지금 걸린 작품</b> <span data-stat-works>0</span>점</span>
+          <span aria-hidden="true">·</span>
+          <span><b>참여한 필명</b> <span data-stat-pens>0</span>명</span>
+          <span aria-hidden="true">·</span>
+          <span>모든 기능 무료</span>
+        </div>
+      </div>
+
+      <div class="hero__visual">
+        <div class="studio" role="img"
+             aria-label="여섯 분야가 한 방에 모인 다락방 작업실. 책과 펜, 사진기, 도자기가 놓인 나무 선반, 기타와 타블렛, 이젤이 함께 있습니다.">
+          <div class="studio__floor" aria-hidden="true"></div>
+          <div class="studio__rug" aria-hidden="true"></div>
+          <div class="studio__window" aria-hidden="true">
+            <div class="studio__moon"></div>
+            <div class="studio__stars"></div>
+            <div class="studio__bars"><i></i><i></i></div>
+          </div>
+          <div class="studio__beams" aria-hidden="true"></div>
+          <div class="studio__frame" aria-hidden="true"></div>
+          <div class="studio__baseboard" aria-hidden="true"></div>
+          <div class="studio__lights" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="studio__light" aria-hidden="true"></div>
+          <div class="studio__dust" aria-hidden="true"></div>
+          <div class="studio__shelf" aria-hidden="true"></div>
+          <div class="studio__shelf-props" aria-hidden="true">
+            <span class="prop prop--books"><i></i><i></i><i></i></span>
+            <span class="prop prop--pen"><i></i><b></b></span>
+            <span class="prop prop--camera"><i></i></span>
+            <span class="prop prop--clay"></span>
+          </div>
+          <div class="studio__floor-props" aria-hidden="true">
+            <span class="studio__guitar" aria-hidden="true"></span>
+            <div class="studio__tablet"><i></i><i></i><i></i><i></i></div>
+            <div class="studio__easel">
+              <div class="studio__easel-canvas"></div>
+              <span class="studio__easel-leg studio__easel-leg--l"></span>
+              <span class="studio__easel-leg studio__easel-leg--r"></span>
+              <span class="studio__easel-leg studio__easel-leg--c"></span>
+            </div>
+          </div>
+        </div>
+        <p class="hero__caption">책 · 이젤 · 기타 · 카메라 · 흙 · 색 — 여섯 분야가 한 방에</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 오늘의 작품 (히어로 바로 아래) ===== -->
+  <section class="section" style="padding-top:clamp(1rem,2.4vw,1.6rem);">
+    <div class="container">
+      <div class="section__head">
+        <div class="section__title">
+          <p class="kicker">오늘의 작품</p>
+          <h2>지금 다락방에 걸린 작품들 <span class="spark" aria-hidden="true"></span></h2>
+          <p class="section__desc">관리자가 고른 추천 작품과 새로 걸린 작품을 먼저 보여 드려요. 카드를 누르면 작품 소개와 감상이 이어집니다.</p>
+        </div>
+        <a class="link-more" href="gallery.html">갤러리 전체 보기 →</a>
+      </div>
+
+      <div class="work-grid" data-today-grid></div>
+
+      <div class="empty" data-today-empty>
+        <span class="empty__emoji" aria-hidden="true">🪜</span>
+        <p><b>아직 걸린 작품이 없어요.</b><br>첫 번째 작품의 주인이 되어 보세요.</p>
+        <a class="btn btn--primary btn--sm" href="register.html">첫 작품 걸기</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 분야별 둘러보기 ===== -->
+  <section class="section">
+    <div class="container">
+      <div class="section__head">
+        <div class="section__title">
+          <p class="kicker">분야별 둘러보기</p>
+          <h2>어떤 다락방부터 열어 볼까요? <span class="spark" aria-hidden="true"></span></h2>
+          <p class="section__desc">분야를 가리지 않고 모으는 곳이라, 오늘은 글이고 내일은 도자가 되는 일이 자연스러워요.</p>
+        </div>
+        <a class="link-more" href="gallery.html">분야별로 보기 →</a>
+      </div>
+
+      <div class="field-grid">
+        <a class="field f-lit" data-field="문학" data-field-tile href="gallery.html?field=%EB%AC%B8%ED%95%99">
+          <span class="field__stars" aria-hidden="true"></span>
+          <span class="field__emoji" aria-hidden="true">📖</span>
+          <p class="field__name">문학</p>
+          <p class="field__count" data-field-count>0점</p>
+        </a>
+        <a class="field f-art" data-field="미술" data-field-tile href="gallery.html?field=%EB%AF%B8%EC%88%A0">
+          <span class="field__stars" aria-hidden="true"></span>
+          <span class="field__emoji" aria-hidden="true">🎨</span>
+          <p class="field__name">미술</p>
+          <p class="field__count" data-field-count>0점</p>
+        </a>
+        <a class="field f-music" data-field="음악" data-field-tile href="gallery.html?field=%EC%9D%8C%EC%95%85">
+          <span class="field__stars" aria-hidden="true"></span>
+          <span class="field__emoji" aria-hidden="true">🎸</span>
+          <p class="field__name">음악</p>
+          <p class="field__count" data-field-count>0점</p>
+        </a>
+        <a class="field f-photo" data-field="사진" data-field-tile href="gallery.html?field=%EC%82%AC%EC%A7%84">
+          <span class="field__stars" aria-hidden="true"></span>
+          <span class="field__emoji" aria-hidden="true">📷</span>
+          <p class="field__name">사진</p>
+          <p class="field__count" data-field-count>0점</p>
+        </a>
+        <a class="field f-craft" data-field="공예" data-field-tile href="gallery.html?field=%EA%B3%B5%EC%98%88">
+          <span class="field__stars" aria-hidden="true"></span>
+          <span class="field__emoji" aria-hidden="true">🧶</span>
+          <p class="field__name">공예</p>
+          <p class="field__count" data-field-count>0점</p>
+        </a>
+        <a class="field f-design" data-field="디자인" data-field-tile href="gallery.html?field=%EB%94%94%EC%9E%90%EC%9D%B8">
+          <span class="field__stars" aria-hidden="true"></span>
+          <span class="field__emoji" aria-hidden="true">🖌️</span>
+          <p class="field__name">디자인</p>
+          <p class="field__count" data-field-count>0점</p>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 네 가지 가치 ===== -->
+  <section class="section" style="padding-top:0;">
+    <div class="container">
+      <div class="values">
+        <div class="value">
+          <div class="value__icon" aria-hidden="true">🖼️</div>
+          <h3>전시</h3>
+          <p>내 작업을 걸어 두는 작은 벽. 완성작도, 아직인 것도 그대로 걸 수 있어요.</p>
+        </div>
+        <div class="value">
+          <div class="value__icon" aria-hidden="true">🔍</div>
+          <h3>발견</h3>
+          <p>아직 몰랐던 취향을 만나는 일. 다른 분야의 작업에서 영감을 얻어요.</p>
+        </div>
+        <div class="value">
+          <div class="value__icon" aria-hidden="true">💬</div>
+          <h3>교류</h3>
+          <p>필명으로 나누는 짧은 대화. 실력보다 마음이 먼저 오가는 자리예요.</p>
+        </div>
+        <div class="value">
+          <div class="value__icon" aria-hidden="true">🤝</div>
+          <h3>협업</h3>
+          <p>서로의 다락방을 오가며 함께 만드는 것. 글과 그림이 만나 한 작품이 돼요.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 초대 ===== -->
+  <section class="section" style="padding-top:0;">
+    <div class="container">
+      <div class="invite">
+        <span class="spark invite__spark" aria-hidden="true"></span>
+        <div>
+          <p class="ribbon ribbon--gold">입주 안내</p>
+          <h2 style="margin-top:.7rem;">당신의 다락방 문을 열어 보세요</h2>
+          <p>필명 하나만 정하면 바로 시작할 수 있어요. 실력이나 경력을 묻지 않고, 초기에는 모든 기능을 무료로 열어 둡니다.</p>
+          <p class="pwa-hint">휴대폰 크롬에서 오른쪽 위 ⋮ → “홈 화면에 추가”를 누르면 앱처럼 열려요.</p>
+        </div>
+        <a class="btn btn--primary" href="#" data-hero-cta data-open-auth="signup">필명으로 시작하기 <span aria-hidden="true">→</span></a>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer__inner">
+      <div class="footer__brand">
+        <a class="logo" href="index.html">
+          <span class="logo__mark" aria-hidden="true">✦</span>
+          <span class="logo__text">아트다락방<em>ART DARAK</em></span>
+        </a>
+        <p>당신의 창작으로 모든 것이 만들어지는 곳.<br>문학 · 미술 · 음악 · 사진 · 공예 · 디자인을 가리지 않는 창작 커뮤니티.</p>
+      </div>
+      <div class="footer__col">
+        <h4>둘러보기</h4>
+        <ul>
+          <li><a href="gallery.html">갤러리</a></li>
+          <li><a href="register.html">작품 등록</a></li>
+          <li><a href="darakbang.html">내 다락방</a></li>
+          <li><a href="soon.html">창작자</a></li>
+        </ul>
+      </div>
+      <div class="footer__col">
+        <h4>운영 안내</h4>
+        <ul>
+          <li><a href="soon.html">커뮤니티</a></li>
+          <li><a href="soon.html">이용 약관</a></li>
+          <li><a href="soon.html">개인정보 처리방침</a></li>
+          <li><a href="admin.html">관리자</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer__bottom">
+      <span>© 2026 아트다락방 · 1단계</span>
+      <span>광고가 아니라 작품으로 운영되는 곳을 목표로 합니다</span>
+    </div>
+  </div>
+</footer>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="assets/seed.js"></script>
+<script src="assets/supabase-config.js"></script>
+<script src="assets/store.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>
