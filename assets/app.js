@@ -1320,6 +1320,7 @@
     var editor = document.getElementById('studio-editor');
     var moodPicker = document.querySelector('[data-mood-picker]');
     var propPicker = document.querySelector('[data-prop-picker]');
+    var propsReset = document.querySelector('[data-props-reset]');
     var visitOwn = document.querySelector('[data-visit-own]');
     var visitJoin = document.querySelector('[data-visit-join]');
     var editBtn = document.getElementById('edit-profile');
@@ -1340,7 +1341,7 @@
     var penParam = (new URLSearchParams(window.location.search).get('pen') || '').trim();
     var target = null;
     var isOwner = false;
-    var attic = { mood: 'write', props: [], avatar: '', gender: '' };
+    var attic = { mood: 'write', props: [], avatar: '', gender: '', pos: {} };
     var avatarPicker = null;
     var currentTheme = 'rose';
     var lastSignature = null;
@@ -1362,7 +1363,8 @@
         mood: normalized.mood,
         props: normalized.props.slice(),
         avatar: normalized.avatar || '',
-        gender: normalized.gender || ''
+        gender: normalized.gender || '',
+        pos: normalized.pos ? Object.assign({}, normalized.pos) : {}
       };
     }
 
@@ -1387,7 +1389,10 @@
 
       var propNames = attic.props.map(function (key) { return PROP_LABEL[key]; }).filter(Boolean);
       studio.setAttribute('aria-label', MOOD_LABEL[mood] + ' 분위기의 다락방 사무실. ' +
-        (propNames.length ? '소품: ' + propNames.join(', ') + '.' : '아직 놓은 소품이 없어요.'));
+        (propNames.length ? '소품: ' + propNames.join(', ') + '.' : '아직 놓은 소품이 없어요.') +
+        (isOwner ? ' 소품은 끌어서 자리를 옮길 수 있어요.' : ''));
+
+      paintPropPositions();
 
       if (moodPicker) {
         moodPicker.querySelectorAll('[data-mood]').forEach(function (chip) {
@@ -1406,6 +1411,189 @@
         });
       }
       setText('[data-props-count]', attic.props.length ? attic.props.length + '개 놓임' : '0개 놓임');
+    }
+
+    /* -------------------------------------------------- 소품 끌어 옮기기 */
+    /* 소품 자리는 방(800×500) 안에서 소품의 한가운데가 놓인 곳을 백분율로 기억합니다.
+       그래서 휴대폰에서 옮긴 자리가 큰 화면에서도 같은 비율로 보입니다.
+       pos 에 적힌 적이 없는 소품은 손대지 않아 지금까지의 기본 자리 그대로 보입니다. */
+    var ROOM_W = 800;
+    var ROOM_H = 500;
+    var propDrag = null;
+
+    function propGroups(key) {
+      if (!studio) return [];
+      return Array.prototype.slice.call(studio.querySelectorAll('[data-prop="' + key + '"]'));
+    }
+
+    function propBBox(node) {
+      if (!node) return null;
+      try {
+        var box = node.getBBox();
+        if (!box || !box.width || !box.height) return null;
+        return box;
+      } catch (err) {
+        return null;
+      }
+    }
+
+    /* 소품이 방 밖으로 나가지 않게 옮길 수 있는 범위를 좁힙니다. */
+    function clampPropOffset(box, dx, dy) {
+      var minX = -box.x;
+      var maxX = ROOM_W - (box.x + box.width);
+      var minY = -box.y;
+      var maxY = ROOM_H - (box.y + box.height);
+      if (maxX < minX) minX = maxX = (ROOM_W - box.width) / 2 - box.x;
+      if (maxY < minY) minY = maxY = (ROOM_H - box.height) / 2 - box.y;
+      return {
+        dx: Math.min(Math.max(dx, minX), maxX),
+        dy: Math.min(Math.max(dy, minY), maxY)
+      };
+    }
+
+    function propOffset(box, pos) {
+      if (!box) return { dx: 0, dy: 0 };
+      if (!pos) return { dx: 0, dy: 0 };
+      var cx = box.x + box.width / 2;
+      var cy = box.y + box.height / 2;
+      return clampPropOffset(box, (pos.x / 100) * ROOM_W - cx, (pos.y / 100) * ROOM_H - cy);
+    }
+
+    function setPropOffset(node, dx, dy) {
+      if (!node) return;
+      if (!dx && !dy) {
+        node.style.transform = '';
+        return;
+      }
+      node.style.transform = 'translate(' + dx.toFixed(2) + 'px, ' + dy.toFixed(2) + 'px)';
+    }
+
+    /* 저장된 자리를 방 안 소품에 하나하나 적용합니다. */
+    function paintPropPositions() {
+      Store.ATTIC_PROPS.forEach(function (key) {
+        propGroups(key).forEach(function (node) {
+          if (!node.classList.contains('is-on')) {
+            node.style.transform = '';
+            return;
+          }
+          var offset = propOffset(propBBox(node), attic.pos[key]);
+          setPropOffset(node, offset.dx, offset.dy);
+        });
+      });
+    }
+
+    /* 화면 좌표 → 방(SVG viewBox) 좌표 */
+    function roomPoint(node, clientX, clientY) {
+      var svg = node && node.ownerSVGElement;
+      if (!svg || !svg.getScreenCTM) return null;
+      var ctm = svg.getScreenCTM();
+      if (!ctm) return null;
+      var point = svg.createSVGPoint();
+      point.x = clientX;
+      point.y = clientY;
+      var local = point.matrixTransform(ctm.inverse());
+      return { x: local.x, y: local.y };
+    }
+
+    function startPropDrag(event) {
+      if (!studio || !isOwner || propDrag) return;
+      if (event.button != null && event.button !== 0) return;
+      var node = event.target && event.target.closest ? event.target.closest('.droom__prop') : null;
+      if (!node || !studio.contains(node) || !node.classList.contains('is-on')) return;
+      var key = node.getAttribute('data-prop');
+      if (!key || !PROP_LABEL[key]) return;
+      var box = propBBox(node);
+      var start = roomPoint(node, event.clientX, event.clientY);
+      if (!box || !start) return;
+      var offset = propOffset(box, attic.pos[key]);
+      propDrag = {
+        key: key,
+        node: node,
+        box: box,
+        pointerId: event.pointerId,
+        startX: start.x,
+        startY: start.y,
+        baseDx: offset.dx,
+        baseDy: offset.dy,
+        dx: offset.dx,
+        dy: offset.dy,
+        moved: false
+      };
+      node.classList.add('is-dragging');
+      try { node.setPointerCapture(event.pointerId); } catch (err) { /* 잡지 못해도 아래에서 계속 */ }
+      event.preventDefault();
+    }
+
+    function movePropDrag(event) {
+      if (!propDrag || event.pointerId !== propDrag.pointerId) return;
+      var point = roomPoint(propDrag.node, event.clientX, event.clientY);
+      if (!point) return;
+      var moved = clampPropOffset(propDrag.box,
+        propDrag.baseDx + (point.x - propDrag.startX),
+        propDrag.baseDy + (point.y - propDrag.startY));
+      propDrag.dx = moved.dx;
+      propDrag.dy = moved.dy;
+      if (Math.abs(point.x - propDrag.startX) > 0.5 || Math.abs(point.y - propDrag.startY) > 0.5) {
+        propDrag.moved = true;
+      }
+      setPropOffset(propDrag.node, moved.dx, moved.dy);
+      event.preventDefault();
+    }
+
+    function finishPropDrag(event) {
+      if (!propDrag) return;
+      if (event && event.pointerId != null && event.pointerId !== propDrag.pointerId) return;
+      var drag = propDrag;
+      propDrag = null;
+      drag.node.classList.remove('is-dragging');
+      try { drag.node.releasePointerCapture(drag.pointerId); } catch (err) { /* 이미 풀렸어요 */ }
+
+      /* 그냥 눌렀다 뗀 것이라면 자리를 건드리지 않습니다. */
+      if (!drag.moved) {
+        var back = propOffset(drag.box, attic.pos[drag.key]);
+        setPropOffset(drag.node, back.dx, back.dy);
+        return;
+      }
+
+      var pos = {
+        x: Math.min(100, Math.max(0, (drag.box.x + drag.box.width / 2 + drag.dx) / ROOM_W * 100)),
+        y: Math.min(100, Math.max(0, (drag.box.y + drag.box.height / 2 + drag.dy) / ROOM_H * 100))
+      };
+      attic.pos[drag.key] = {
+        x: Math.round(pos.x * 10) / 10,
+        y: Math.round(pos.y * 10) / 10
+      };
+      /* 저장값(소수 한 자리)과 화면을 똑같이 맞춥니다. */
+      var settled = propOffset(drag.box, attic.pos[drag.key]);
+      setPropOffset(drag.node, settled.dx, settled.dy);
+      persistAttic(PROP_LABEL[drag.key] + ' 소품을 옮겨 두었어요.');
+    }
+
+    function cancelPropDrag(event) {
+      if (!propDrag) return;
+      if (event && event.pointerId != null && event.pointerId !== propDrag.pointerId) return;
+      var drag = propDrag;
+      propDrag = null;
+      drag.node.classList.remove('is-dragging');
+      var offset = propOffset(drag.box, attic.pos[drag.key]);
+      setPropOffset(drag.node, offset.dx, offset.dy);
+    }
+
+    function setupPropDrag() {
+      if (!studio) return;
+      studio.addEventListener('pointerdown', startPropDrag);
+      studio.addEventListener('pointermove', movePropDrag);
+      studio.addEventListener('pointerup', finishPropDrag);
+      studio.addEventListener('pointercancel', cancelPropDrag);
+      studio.addEventListener('lostpointercapture', function (event) {
+        if (propDrag && event.pointerId === propDrag.pointerId) finishPropDrag(event);
+      });
+      /* 소품을 잡고 있는 동안에는 화면이 스크롤되지 않게 합니다.
+         (SVG 안쪽 요소의 touch-action 만으로는 브라우저가 스크롤을 시작해 버려서
+          touchmove 를 한 번 더 막아 줍니다.) */
+      studio.addEventListener('touchmove', function (event) {
+        if (propDrag && event.cancelable) event.preventDefault();
+      }, { passive: false });
     }
 
     /* -------------------------------------------------- 방 안 캐릭터 */
@@ -1560,7 +1748,8 @@
         mood: attic.mood,
         props: attic.props.slice(),
         avatar: attic.avatar,
-        gender: attic.gender
+        gender: attic.gender,
+        pos: Object.assign({}, attic.pos)
       };
       saveChain = saveChain
         .then(function () {
@@ -1649,6 +1838,20 @@
           persistAttic(PROP_LABEL[key] + ' 소품을 ' + (index === -1 ? '방에 놓았어요.' : '치웠어요.'));
         });
       }
+
+      /* 소품 자리 되돌리기 — 끌어 옮긴 자리를 모두 기본 자리로 돌립니다. */
+      if (propsReset) {
+        propsReset.addEventListener('click', function () {
+          if (!isOwner) return;
+          if (!Object.keys(attic.pos || {}).length) {
+            toast('소품이 모두 처음 자리에 있어요.');
+            return;
+          }
+          attic.pos = {};
+          paintStudio();
+          persistAttic('소품을 처음 자리로 되돌렸어요.');
+        });
+      }
     }
 
     /* -------------------------------------------------- 벽지 */
@@ -1696,6 +1899,7 @@
     function setupTools(owner, me) {
       if (editBtn) editBtn.hidden = !owner;
       if (logoutBtn) logoutBtn.hidden = !owner;
+      if (studio) studio.classList.toggle('droom--moveable', owner);
       if (visitOwn) visitOwn.hidden = owner || !me;
       if (visitJoin) visitJoin.hidden = owner || !!me;
       if (editor) editor.hidden = !owner;
@@ -1829,6 +2033,7 @@
     /* -------------------------------------------------- 이벤트 */
     setupStudioEditor();
     setupRoomCharacter();
+    setupPropDrag();
     ensureProfileModal();
 
     if (editBtn) {
@@ -1930,7 +2135,8 @@
             mood: currentAttic.mood,
             props: currentAttic.props,
             avatar: profileAvatar ? profileAvatar.get() : '',
-            gender: profileGender ? profileGender.get() : ''
+            gender: profileGender ? profileGender.get() : '',
+            pos: currentAttic.pos || {}
           }
         });
         closeProfileModal();

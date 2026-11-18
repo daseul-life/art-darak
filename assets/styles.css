@@ -2365,6 +2365,13 @@ body { word-break: keep-all; overflow-wrap: break-word; }
 .droom__prop.is-on { display: inline; animation: droomPop .42s var(--ease) both; }
 @keyframes droomPop { from { opacity: 0; } to { opacity: 1; } }
 
+/* 내 다락방에서는 소품을 손으로 끌어 옮길 수 있습니다 — 끌 때 화면이 스크롤되지 않게 터치 처리 */
+.droom--moveable .droom__prop.is-on { pointer-events: auto; cursor: grab; touch-action: none; }
+.droom--moveable .droom__prop.is-dragging {
+  cursor: grabbing;
+  filter: drop-shadow(0 7px 10px rgba(110, 70, 80, .2));
+}
+
 /* --- 방 안 캐릭터 — 고른 캐릭터 한 명이 러그 옆에 서 있어요 --- */
 .droom__char, .droom__char-figure { display: none; }
 .droom__char.is-on, .droom__char-figure.is-on { display: inline; }
@@ -2570,6 +2577,7 @@ body { word-break: keep-all; overflow-wrap: break-word; }
   background: var(--ivory); font-size: .72rem; font-weight: 800; color: var(--plum-2);
 }
 .studio-editor .attic-swatches { margin-top: .6rem; }
+.studio-reset { display: flex; justify-content: flex-end; margin-top: .55rem; }
 
 .mood-grid {
   display: grid; grid-template-columns: repeat(4, 1fr); gap: .45rem;

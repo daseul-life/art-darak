@@ -29,7 +29,8 @@
   var DEFAULT_THEME = 'rose';
 
   /* 다락방 사무실 — 작업실 분위기 4종과 소품 10종.
-     profiles.attic_props(jsonb)에 { mood, props: [] } 로 저장합니다.
+     profiles.attic_props(jsonb)에 { mood, props: [], pos: { 소품키: {x,y} } } 로 저장합니다.
+     pos 는 방 안에서 손으로 끌어 옮긴 소품 자리(백분율)이고, 없으면 기본 자리입니다.
      예전에 배열([])로 저장된 값도 그대로 읽히도록 normalizeAtticProps 가 받아 줍니다. */
   var ATTIC_MOODS = ['write', 'paint', 'music', 'craft'];
   var ATTIC_PROPS = ['easel', 'desk', 'lamp', 'guitar', 'plant', 'tea', 'garland', 'cat', 'books', 'vinyl'];
@@ -102,8 +103,36 @@
     return ATTIC_GENDERS.indexOf(value) !== -1 ? value : '';
   }
 
-  /* { mood, props, avatar?, gender? } — 예전 배열 값·모르는 값도 받아 줍니다.
-     avatar/gender 는 고른 적이 있을 때만 키를 남겨서, 예전 저장 값과 모양이 같습니다. */
+  /* 소품 자리 — { "<propKey>": { x: 0~100, y: 0~100 } }.
+     x·y 는 방(800×500) 안에서 소품 중심이 놓인 자리를 백분율로 적은 값이라
+     휴대폰·큰 화면 어디서 열어도 같은 자리에 보입니다.
+     모르는 소품 키, 숫자가 아닌 값, 0~100 밖의 값은 조용히 버립니다. */
+  function posNumber(value) {
+    if (typeof value === 'number') return isFinite(value) ? value : null;
+    if (typeof value === 'string' && value.trim() !== '') {
+      var n = Number(value);
+      return isFinite(n) ? n : null;
+    }
+    return null;
+  }
+
+  function normalizePropPos(value) {
+    var out = {};
+    if (!value || typeof value !== 'object' || Array.isArray(value)) return out;
+    ATTIC_PROPS.forEach(function (key) {
+      var raw = value[key];
+      if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return;
+      var x = posNumber(raw.x);
+      var y = posNumber(raw.y);
+      if (x == null || y == null) return;
+      if (x < 0 || x > 100 || y < 0 || y > 100) return;
+      out[key] = { x: Math.round(x * 10) / 10, y: Math.round(y * 10) / 10 };
+    });
+    return out;
+  }
+
+  /* { mood, props, avatar?, gender?, pos? } — 예전 배열 값·모르는 값도 받아 줍니다.
+     avatar/gender/pos 는 고른 적이 있을 때만 키를 남겨서, 예전 저장 값과 모양이 같습니다. */
   function normalizeAtticProps(value) {
     var raw = value;
     if (Array.isArray(raw)) raw = { props: raw };
@@ -123,6 +152,8 @@
     if (avatar) next.avatar = avatar;
     var gender = normalizeGender(raw.gender);
     if (gender) next.gender = gender;
+    var pos = normalizePropPos(raw.pos);
+    if (Object.keys(pos).length) next.pos = pos;
     return next;
   }
 
@@ -1165,6 +1196,7 @@
     CHARACTER_GENDER_LABEL: CHARACTER_GENDER_LABEL,
     normalizeGender: normalizeGender,
     normalizeAtticProps: normalizeAtticProps,
+    normalizePropPos: normalizePropPos,
     init: async function () {
       if (state.mode === 'cloud') {
         try {
