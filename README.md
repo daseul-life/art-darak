@@ -156,6 +156,7 @@ notifyEmail: 'aa95925551@gmail.com'
 - **커피머신·캔들 모션**: 커피머신에서는 김이 모락모락 올라오고, 창턱의 캔들 워머는 불빛이 은은하게 흔들립니다.
 - **다락방 캐릭터 · 성별**: 가입 창과 `내 다락방` 꾸미기 판·프로필 꾸미기에서 **사진 캐릭터 6명**(여성 3 · 남성 3, `전체 / 여성 / 남성` 칩으로 골라 보기)과 **'글자 기본'**(필명 첫 글자) 중 하나를 고르고, 성별(여성 · 남성 · 선택 안 함)도 함께 저장합니다. 고른 사진은 내 다락방 프로필·상단 버튼·이름 옆 칭호·다른 사람이 보는 다락방(`?pen=`)에 그대로 보입니다. 카드에는 사람 이름 대신 **칭호**만 적습니다.
 - **방 안 캐릭터**: 고른 캐릭터 한 명이 다락방 사무실 러그 옆에 동화풍 미니어처로 서 있습니다(머리 모양·옷차림·든 소품이 사람마다 다름). 방 안 캐릭터를 터치/클릭하거나 Enter·Space로 부르면 통통 튀며 고개를 갸웃하는 1.2초 애니메이션과 함께 ✦·♡ 반짝임이 떠오르고, 성향에 맞는 짧은 문구 3개가 돌아가며 2.5초 pink 말풍선으로 뜹니다. '글자 기본'이면 방에 캐릭터가 없고, 다른 사람 다락방(`?pen=`)에서도 똑같이 움직입니다.
+- **캐릭터 자세 · 움직임**: 꾸미기 판의 **캐릭터 자세**에서 **서기(기본) · 앉기 · 작업하기 · 명상하기**를 고릅니다. 열둘(여6·남6) 캐릭터마다 네 자세 그림이 있어, 앉기는 러그에 기대 앉아 쉬고, 작업하기는 무릎을 세우고 손에 든 붓·펜·기타·실로 작업하며, 명상하기는 눈을 감고 가부좌로 숨을 곱니다(그 앞에 자기 도구를 내려놓음). 자세마다 다른 은은한 움직임이 붙습니다 — 서기는 잔잔한 숨쉬기, 앉기는 천천히 기우는 흔들림, 작업하기는 집중하는 잔근질, 명상하기는 느린 호흡과 함께 번지는 빛무리·떠오르는 빛알갱이(`prefers-reduced-motion` 에서는 모두 정지). 고른 자세는 `profiles.attic_props.pose` 에 `sit`·`work`·`meditate` 로 저장되고, 서기(기본)면 키 없이 예전 저장 값과 같습니다. 방문자(`?pen=`) 화면에도 주인이 고른 자세와 움직임이 그대로 보입니다.
 - **다락방 숨 고르기 (1분 · 3분 명상)**: 다락방 사무실 그림 바로 아래의 **🕯️ 작업 전 숨 고르기** 카드를 누르면 명상 창이 열립니다. **1분(가볍게) / 3분(차분히)** 중에 고르고 시작을 누르면, 로즈밀크 빛망울이 **들이쉬기 4초 → 멈추기 2초 → 내쉬기 4초** 리듬에 맞춰 천천히 커졌다 작아지고, 그 앞의 촛불과 함께 단계 안내·남은 시간이 보입니다. 언제든 **잠시 멈춤 / 이어하기 / 그만하기**가 되고, 다 채우면 *“이제 가벼운 마음으로 한 줄이나 한 획을 시작해 볼까요?”* 한 마디가 뜹니다. 방 주인은 물론 `?pen=`으로 찾아온 방문자도 쓸 수 있고, 다락방 설정(`attic_props`)은 건드리지 않습니다.
 - **다른 다락방 구경**: `darakbang.html?pen=필명` — 그 사람이 꾸민 방과 작품이 보이고, 꾸미기 도구는 주인에게만 보입니다
 - **관리자**: 공지 · 작품 추천/숨김/삭제 · 감상 삭제 · 회원 잠금
@@ -223,7 +224,7 @@ art-darak/v1/
 - **기존 동작 테스트 61개 항목 모두 통과, JS 오류 0건** (`art-darak/_build/test_app.py`)
 - **다락방 사무실 테스트 55개 항목 모두 통과, JS 오류 0건** (`art-darak/_build/test_studio.py`)
   - 분위기 4종 · 소품 17종 · 벽지 6색 · 창밖 풍경 4종이 그림에 바로 반영되고, 분위기/소품/벽지/풍경이 새로 고침 후에도 유지
-  - `profiles.attic_props` 에 `{ mood, props, view? }` 로 저장 (예전 배열 `['easel']` 값, `view` 없는 값도 안전하게 읽음)
+  - `profiles.attic_props` 에 `{ mood, props, view?, pose? }` 로 저장 (예전 배열 `['easel']` 값, `view`·`pose` 없는 값도 안전하게 읽음)
   - `?pen=` 다른 다락방: 그 사람의 방·작품이 보이고 꾸미기 도구는 숨김, 로그인 없이도 구경 가능
   - 모바일(390×844) 스크린샷: `screenshots/pink-darakbang-studio-mobile.png`
 - **캐릭터·성별 테스트 66개 항목 모두 통과, JS 오류 0건** (`art-darak/_build/test_avatar.py`)
@@ -238,6 +239,14 @@ art-darak/v1/
   - `?pen=` 다른 다락방에서도 그 사람 캐릭터가 서고 터치하면 똑같이 움직임
   - 화면·alt·aria-label 어디에도 캐릭터 이름(서윤·해밀·이안·모모·하온·도윤)이 새지 않음
   - 모바일(390×844) 스크린샷: `screenshots/pink-room-character-mobile.png`
+- **캐릭터 자세 테스트 49개 항목 모두 통과, JS 오류 0건** (`art-darak-char/_prev/test_character_pose.py`)
+  - 자세 칩 4개(서기 · 앉기 · 작업하기 · 명상하기)가 꾸미기 판에 있고, 고르면 방 안 그림(href)이 그 자세 파일로 바뀜
+  - 서기는 기본이라 `attic_props` 에 키가 없고, 나머지는 `pose` 로 저장·복원 — 새로 고침·프로필 저장 후에도 유지
+  - 열두 캐릭터 × 세 자세(36장) 그림이 모두 서빙되고, 캐릭터를 바꿔도 그 캐릭터의 같은 자세로 바뀜
+  - `?pen=` 방문자 화면에도 주인이 고른 자세와 모션이 그대로, 꾸미기 판은 숨김
+  - 명상에는 빛무리(aura)가 함께 보이고, 자세별 모션은 `prefers-reduced-motion` 에서 모두 멈춤
+  - 캐릭터 이름이 화면·alt·aria-label 어디에도 새지 않음
+  - 모바일(390px) 스크린샷: `screenshots/character-pose-sit-mobile.png` · `character-pose-work-mobile.png` · `character-pose-meditate-mobile.png`
 - **숨 고르기(1분·3분 명상) 테스트 67개 항목 모두 통과, JS 오류 0건** (`art-darak/_build/test_calm.py`)
   - 사무실 그림 바로 아래 카드가 본인·방문자(`?pen=`) 모두에게 보이고, 누르면 명상 창이 열림
   - 1분(가볍게) / 3분(차분히) 선택에 따라 남은 시간이 `1:00` · `3:00` 으로 바뀜
@@ -284,6 +293,11 @@ art-darak/v1/
 | `screenshots/window-view-sunset-mobile.png` | 큰 창 · 일몰 (모바일 390px · 새 소품 배치) |
 | `screenshots/window-view-ocean-mobile.png` | 큰 창 · 바다 (모바일 390px · 새 소품 배치) |
 | `screenshots/window-view-new-props-mobile.png` | 새 소품 7종을 놓은 방 (모바일 390px) |
+| `screenshots/character-pose-sit-mobile.png` · `character-pose-sit-room-mobile.png` | 캐릭터 **앉기** — 러그에 기대 앉은 모습 (모바일 390px / 방 그림) |
+| `screenshots/character-pose-work-mobile.png` · `character-pose-work-room-mobile.png` | 캐릭터 **작업하기** — 무릎 세우고 노트에 쓰는 모습 (모바일 390px / 방 그림) |
+| `screenshots/character-pose-meditate-mobile.png` · `character-pose-meditate-room-mobile.png` | 캐릭터 **명상하기** — 가부좌·빛무리 (모바일 390px / 방 그림) |
+| `screenshots/character-pose-visitor-work-mobile.png` | 방문자 화면에서도 주인 자세(작업하기) 그대로 |
+| `screenshots/character-pose-sit-desktop.png` | 앉기 자세 (데스크톱) |
 | `screenshots/pink-darakbang-studio-mobile-empty.png` | 다락방 사무실 처음 모습 (소품 없이) |
 | `screenshots/pink-darakbang-studio-visitor-mobile.png` | 다른 사람 다락방 구경 (모바일) |
 | `screenshots/pink-darakbang-studio-desktop.png` | 다락방 사무실 (데스크톱) |

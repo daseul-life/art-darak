@@ -30,6 +30,7 @@ create table if not exists public.profiles (
   -- 다락방 사무실 꾸미기(2단계) — 한 칸(jsonb)에 분위기와 소품을 함께 담습니다.
   --   { "mood": "write" | "paint" | "music" | "craft",
   --     "view": "sunrise" | "sunset" | "ocean",   (없으면 분위기에 맞춘 기본 창)
+  --     "pose": "sit" | "work" | "meditate",      (없으면 서기 — 방 안 캐릭터 자세)
   --     "props": ["easel", "desk", "lamp", "guitar", "plant", "tea", "garland", "cat", "books", "vinyl",
   --               "coffee", "beanbag", "candle", "dessert", "board", "dog", "camera"],
   --     "pos": { "cat": { "x": 61.2, "y": 74.3 } } }

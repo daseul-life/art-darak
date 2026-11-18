@@ -2547,6 +2547,74 @@ body { word-break: keep-all; overflow-wrap: break-word; }
   86% { transform: rotate(.6deg); }
 }
 
+/* --- 자세마다 다른 은은한 움직임 ---------------------------------------
+   서기  : 잔잔한 숨쉬기 (위 .droom__char-bob 의 droomCharIdle)
+   앉기  : 천천히 기우는 편안한 흔들림
+   작업  : 집중하며 손을 놀리는 잔근질
+   명상  : 느린 호흡과 함께 번지는 빛무리
+   인사(is-greet) 중에는 그 자세의 움직임을 잠시 멈춥니다. */
+.droom[data-char-pose="sit"] .droom__char-bob,
+.droom[data-char-pose="work"] .droom__char-bob,
+.droom[data-char-pose="meditate"] .droom__char-bob { animation: none; }
+
+.droom[data-char-pose="sit"] .droom__char-3d:not(.is-greet) .droom__char-3d-body {
+  transform-origin: 50% 96%;
+  animation: droomPoseSway 9.6s ease-in-out infinite;
+}
+.droom[data-char-pose="work"] .droom__char-3d:not(.is-greet) .droom__char-3d-body {
+  transform-origin: 50% 100%;
+  animation: droomPoseWork 3.8s ease-in-out infinite;
+}
+.droom[data-char-pose="meditate"] .droom__char-3d:not(.is-greet) .droom__char-3d-body {
+  transform-origin: 50% 100%;
+  animation: droomPoseBreathe 7.6s ease-in-out infinite;
+}
+
+@keyframes droomPoseSway {
+  0%, 100% { transform: rotate(-.7deg) translateY(0); }
+  38% { transform: rotate(.55deg) translateY(-.7px); }
+  70% { transform: rotate(.15deg) translateY(-.2px); }
+}
+@keyframes droomPoseWork {
+  0%, 100% { transform: translateY(0) scale(1, 1); }
+  32% { transform: translateY(-1.5px) scale(1.004, 1.002); }
+  58% { transform: translateY(-.4px) scale(.999, .998); }
+  80% { transform: translateY(-1px) scale(1.002, 1); }
+}
+@keyframes droomPoseBreathe {
+  0%, 100% { transform: scale(1, 1); }
+  50% { transform: scale(1.008, 1.014); }
+}
+
+/* 자세별 그림자 — 앉은 자세는 몸집이 넓어 바닥 그림자도 조금 넓힙니다 */
+.droom[data-char-pose="sit"] .droom__char-shadow,
+.droom[data-char-pose="work"] .droom__char-shadow,
+.droom[data-char-pose="meditate"] .droom__char-shadow { rx: 33px; ry: 7px; }
+
+/* --- 명상할 때만 보이는 빛무리와 떠오르는 빛알갱이 --- */
+.droom__char-aura { display: none; }
+.droom[data-char-pose="meditate"] .droom__char-aura { display: inline; }
+.droom__char-halo {
+  transform-box: fill-box; transform-origin: center;
+  animation: droomHaloBreathe 7.6s ease-in-out infinite;
+}
+@keyframes droomHaloBreathe {
+  0%, 100% { opacity: .5; transform: scale(.92); }
+  50% { opacity: 1; transform: scale(1.04); }
+}
+.droom__char-mote {
+  transform-box: fill-box; transform-origin: center;
+  animation: droomMoteFloat 6.4s ease-in-out infinite;
+}
+.droom__char-mote:nth-child(3) { animation-delay: -2.1s; }
+.droom__char-mote:nth-child(4) { animation-delay: -4.2s; }
+@keyframes droomMoteFloat {
+  0% { opacity: 0; transform: translate(0, 6px) scale(.7); }
+  25% { opacity: .95; }
+  70% { opacity: .7; }
+  100% { opacity: 0; transform: translate(2px, -26px) scale(1.05); }
+}
+
 /* 캐릭터 위 핑크 파스텔 말풍선 — 3D 전신 캐릭터의 머리 위에서 시작합니다 */
 .droom__say {
   /* 방 크기에 맞춰 함께 커지고 작아집니다 (--room-u = 방 너비 / 800) */
@@ -2603,7 +2671,11 @@ body { word-break: keep-all; overflow-wrap: break-word; }
   .droom__char-figure.is-greet .droom__char-head,
   .droom__char-figure.is-greet .droom__char-arm--r,
   .droom__char-figure.is-greet .droom__char-arm--l,
-  .droom__char-3d.is-greet .droom__char-3d-body { animation: none; }
+  .droom__char-3d.is-greet .droom__char-3d-body,
+  .droom[data-char-pose] .droom__char-3d .droom__char-3d-body,
+  .droom[data-char-pose] .droom__char-3d:not(.is-greet) .droom__char-3d-body,
+  .droom__char-halo, .droom__char-mote { animation: none; }
+  .droom__char-mote { opacity: 0; }
   .droom__sparks span { animation-duration: .01s; }
   .droom__sun-halo, .droom__sun-rise, .droom__rays, .droom__sun-set,
   .droom__clouds, .droom__birds, .droom__shimmer, .droom__wave,
@@ -2777,6 +2849,46 @@ body { word-break: keep-all; overflow-wrap: break-word; }
 }
 .view-chip.is-active .view-chip__check { opacity: 1; }
 
+/* 캐릭터 자세 고르기 — 서기 · 앉기 · 작업하기 · 명상하기 */
+.pose-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: .45rem;
+  margin-top: .6rem;
+}
+.pose-chip {
+  position: relative;
+  display: flex; align-items: center; gap: .45rem;
+  padding: .45rem .55rem;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: #FFFCFD;
+  color: var(--plum-2);
+  text-align: left; cursor: pointer;
+  transition: transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease),
+              border-color var(--dur) var(--ease), background var(--dur) var(--ease);
+}
+.pose-chip:hover { transform: translateY(-2px); box-shadow: var(--shadow-s); }
+.pose-chip__ico {
+  flex: none; width: 32px; height: 32px; border-radius: 10px;
+  display: grid; place-items: center;
+  background: var(--ivory); color: var(--plum-2);
+  transition: background var(--dur) var(--ease), color var(--dur) var(--ease);
+}
+.pose-chip__text { min-width: 0; }
+.pose-chip__text b { display: block; font-size: .78rem; font-weight: 800; color: var(--plum); }
+.pose-chip__text small { display: block; font-size: .66rem; font-weight: 600; color: var(--plum-3); }
+.pose-chip__check {
+  position: absolute; right: .45rem; top: .35rem;
+  font-size: .62rem; font-weight: 900; color: #A9718C;
+  opacity: 0; transition: opacity var(--dur) var(--ease);
+}
+.pose-chip.is-active {
+  border-color: rgba(180, 132, 157, .55);
+  background: linear-gradient(135deg, #FDE8EF, #F7E1EC);
+  box-shadow: 0 8px 16px -14px rgba(140, 92, 106, .9);
+}
+.pose-chip.is-active .pose-chip__ico { background: #FFF9FB; color: #8E5F76; }
+.pose-chip.is-active .pose-chip__check { opacity: 1; }
+
 .prop-grid {
   display: grid; grid-template-columns: repeat(auto-fill, minmax(152px, 1fr));
   gap: .4rem; margin-top: .6rem;
@@ -2812,6 +2924,7 @@ body { word-break: keep-all; overflow-wrap: break-word; }
 @media (max-width: 640px) {
   .mood-grid { grid-template-columns: repeat(2, 1fr); }
   .view-grid { grid-template-columns: repeat(2, 1fr); }
+  .pose-grid { grid-template-columns: repeat(2, 1fr); }
   .droom-frame { padding: 5px; border-radius: 20px; }
   .droom { border-radius: 15px; }
   .droom-cap { font-size: .72rem; }
@@ -2822,6 +2935,7 @@ body { word-break: keep-all; overflow-wrap: break-word; }
 
 @media (max-width: 360px) {
   .mood-grid { grid-template-columns: 1fr; }
+  .pose-grid { grid-template-columns: 1fr; }
 }
 .droom__ceiling { fill: #6E4650; opacity: .05; }
 

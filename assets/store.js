@@ -43,6 +43,11 @@
   var ATTIC_VIEWS = ['auto', 'sunrise', 'sunset', 'ocean'];
   var DEFAULT_VIEW = 'auto';
 
+  /* 방 안 캐릭터의 자세 — 서기(기본)·앉기·작업하기·명상하기.
+     stand 는 기본이라 저장 값에서 키를 뺍니다(attic_props.pose 가 없으면 서기). */
+  var ATTIC_POSES = ['stand', 'sit', 'work', 'meditate'];
+  var DEFAULT_POSE = 'stand';
+
   /* 다락방 캐릭터 — 여섯 아키타입 × 여자/남자 두 버전입니다.
      저장 값은 'seoyun:f' / 'seoyun:m' 처럼 아키타입 key 뒤에 성별을 붙입니다.
      (예전처럼 'seoyun' 하나만 저장된 값은 여자 버전으로 읽습니다.)
@@ -162,6 +167,8 @@
     var next = { mood: mood, props: props };
     var view = normalizeAtticView(raw.view);
     if (view !== DEFAULT_VIEW) next.view = view;
+    var pose = ATTIC_POSES.indexOf(raw.pose) !== -1 ? raw.pose : DEFAULT_POSE;
+    if (pose !== DEFAULT_POSE) next.pose = pose;
     var avatar = normalizeCharacter(raw.avatar);
     if (avatar) next.avatar = avatar;
     var gender = normalizeGender(raw.gender);
@@ -1203,6 +1210,8 @@
     ATTIC_PROPS: ATTIC_PROPS,
     ATTIC_VIEWS: ATTIC_VIEWS,
     DEFAULT_VIEW: DEFAULT_VIEW,
+    ATTIC_POSES: ATTIC_POSES,
+    DEFAULT_POSE: DEFAULT_POSE,
     normalizeAtticView: normalizeAtticView,
     DEFAULT_MOOD: DEFAULT_MOOD,
     ATTIC_AVATARS: ATTIC_AVATARS,

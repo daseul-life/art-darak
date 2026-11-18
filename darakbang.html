@@ -198,6 +198,12 @@
                       <clipPath id="droomPhotoClip">
                         <rect x="18" y="26" width="84" height="134" rx="11"></rect>
                       </clipPath>
+                      <!-- 명상하는 캐릭터 뒤로 번지는 따뜻한 빛무리 -->
+                      <radialGradient id="droomHaloGrad" cx="0.5" cy="0.5" r="0.5">
+                        <stop offset="0" stop-color="#FFF3D9" stop-opacity="0.55"></stop>
+                        <stop offset="0.55" stop-color="#FFE6C6" stop-opacity="0.24"></stop>
+                        <stop offset="1" stop-color="#FFE0EC" stop-opacity="0"></stop>
+                      </radialGradient>
                     </defs>
 
                     <!-- 벽 -->
@@ -721,6 +727,13 @@
 
                     <!-- 방 안 캐릭터 — 고른 캐릭터 한 명이 러그 옆에 서 있어요. 누르면 인사해요. -->
                     <g class="droom__char" data-room-char>
+                      <!-- 명상할 때만 캐릭터 뒤로 은은한 빛무리가 번지고 작은 빛알갱이가 떠오릅니다 -->
+                      <g class="droom__char-aura" aria-hidden="true">
+                        <ellipse class="droom__char-halo" cx="470" cy="392" rx="86" ry="72" fill="url(#droomHaloGrad)"></ellipse>
+                        <circle class="droom__char-mote" cx="432" cy="404" r="3.4" fill="#FFF1CF"></circle>
+                        <circle class="droom__char-mote" cx="505" cy="410" r="2.6" fill="#FFE7F1"></circle>
+                        <circle class="droom__char-mote" cx="470" cy="396" r="2.1" fill="#FFF6E0"></circle>
+                      </g>
                       <!-- 고른 캐릭터가 배경을 지운 3D 전신 모습으로 러그 위에 서 있어요. 누르면 인사해요. -->
                       <g class="droom__char-figure droom__char-3d" data-char="seoyun:f" role="button" tabindex="0"
                          aria-label="다락방의 기록자(여) 캐릭터와 인사하기" transform="translate(401,249.2) scale(0.92)"><rect class="droom__char-hit" x="24" y="6" width="102" height="232" fill="none" pointer-events="all"></rect><ellipse class="droom__char-shadow" cx="75" cy="238" rx="27" ry="6"></ellipse><ellipse class="droom__char-ring" cx="75" cy="236" rx="32" ry="7.4"></ellipse><g class="droom__char-bob"><g class="droom__char-3d-body"><image class="droom__char-3d-img" href="images/room-3d/seoyun-f.webp" x="0" y="0" width="150" height="240"></image></g></g></g>
@@ -833,12 +846,17 @@
           <div class="studio-editor__head">
             <p class="kicker">다락방 사무실</p>
             <h2>캐릭터와 창밖, 방 분위기를 골라 보세요 <span class="spark" aria-hidden="true"></span></h2>
-            <p class="studio-editor__desc">캐릭터를 고르면 다락방 프로필 사진과 위쪽 버튼에 그 사람이 나타나요. 큰 창밖 풍경(일출·일몰·바다)과 작업실 분위기를 고르면 방의 빛과 기본 가구가 함께 바뀌고, 소품은 누른 만큼 방 안에 놓입니다. 바꾼 모습은 바로 저장돼요.</p>
+            <p class="studio-editor__desc">캐릭터를 고르면 다락방 프로필 사진과 위쪽 버튼에 그 사람이 나타나요. 자세(서기·앉기·작업하기·명상하기)를 고르면 방 안 캐릭터가 그 모습으로 조용히 움직입니다. 큰 창밖 풍경(일출·일몰·바다)과 작업실 분위기를 고르면 방의 빛과 기본 가구가 함께 바뀌고, 소품은 누른 만큼 방 안에 놓입니다. 바꾼 모습은 바로 저장돼요.</p>
           </div>
 
           <div class="studio-group">
             <p class="studio-group__label">다락방 캐릭터 <span class="studio-value" data-avatar-name>글자 기본</span></p>
             <div data-studio-avatar></div>
+          </div>
+
+          <div class="studio-group">
+            <p class="studio-group__label">캐릭터 자세 <span class="studio-value" data-pose-name>서기</span> <em class="studio-group__hint">방 안 모습과 움직임</em></p>
+            <div class="pose-grid" data-pose-picker role="group" aria-label="캐릭터 자세 고르기"></div>
           </div>
 
           <div class="studio-group">

@@ -72,6 +72,22 @@
   var VIEW_LABEL = { auto: '기본 창', sunrise: '일출', sunset: '일몰', ocean: '바다' };
   var VIEW_SUBLABEL = { auto: '분위기에 맞춘 창', sunrise: '떠오는 아침 해', sunset: '지는 노을', ocean: '반짝이는 바다' };
 
+  /* 방 안 캐릭터의 자세 — 서기(기본) · 앉기 · 작업하기 · 명상하기.
+     store.js 의 attic_props.pose 와 같은 키이고, stand 일 때는 키를 저장하지 않습니다. */
+  var POSES = [
+    { key: 'stand', label: '서기', sub: '기본', icon: 'stand' },
+    { key: 'sit', label: '앉기', sub: '러그에 앉아', icon: 'sit' },
+    { key: 'work', label: '작업하기', sub: '집중하는 손', icon: 'work' },
+    { key: 'meditate', label: '명상하기', sub: '눈 감고 호흡', icon: 'meditate' }
+  ];
+  var POSE_LABEL = { stand: '서기', sit: '앉기', work: '작업하기', meditate: '명상하기' };
+  var POSE_TOAST = {
+    stand: '캐릭터가 다시 서 있어요.',
+    sit: '캐릭터가 러그에 앉았어요.',
+    work: '캐릭터가 작업을 시작했어요.',
+    meditate: '캐릭터가 눈을 감고 숨을 골라요.'
+  };
+
   /* 방 안 캐릭터가 건네는 짧은 인사 — 누를 때마다 한 가지씩 돌아가며 말해요.
      (캐릭터 이름 대신 성향만 묻어 나게 쓴 문장입니다) */
   var ROOM_LINES = {
@@ -106,6 +122,10 @@
     board: '<rect x="2.6" y="4" width="18.8" height="14" rx="2.4"/><path d="M2.6 8.2h18.8"/><path d="M10.8 8.2v9.8M15.2 8.2v9.8"/><circle cx="6.6" cy="12.2" r="1.7"/><path d="M14 18.4l5.6-6"/>',
     dog: '<path d="M6.2 20c0-3.2 2.6-5.4 5.8-5.4s5.8 2.2 5.8 5.4z"/><circle cx="12" cy="10" r="3.8"/><path d="M8.4 7.6L6 5.6c-.6 1.9.2 3.7 1.8 4.6M15.6 7.6l2.4-2c.6 1.9-.2 3.7-1.8 4.6"/><path d="M10.6 10.4h.01M13.4 10.4h.01"/><path d="M11.2 12.1h1.6"/>',
     camera: '<rect x="2.8" y="7.4" width="18.4" height="11.6" rx="2.6"/><path d="M8.6 7.4l1.4-2.6h4l1.4 2.6"/><circle cx="12" cy="13.4" r="3.4"/><circle cx="12" cy="13.4" r="1.4"/><path d="M17.8 10.4h.01"/>',
+    stand: '<circle cx="12" cy="4.6" r="2.4"/><path d="M12 7.2v7.2M12 14.4l-2.8 6M12 14.4l2.8 6M7.6 9.6l4.4 1.4 4.4-1.4"/>',
+    sit: '<circle cx="12" cy="4.6" r="2.4"/><path d="M12 7.4v4.2l-4.2 1.6"/><path d="M12 11.6h3.4l1.2 5.4"/><path d="M6.4 20h11.4"/><path d="M16.6 11.2l1.8 3.2"/>',
+    work: '<circle cx="12" cy="4.6" r="2.4"/><path d="M12 7.4v4.4"/><path d="M12 11.8c-2.4 0-4.2 1.6-4.2 4.2"/><path d="M12 11.8c2.4 0 4.2 1.6 4.2 4.2"/><path d="M8.6 16.6l-1 3.8M15.4 16.6l1 3.8"/><path d="M12.6 13.4l4.6-3.2"/>',
+    meditate: '<circle cx="12" cy="4.8" r="2.4"/><path d="M12 7.6v3.2"/><path d="M12 10.8c-1.8 0-3 1.2-3 2.6 0 1.4 1.2 2.4 3 2.4s3-1 3-2.4c0-1.4-1.2-2.6-3-2.6z"/><path d="M9 10.8L5.2 13.6M15 10.8l3.8 2.8"/><path d="M5.2 13.6c-.8 1 .2 2.2 1.6 2.2M18.8 13.6c.8 1-.2 2.2-1.6 2.2"/><path d="M6.4 20c3.4-1.6 7.8-1.6 11.2 0"/>',
   };
 
   function studioIcon(name) {
@@ -1346,6 +1366,7 @@
     var editor = document.getElementById('studio-editor');
     var moodPicker = document.querySelector('[data-mood-picker]');
     var viewPicker = document.querySelector('[data-view-picker]');
+    var posePicker = document.querySelector('[data-pose-picker]');
     var propPicker = document.querySelector('[data-prop-picker]');
     var propsReset = document.querySelector('[data-props-reset]');
     var visitOwn = document.querySelector('[data-visit-own]');
@@ -1368,7 +1389,7 @@
     var penParam = (new URLSearchParams(window.location.search).get('pen') || '').trim();
     var target = null;
     var isOwner = false;
-    var attic = { mood: 'write', props: [], view: 'auto', avatar: '', gender: '', pos: {} };
+    var attic = { mood: 'write', props: [], view: 'auto', pose: 'stand', avatar: '', gender: '', pos: {} };
     var avatarPicker = null;
     var currentTheme = 'rose';
     var lastSignature = null;
@@ -1390,6 +1411,7 @@
         mood: normalized.mood,
         props: normalized.props.slice(),
         view: normalized.view || 'auto',
+        pose: normalized.pose || 'stand',
         avatar: normalized.avatar || '',
         gender: normalized.gender || '',
         pos: normalized.pos ? Object.assign({}, normalized.pos) : {}
@@ -1410,6 +1432,10 @@
       });
       studio.setAttribute('data-view', view);
 
+      /* 캐릭터 자세 — 방 전체에 data-char-pose 를 붙여 이미지와 움직임을 바꿉니다. */
+      var pose = POSE_LABEL[attic.pose] ? attic.pose : 'stand';
+      studio.setAttribute('data-char-pose', pose);
+
       Store.ATTIC_PROPS.forEach(function (key) {
         var groups = studio.querySelectorAll('[data-prop="' + key + '"]');
         var on = attic.props.indexOf(key) !== -1;
@@ -1422,10 +1448,12 @@
       setText('[data-studio-theme]', THEME_LABEL[currentTheme] || '');
       setText('[data-studio-count]', attic.props.length ? '소품 ' + attic.props.length + '개' : '소품 없이');
       setText('[data-studio-view]', VIEW_LABEL[view]);
+      setText('[data-studio-pose]', POSE_LABEL[pose]);
 
       var propNames = attic.props.map(function (key) { return PROP_LABEL[key]; }).filter(Boolean);
       studio.setAttribute('aria-label', MOOD_LABEL[mood] + ' 분위기의 다락방 사무실. 창밖은 ' +
         VIEW_SUBLABEL[view] + '. ' +
+        (attic.avatar ? '캐릭터는 ' + POSE_LABEL[pose] + ' 자세로 있어요. ' : '') +
         (propNames.length ? '소품: ' + propNames.join(', ') + '.' : '아직 놓은 소품이 없어요.') +
         (isOwner ? ' 소품은 끌어서 자리를 옮길 수 있어요.' : ''));
 
@@ -1448,6 +1476,15 @@
         });
       }
       setText('[data-view-name]', VIEW_LABEL[view]);
+
+      if (posePicker) {
+        posePicker.querySelectorAll('[data-pose]').forEach(function (chip) {
+          var on = chip.getAttribute('data-pose') === pose;
+          chip.classList.toggle('is-active', on);
+          chip.setAttribute('aria-pressed', String(on));
+        });
+      }
+      setText('[data-pose-name]', POSE_LABEL[pose]);
 
       if (propPicker) {
         propPicker.querySelectorAll('[data-prop]').forEach(function (chip) {
@@ -1643,18 +1680,33 @@
     }
 
     /* -------------------------------------------------- 방 안 캐릭터 */
+    /* 고른 자세의 그림 파일 — 서기는 기본 그림(room-3d/<key>.webp)을 그대로 씁니다. */
+    function roomPoseSrc(charKey, pose) {
+      /* data-char 는 'seoyun:f' 모양이라 파일 이름('seoyun-f')에 맞춰 바꿉니다. */
+      var key = String(charKey || '').replace(':', '-');
+      if (!key) return '';
+      var p = POSE_LABEL[pose] ? pose : 'stand';
+      return 'images/room-3d/' + key + (p === 'stand' ? '' : '-' + p) + '.webp';
+    }
+
     /* 고른 캐릭터 한 명만 방에 서고, 나머지는 방에서 빠집니다.
        글자 기본(빈 값)이면 방에 아무도 없어요. */
     function paintRoomCharacter() {
       if (!roomChar) return;
       sizeRoomOverlay();
       var key = attic.avatar || '';
+      var pose = POSE_LABEL[attic.pose] ? attic.pose : 'stand';
       var shown = false;
       Array.prototype.forEach.call(roomChar.querySelectorAll('[data-char]'), function (node) {
         var on = !!key && node.getAttribute('data-char') === key;
         node.classList.toggle('is-on', on);
         node.setAttribute('aria-hidden', String(!on));
-        if (on) shown = true;
+        if (on) {
+          shown = true;
+          var img = node.querySelector('.droom__char-3d-img');
+          var src = roomPoseSrc(node.getAttribute('data-char'), pose);
+          if (img && src && img.getAttribute('href') !== src) img.setAttribute('href', src);
+        }
       });
       roomChar.classList.toggle('is-on', shown);
       roomChar.setAttribute('aria-hidden', String(!shown));
@@ -1794,6 +1846,7 @@
         mood: attic.mood,
         props: attic.props.slice(),
         view: attic.view,
+        pose: attic.pose,
         avatar: attic.avatar,
         gender: attic.gender,
         pos: Object.assign({}, attic.pos)
@@ -1886,6 +1939,30 @@
         });
       }
 
+      /* 캐릭터 자세 고르기 — 서기 · 앉기 · 작업하기 · 명상하기 */
+      if (posePicker) {
+        posePicker.innerHTML = POSES.map(function (pose) {
+          return '<button class="pose-chip pose-chip--' + pose.key + '" type="button" data-pose="' + pose.key + '" aria-pressed="false">' +
+            '<span class="pose-chip__ico">' + studioIcon(pose.icon) + '</span>' +
+            '<span class="pose-chip__text"><b>' + pose.label + '</b><small>' + pose.sub + '</small></span>' +
+            '<span class="pose-chip__check" aria-hidden="true">✓</span>' +
+            '</button>';
+        }).join('');
+
+        posePicker.addEventListener('click', function (event) {
+          var chip = event.target.closest ? event.target.closest('[data-pose]') : null;
+          if (!chip || !isOwner) return;
+          var pose = chip.getAttribute('data-pose');
+          if (!POSE_LABEL[pose] || attic.pose === pose) return;
+          attic.pose = pose;
+          paintStudio();
+          paintRoomCharacter();
+          persistAttic(!attic.avatar
+            ? '자세를 골랐어요. 방에 세울 캐릭터도 함께 골라 주세요.'
+            : POSE_TOAST[pose]);
+        });
+      }
+
       if (propPicker) {
         propPicker.innerHTML = PROPS.map(function (prop) {
           return '<button class="prop-chip" type="button" data-prop="' + prop.key + '" aria-pressed="false">' +
@@ -1948,7 +2025,8 @@
       if (!profile) return 'guest';
       var props = profile.attic_props || {};
       return [profile.id, profile.pen_name, profile.bio, profile.attic_note,
-        (profile.fields || []).join(','), props.avatar || '', props.gender || ''].join('|');
+        (profile.fields || []).join(','), props.avatar || '', props.gender || '',
+        props.pose || 'stand'].join('|');
     }
 
     function updateHead(profile, owner) {
@@ -2203,6 +2281,7 @@
             mood: currentAttic.mood,
             props: currentAttic.props,
             view: currentAttic.view || 'auto',
+            pose: currentAttic.pose || 'stand',
             avatar: profileAvatar ? profileAvatar.get() : '',
             gender: profileGender ? profileGender.get() : '',
             pos: currentAttic.pos || {}
