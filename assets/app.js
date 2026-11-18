@@ -428,7 +428,7 @@
           avatar.classList.remove('has-photo');
           avatar.removeAttribute('data-avatar-key');
         }
-        if (text) text.textContent = '필명으로 시작';
+        if (text) text.textContent = '가입·로그인';
       }
     });
   }
