@@ -5,7 +5,7 @@
      인터넷이 없을 때만 저장해 둔 화면을 보여 줍니다.
    · https 또는 localhost 에서만 동작합니다 (file:// 에서는 꺼져 있어요).
    ============================================================ */
-const CACHE = 'artdarak-v6';
+const CACHE = 'artdarak-v7';
 const CORE = [
   './',
   './index.html',
@@ -33,7 +33,19 @@ const CORE = [
   './images/avatars/haon-f.webp',
   './images/avatars/haon-m.webp',
   './images/avatars/doyun-f.webp',
-  './images/avatars/doyun-m.webp'
+  './images/avatars/doyun-m.webp',
+  './images/room-3d/seoyun-f.webp',
+  './images/room-3d/seoyun-m.webp',
+  './images/room-3d/haemil-f.webp',
+  './images/room-3d/haemil-m.webp',
+  './images/room-3d/momo-f.webp',
+  './images/room-3d/momo-m.webp',
+  './images/room-3d/ian-f.webp',
+  './images/room-3d/ian-m.webp',
+  './images/room-3d/haon-f.webp',
+  './images/room-3d/haon-m.webp',
+  './images/room-3d/doyun-f.webp',
+  './images/room-3d/doyun-m.webp',
 ];
 
 self.addEventListener('install', (event) => {
