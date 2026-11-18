@@ -5,7 +5,7 @@
      인터넷이 없을 때만 저장해 둔 화면을 보여 줍니다.
    · https 또는 localhost 에서만 동작합니다 (file:// 에서는 꺼져 있어요).
    ============================================================ */
-const CACHE = 'artdarak-v4';
+const CACHE = 'artdarak-v5';
 const CORE = [
   './',
   './index.html',
@@ -22,12 +22,18 @@ const CORE = [
   './manifest.json',
   './images/icon-192.png',
   './images/icon-512.png',
-  './images/avatars/seoyun.webp',
-  './images/avatars/haemil.webp',
-  './images/avatars/ian.webp',
-  './images/avatars/momo.webp',
-  './images/avatars/haon.webp',
-  './images/avatars/doyun.webp'
+  './images/avatars/seoyun-f.webp',
+  './images/avatars/seoyun-m.webp',
+  './images/avatars/haemil-f.webp',
+  './images/avatars/haemil-m.webp',
+  './images/avatars/momo-f.webp',
+  './images/avatars/momo-m.webp',
+  './images/avatars/ian-f.webp',
+  './images/avatars/ian-m.webp',
+  './images/avatars/haon-f.webp',
+  './images/avatars/haon-m.webp',
+  './images/avatars/doyun-f.webp',
+  './images/avatars/doyun-m.webp'
 ];
 
 self.addEventListener('install', (event) => {

@@ -35,27 +35,67 @@
   var ATTIC_PROPS = ['easel', 'desk', 'lamp', 'guitar', 'plant', 'tea', 'garland', 'cat', 'books', 'vinyl'];
   var DEFAULT_MOOD = 'write';
 
-  /* 다락방 캐릭터 — 사진 여섯 장과 각 사진의 칭호입니다.
-     화면에는 칭호만 보입니다(이름은 쓰지 않습니다). key 는 사진 파일 이름·
-     저장 값과 맞추기 위한 내부 값이라 그대로 둡니다.
-     고른 캐릭터는 profiles.attic_props(jsonb)의 avatar 키에 함께 저장합니다.
-     avatar 가 비어 있으면 예전처럼 필명 첫 글자를 그립니다. */
+  /* 다락방 캐릭터 — 여섯 아키타입 × 여자/남자 두 버전입니다.
+     저장 값은 'seoyun:f' / 'seoyun:m' 처럼 아키타입 key 뒤에 성별을 붙입니다.
+     (예전처럼 'seoyun' 하나만 저장된 값은 여자 버전으로 읽습니다.)
+     화면에는 칭호만 보입니다(이름은 쓰지 않습니다). */
   var ATTIC_AVATARS = [
-    { key: 'seoyun', title: '다락방의 기록자', gender: 'female' },
-    { key: 'haemil', title: '색을 쫓는 몽상가', gender: 'female' },
-    { key: 'momo', title: '밤을 지키는 작은 수집가', gender: 'female' },
-    { key: 'ian', title: '고요한 손끝의 연금술사', gender: 'male' },
-    { key: 'haon', title: '선율을 엮는 몽상가', gender: 'male' },
-    { key: 'doyun', title: '문장을 빚는 산책자', gender: 'male' }
+    { key: 'seoyun', title: '다락방의 기록자', photo: { f: 'seoyun-f', m: 'seoyun-m' } },
+    { key: 'haemil', title: '색을 쫓는 몽상가', photo: { f: 'haemil-f', m: 'haemil-m' } },
+    { key: 'momo', title: '밤을 지키는 작은 수집가', photo: { f: 'momo-f', m: 'momo-m' } },
+    { key: 'ian', title: '고요한 손끝의 연금술사', photo: { f: 'ian-f', m: 'ian-m' } },
+    { key: 'haon', title: '선율을 엮는 몽상가', photo: { f: 'haon-f', m: 'haon-m' } },
+    { key: 'doyun', title: '문장을 빚는 산책자', photo: { f: 'doyun-f', m: 'doyun-m' } }
   ];
   var ATTIC_AVATAR_KEYS = ATTIC_AVATARS.map(function (item) { return item.key; });
   var ATTIC_GENDERS = ['female', 'male'];
+  /* 캐릭터 성별 — 저장 값 뒤에 붙는 한 글자 */
+  var CHARACTER_GENDERS = ['f', 'm'];
+  var CHARACTER_GENDER_LABEL = { f: '여', m: '남' };
+  var DEFAULT_CHARACTER_GENDER = 'f';
 
-  function avatarByKey(key) {
+  function avatarBase(value) {
+    var raw = String(value == null ? '' : value).trim();
+    if (!raw) return '';
+    var base = raw.split(':')[0];
+    return ATTIC_AVATAR_KEYS.indexOf(base) !== -1 ? base : '';
+  }
+
+  /* 'seoyun'·'seoyun:f'·'seoyun:m' 을 모두 'seoyun:x' 모양으로 맞춥니다.
+     모르는 값은 빈 문자열(글자 기본)이 됩니다. */
+  function normalizeCharacter(value) {
+    var base = avatarBase(value);
+    if (!base) return '';
+    var raw = String(value).trim();
+    var gender = raw.indexOf(':') !== -1 ? raw.split(':')[1] : DEFAULT_CHARACTER_GENDER;
+    if (CHARACTER_GENDERS.indexOf(gender) === -1) gender = DEFAULT_CHARACTER_GENDER;
+    return base + ':' + gender;
+  }
+
+  function characterValue(base, gender) {
+    if (ATTIC_AVATAR_KEYS.indexOf(base) === -1) return '';
+    var g = CHARACTER_GENDERS.indexOf(gender) !== -1 ? gender : DEFAULT_CHARACTER_GENDER;
+    return base + ':' + g;
+  }
+
+  /* 저장 값으로 아키타입·성별·사진 파일 이름을 한 번에 돌려줍니다. */
+  function avatarByKey(value) {
+    var normalized = normalizeCharacter(value);
+    if (!normalized) return null;
+    var parts = normalized.split(':');
+    var entry = null;
     for (var i = 0; i < ATTIC_AVATARS.length; i += 1) {
-      if (ATTIC_AVATARS[i].key === key) return ATTIC_AVATARS[i];
+      if (ATTIC_AVATARS[i].key === parts[0]) entry = ATTIC_AVATARS[i];
     }
-    return null;
+    if (!entry) return null;
+    return {
+      key: entry.key,
+      title: entry.title,
+      gender: parts[1],
+      genderLabel: CHARACTER_GENDER_LABEL[parts[1]] || CHARACTER_GENDER_LABEL[DEFAULT_CHARACTER_GENDER],
+      value: normalized,
+      photo: entry.photo[parts[1]] || entry.photo[DEFAULT_CHARACTER_GENDER]
+    };
   }
 
   function normalizeGender(value) {
@@ -79,7 +119,8 @@
     });
 
     var next = { mood: mood, props: props };
-    if (ATTIC_AVATAR_KEYS.indexOf(raw.avatar) !== -1) next.avatar = raw.avatar;
+    var avatar = normalizeCharacter(raw.avatar);
+    if (avatar) next.avatar = avatar;
     var gender = normalizeGender(raw.gender);
     if (gender) next.gender = gender;
     return next;
@@ -1119,6 +1160,9 @@
     ATTIC_AVATARS: ATTIC_AVATARS,
     ATTIC_GENDERS: ATTIC_GENDERS,
     avatarByKey: avatarByKey,
+    normalizeCharacter: normalizeCharacter,
+    characterValue: characterValue,
+    CHARACTER_GENDER_LABEL: CHARACTER_GENDER_LABEL,
     normalizeGender: normalizeGender,
     normalizeAtticProps: normalizeAtticProps,
     init: async function () {

@@ -131,9 +131,9 @@
     var props = (profile && profile.attic_props) || {};
     var entry = avatarEntry(props.avatar);
     if (entry) {
-      el.innerHTML = avatarImgHTML(entry.key, 'avatar-img');
+      el.innerHTML = avatarImgHTML(entry.photo, 'avatar-img');
       el.classList.add('has-photo');
-      el.setAttribute('data-avatar-key', entry.key);
+      el.setAttribute('data-avatar-key', entry.photo);
     } else {
       el.textContent = initial(profile && profile.pen_name);
       el.classList.remove('has-photo');
@@ -179,25 +179,24 @@
 
   /* 캐릭터 카드 — 사진 + 칭호, 그리고 '글자 기본' 한 장.
      사진 아래에는 칭호만 적고 이름은 쓰지 않습니다.
-     위쪽의 전체 / 여성 / 남성 칩으로 골라 볼 수 있습니다. */
+     같은 여섯 아키타입을 여자/남자로 바꿔 볼 수 있습니다. */
   function avatarPickerHTML(modifier) {
     var cards = Store.ATTIC_AVATARS.map(function (item) {
-      return '<button class="avatar-card" type="button" data-avatar-card data-avatar="' + item.key + '" ' +
-        'data-gender="' + item.gender + '" aria-pressed="false">' +
-        '<span class="avatar-card__photo">' + avatarImgHTML(item.key, 'avatar-card__img') +
+      return '<button class="avatar-card" type="button" data-avatar-card data-avatar-base="' + item.key + '" ' +
+        'aria-pressed="false">' +
+        '<span class="avatar-card__photo">' + avatarImgHTML(item.photo.f, 'avatar-card__img') +
         '<span class="avatar-card__check" aria-hidden="true">✓</span></span>' +
         '<span class="avatar-card__text"><b class="avatar-card__title">' + item.title + '</b></span>' +
         '</button>';
     }).join('');
 
     return '<div class="avatar-picker ' + (modifier || '') + '" data-avatar-picker>' +
-      '<div class="avatar-filter" role="group" aria-label="성별로 골라 보기">' +
-      '<button class="avatar-filter__chip is-active" type="button" data-avatar-filter="all" aria-pressed="true">전체</button>' +
-      '<button class="avatar-filter__chip" type="button" data-avatar-filter="female" aria-pressed="false">여성</button>' +
-      '<button class="avatar-filter__chip" type="button" data-avatar-filter="male" aria-pressed="false">남성</button>' +
+      '<div class="avatar-filter" role="group" aria-label="캐릭터 성별 고르기">' +
+      '<button class="avatar-filter__chip is-active" type="button" data-avatar-gender="f" aria-pressed="true">여자</button>' +
+      '<button class="avatar-filter__chip" type="button" data-avatar-gender="m" aria-pressed="false">남자</button>' +
       '</div>' +
       '<div class="avatar-grid">' +
-      '<button class="avatar-card avatar-card--letter is-active" type="button" data-avatar-card data-avatar="" aria-pressed="true">' +
+      '<button class="avatar-card avatar-card--letter is-active" type="button" data-avatar-card data-avatar-base="" aria-pressed="true">' +
       '<span class="avatar-card__photo avatar-card__photo--letter" aria-hidden="true">✦</span>' +
       '<span class="avatar-card__text"><b>글자 기본</b><small>필명 첫 글자</small></span>' +
       '<span class="avatar-card__check" aria-hidden="true">✓</span>' +
@@ -207,54 +206,85 @@
 
   function createAvatarPicker(root, onChange) {
     if (!root) return null;
-    var state = { avatar: '', filter: 'all' };
+    var state = { avatar: '', gender: 'f' };
 
-    function syncCards() {
-      root.querySelectorAll('[data-avatar-card]').forEach(function (card) {
-        var on = (card.getAttribute('data-avatar') || '') === state.avatar;
-        card.classList.toggle('is-active', on);
-        card.setAttribute('aria-pressed', String(on));
-        var gender = card.getAttribute('data-gender');
-        card.hidden = !!gender && state.filter !== 'all' && gender !== state.filter;
+    /* 고른 성별의 사진으로 카드 여섯 장을 바꿉니다. */
+    function paintCardPhotos() {
+      root.querySelectorAll('[data-avatar-base]').forEach(function (card) {
+        var base = card.getAttribute('data-avatar-base');
+        if (!base) return;
+        var entry = Store.avatarByKey(Store.characterValue(base, state.gender));
+        var img = card.querySelector('img');
+        if (entry && img && img.getAttribute('src') !== AVATAR_DIR + entry.photo + '.webp') {
+          img.setAttribute('src', AVATAR_DIR + entry.photo + '.webp');
+        }
       });
     }
 
-    function syncFilter() {
-      root.querySelectorAll('[data-avatar-filter]').forEach(function (chip) {
-        var on = chip.getAttribute('data-avatar-filter') === state.filter;
+    function syncGender() {
+      root.querySelectorAll('[data-avatar-gender]').forEach(function (chip) {
+        var on = chip.getAttribute('data-avatar-gender') === state.gender;
         chip.classList.toggle('is-active', on);
         chip.setAttribute('aria-pressed', String(on));
       });
     }
 
+    function syncCards() {
+      root.querySelectorAll('[data-avatar-card]').forEach(function (card) {
+        var base = card.getAttribute('data-avatar-base') || '';
+        var on = !!base && state.avatar === Store.characterValue(base, state.gender);
+        card.classList.toggle('is-active', on);
+        card.setAttribute('aria-pressed', String(on));
+      });
+    }
+
     root.addEventListener('click', function (event) {
-      var filter = event.target.closest ? event.target.closest('[data-avatar-filter]') : null;
-      if (filter) {
-        state.filter = filter.getAttribute('data-avatar-filter') || 'all';
-        syncFilter();
+      var gender = event.target.closest ? event.target.closest('[data-avatar-gender]') : null;
+      if (gender) {
+        var next = gender.getAttribute('data-avatar-gender') === 'm' ? 'm' : 'f';
+        if (next === state.gender) return;
+        state.gender = next;
+        var current = Store.normalizeCharacter(state.avatar);
+        var base = current ? current.split(':')[0] : '';
+        if (base) state.avatar = Store.characterValue(base, next);
+        paintCardPhotos();
+        syncGender();
         syncCards();
+        if (base && typeof onChange === 'function') onChange(state.avatar);
         return;
       }
       var card = event.target.closest ? event.target.closest('[data-avatar-card]') : null;
       if (!card) return;
-      state.avatar = card.getAttribute('data-avatar') || '';
+      var picked = card.getAttribute('data-avatar-base') || '';
+      state.avatar = picked ? Store.characterValue(picked, state.gender) : '';
       syncCards();
       if (typeof onChange === 'function') onChange(state.avatar);
     });
 
+    paintCardPhotos();
+    syncGender();
     syncCards();
-    syncFilter();
     return {
       get: function () { return state.avatar; },
-      set: function (key) {
-        state.avatar = avatarEntry(key) ? key : '';
+      gender: function () { return state.gender; },
+      set: function (value) {
+        var entry = avatarEntry(value);
+        if (entry) {
+          state.avatar = entry.value;
+          state.gender = entry.gender;
+        } else {
+          state.avatar = '';
+        }
+        paintCardPhotos();
+        syncGender();
         syncCards();
       },
       reset: function () {
         state.avatar = '';
-        state.filter = 'all';
+        state.gender = 'f';
+        paintCardPhotos();
+        syncGender();
         syncCards();
-        syncFilter();
       }
     };
   }
@@ -1452,7 +1482,7 @@
     /* 캐릭터를 누르면 통통 튀고, 고개를 갸웃하고, 짧은 인사를 건넵니다. */
     function greetRoomCharacter(figure) {
       if (!figure || !figure.classList.contains('is-on') || !roomChar) return;
-      var key = figure.getAttribute('data-char') || '';
+      var key = String(figure.getAttribute('data-char') || '').split(':')[0];
       var lines = ROOM_LINES[key] || [];
       if (!lines.length) return;
 
@@ -1519,7 +1549,7 @@
         titleEl.hidden = !entry;
         titleEl.textContent = entry ? entry.title : '';
       }
-      setText('[data-avatar-name]', entry ? entry.title : '글자 기본');
+      setText('[data-avatar-name]', entry ? entry.title + '(' + entry.genderLabel + ')' : '글자 기본');
       if (avatarPicker && avatarPicker.get() !== attic.avatar) avatarPicker.set(attic.avatar);
       paintRoomCharacter();
     }
