@@ -45,13 +45,32 @@
     { key: 'garland', label: '전구 가랜드', icon: 'garland' },
     { key: 'cat', label: '고양이 방석', icon: 'cat' },
     { key: 'books', label: '책 더미', icon: 'books' },
-    { key: 'vinyl', label: '레코드판', icon: 'vinyl' }
+    { key: 'vinyl', label: '레코드판', icon: 'vinyl' },
+    { key: 'coffee', label: '커피머신', icon: 'coffee' },
+    { key: 'beanbag', label: '빈백 소파', icon: 'beanbag' },
+    { key: 'candle', label: '캔들 워머', icon: 'candle' },
+    { key: 'dessert', label: '디저트 트레이', icon: 'dessert' },
+    { key: 'board', label: '엽서·사진 보드', icon: 'board' },
+    { key: 'dog', label: '강아지 쿠션', icon: 'dog' },
+    { key: 'camera', label: '필름 카메라', icon: 'camera' }
   ];
   var PROP_LABEL = {
     easel: '이젤 & 캔버스', desk: '원목 책상 & 노트북', lamp: '스탠드 조명',
     guitar: '어쿠스틱 기타', plant: '작은 화분', tea: '찻잔 세트', garland: '전구 가랜드',
-    cat: '고양이 방석', books: '책 더미', vinyl: '레코드판'
+    cat: '고양이 방석', books: '책 더미', vinyl: '레코드판',
+    coffee: '커피머신', beanbag: '빈백 소파', candle: '캔들 워머', dessert: '디저트 트레이',
+    board: '엽서·사진 보드', dog: '강아지 쿠션', camera: '필름 카메라'
   };
+
+  /* 큰 창밖 풍경 — 'auto' 는 작업실 분위기에 맞춘 기본 창입니다. (store.js 의 attic_props.view) */
+  var VIEWS = [
+    { key: 'auto', label: '기본', sub: '분위기 따라' },
+    { key: 'sunrise', label: '일출', sub: '아침 빛' },
+    { key: 'sunset', label: '일몰', sub: '노을 빛' },
+    { key: 'ocean', label: '바다', sub: '윤슬·잔물결' }
+  ];
+  var VIEW_LABEL = { auto: '기본 창', sunrise: '일출', sunset: '일몰', ocean: '바다' };
+  var VIEW_SUBLABEL = { auto: '분위기에 맞춘 창', sunrise: '떠오는 아침 해', sunset: '지는 노을', ocean: '반짝이는 바다' };
 
   /* 방 안 캐릭터가 건네는 짧은 인사 — 누를 때마다 한 가지씩 돌아가며 말해요.
      (캐릭터 이름 대신 성향만 묻어 나게 쓴 문장입니다) */
@@ -79,7 +98,14 @@
     garland: '<path d="M2.6 6.4c3 6.2 5.4 6.2 8.4 0 3 6.2 5.4 6.2 8.4 0"/><circle cx="6.6" cy="10.4" r="1.2"/><circle cx="12" cy="11.2" r="1.2"/><circle cx="17.4" cy="10.4" r="1.2"/>',
     cat: '<path d="M4.6 19.6c0-4.6 3-7.6 7.4-7.6s7.4 3 7.4 7.6z"/><path d="M6.6 12.4l-1-4 3.4 2M17.4 12.4l1-4-3.4 2"/><path d="M19.4 15.4c2.2.2 2.6 3.2.4 4.2"/>',
     books: '<path d="M4 18.6h12.4V21H4z"/><path d="M5 14.2h12.4v4.4H5z"/><path d="M6 9.8h10.6v4.4H6z"/><path d="M16.6 9.2l3.2 1.2-2.6 8.4-3.2-1.2z"/>',
-    vinyl: '<circle cx="12" cy="12" r="8.4"/><circle cx="12" cy="12" r="4.4"/><circle cx="12" cy="12" r="1.2"/>'
+    vinyl: '<circle cx="12" cy="12" r="8.4"/><circle cx="12" cy="12" r="4.4"/><circle cx="12" cy="12" r="1.2"/>',
+    coffee: '<path d="M5 3.6h11v10H5z"/><path d="M5 7.4h11"/><circle cx="12.8" cy="5.6" r="1"/><path d="M8 13.6v2.2M12.6 13.6v2.2"/><path d="M8.4 16.2h6.4a2.1 2.1 0 0 1-2.1 3.2h-2.2a2.1 2.1 0 0 1-2.1-3.2z"/><path d="M6 21h11"/>',
+    beanbag: '<path d="M5.4 19.6c-2 0-3.4-1.5-3.4-3.4C2 11.4 5.6 8 12 8s10 3.4 10 8.2c0 1.9-1.4 3.4-3.4 3.4z"/><path d="M5.8 19.4c.7-2.9 3.2-4.4 6.2-4.4s5.5 1.5 6.2 4.4"/><path d="M8.2 8.4C8.2 6.2 9.9 4.6 12 4.6s3.8 1.6 3.8 3.8"/>',
+    candle: '<path d="M8.8 21h6.4"/><path d="M9.6 21v-7h4.8v7"/><path d="M12 14v-2"/><path d="M12 12c1.4-1.2 2-2 2-2.9a2 2 0 1 0-4 0c0 .9.6 1.7 2 2.9z"/><path d="M5.4 9.6l-1.5-1.5M18.6 9.6l1.5-1.5M4 15.4H2.4M20 15.4h1.6"/>',
+    dessert: '<path d="M3 18.6h18"/><path d="M6.4 18.6c0-3 2.5-5.2 5.6-5.2s5.6 2.2 5.6 5.2"/><path d="M12 13.4V11"/><circle cx="12" cy="9.6" r="1.5"/><path d="M17.8 14.6c1.7-.5 2.9.4 2.6 1.9"/>',
+    board: '<rect x="2.6" y="4" width="18.8" height="14" rx="2.4"/><path d="M2.6 8.2h18.8"/><path d="M10.8 8.2v9.8M15.2 8.2v9.8"/><circle cx="6.6" cy="12.2" r="1.7"/><path d="M14 18.4l5.6-6"/>',
+    dog: '<path d="M6.2 20c0-3.2 2.6-5.4 5.8-5.4s5.8 2.2 5.8 5.4z"/><circle cx="12" cy="10" r="3.8"/><path d="M8.4 7.6L6 5.6c-.6 1.9.2 3.7 1.8 4.6M15.6 7.6l2.4-2c.6 1.9-.2 3.7-1.8 4.6"/><path d="M10.6 10.4h.01M13.4 10.4h.01"/><path d="M11.2 12.1h1.6"/>',
+    camera: '<rect x="2.8" y="7.4" width="18.4" height="11.6" rx="2.6"/><path d="M8.6 7.4l1.4-2.6h4l1.4 2.6"/><circle cx="12" cy="13.4" r="3.4"/><circle cx="12" cy="13.4" r="1.4"/><path d="M17.8 10.4h.01"/>',
   };
 
   function studioIcon(name) {
@@ -1319,6 +1345,7 @@
     var studio = document.getElementById('darak-studio');
     var editor = document.getElementById('studio-editor');
     var moodPicker = document.querySelector('[data-mood-picker]');
+    var viewPicker = document.querySelector('[data-view-picker]');
     var propPicker = document.querySelector('[data-prop-picker]');
     var propsReset = document.querySelector('[data-props-reset]');
     var visitOwn = document.querySelector('[data-visit-own]');
@@ -1341,7 +1368,7 @@
     var penParam = (new URLSearchParams(window.location.search).get('pen') || '').trim();
     var target = null;
     var isOwner = false;
-    var attic = { mood: 'write', props: [], avatar: '', gender: '', pos: {} };
+    var attic = { mood: 'write', props: [], view: 'auto', avatar: '', gender: '', pos: {} };
     var avatarPicker = null;
     var currentTheme = 'rose';
     var lastSignature = null;
@@ -1362,6 +1389,7 @@
       return {
         mood: normalized.mood,
         props: normalized.props.slice(),
+        view: normalized.view || 'auto',
         avatar: normalized.avatar || '',
         gender: normalized.gender || '',
         pos: normalized.pos ? Object.assign({}, normalized.pos) : {}
@@ -1375,6 +1403,13 @@
         studio.classList.toggle('droom--' + key, key === mood);
       });
 
+      /* 창밖 풍경 — 방에 droom--view-* 를 붙여 SVG 안 풍경 한 벌만 보이게 합니다. */
+      var view = VIEW_LABEL[attic.view] ? attic.view : 'auto';
+      VIEWS.forEach(function (item) {
+        studio.classList.toggle('droom--view-' + item.key, item.key === view);
+      });
+      studio.setAttribute('data-view', view);
+
       Store.ATTIC_PROPS.forEach(function (key) {
         var groups = studio.querySelectorAll('[data-prop="' + key + '"]');
         var on = attic.props.indexOf(key) !== -1;
@@ -1386,9 +1421,11 @@
       setText('[data-studio-mood]', MOOD_LABEL[mood]);
       setText('[data-studio-theme]', THEME_LABEL[currentTheme] || '');
       setText('[data-studio-count]', attic.props.length ? '소품 ' + attic.props.length + '개' : '소품 없이');
+      setText('[data-studio-view]', VIEW_LABEL[view]);
 
       var propNames = attic.props.map(function (key) { return PROP_LABEL[key]; }).filter(Boolean);
-      studio.setAttribute('aria-label', MOOD_LABEL[mood] + ' 분위기의 다락방 사무실. ' +
+      studio.setAttribute('aria-label', MOOD_LABEL[mood] + ' 분위기의 다락방 사무실. 창밖은 ' +
+        VIEW_SUBLABEL[view] + '. ' +
         (propNames.length ? '소품: ' + propNames.join(', ') + '.' : '아직 놓은 소품이 없어요.') +
         (isOwner ? ' 소품은 끌어서 자리를 옮길 수 있어요.' : ''));
 
@@ -1402,6 +1439,15 @@
         });
       }
       setText('[data-mood-name]', MOOD_LABEL[mood]);
+
+      if (viewPicker) {
+        viewPicker.querySelectorAll('[data-view]').forEach(function (chip) {
+          var on = chip.getAttribute('data-view') === view;
+          chip.classList.toggle('is-active', on);
+          chip.setAttribute('aria-pressed', String(on));
+        });
+      }
+      setText('[data-view-name]', VIEW_LABEL[view]);
 
       if (propPicker) {
         propPicker.querySelectorAll('[data-prop]').forEach(function (chip) {
@@ -1747,6 +1793,7 @@
       var snapshot = {
         mood: attic.mood,
         props: attic.props.slice(),
+        view: attic.view,
         avatar: attic.avatar,
         gender: attic.gender,
         pos: Object.assign({}, attic.pos)
@@ -1815,6 +1862,27 @@
           attic.mood = mood;
           paintStudio();
           persistAttic(MOOD_LABEL[mood] + ' 분위기로 바꿨어요.');
+        });
+      }
+
+      /* 창밖 풍경 고르기 — 기본 · 일출 · 일몰 · 바다 */
+      if (viewPicker) {
+        viewPicker.innerHTML = VIEWS.map(function (view) {
+          return '<button class="view-chip view-chip--' + view.key + '" type="button" data-view="' + view.key + '" aria-pressed="false">' +
+            '<span class="view-chip__sky" aria-hidden="true"><i class="view-chip__sun"></i><i class="view-chip__line"></i></span>' +
+            '<span class="view-chip__text"><b>' + view.label + '</b><small>' + view.sub + '</small></span>' +
+            '<span class="view-chip__check" aria-hidden="true">✓</span>' +
+            '</button>';
+        }).join('');
+
+        viewPicker.addEventListener('click', function (event) {
+          var chip = event.target.closest ? event.target.closest('[data-view]') : null;
+          if (!chip || !isOwner) return;
+          var view = chip.getAttribute('data-view');
+          if (!VIEW_LABEL[view] || attic.view === view) return;
+          attic.view = view;
+          paintStudio();
+          persistAttic(view === 'auto' ? '창밖을 기본 창으로 되돌렸어요.' : '창밖이 ' + VIEW_LABEL[view] + '로 바뀌었어요.');
         });
       }
 
@@ -2134,6 +2202,7 @@
           attic_props: {
             mood: currentAttic.mood,
             props: currentAttic.props,
+            view: currentAttic.view || 'auto',
             avatar: profileAvatar ? profileAvatar.get() : '',
             gender: profileGender ? profileGender.get() : '',
             pos: currentAttic.pos || {}

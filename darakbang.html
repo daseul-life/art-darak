@@ -133,6 +133,35 @@
                         <stop offset="0.62" class="droom__stopSkyB"></stop>
                         <stop offset="1" class="droom__stopSkyC"></stop>
                       </linearGradient>
+                      <!-- 큰 창밖 풍경 — 일출 · 일몰 · 바다 하늘 -->
+                      <linearGradient id="droomSunrise" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0" stop-color="#FFEACB"></stop>
+                        <stop offset="0.42" stop-color="#FFC9A3"></stop>
+                        <stop offset="0.76" stop-color="#F3A184"></stop>
+                        <stop offset="1" stop-color="#E68F79"></stop>
+                      </linearGradient>
+                      <linearGradient id="droomSunset" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0" stop-color="#FBD9C4"></stop>
+                        <stop offset="0.38" stop-color="#F2AC94"></stop>
+                        <stop offset="0.72" stop-color="#DE8083"></stop>
+                        <stop offset="1" stop-color="#BC6E7E"></stop>
+                      </linearGradient>
+                      <linearGradient id="droomOceanSky" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0" stop-color="#F1F9FB"></stop>
+                        <stop offset="0.46" stop-color="#DCEFF4"></stop>
+                        <stop offset="0.8" stop-color="#C6E3EB"></stop>
+                        <stop offset="1" stop-color="#B5D8E2"></stop>
+                      </linearGradient>
+                      <linearGradient id="droomSea" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0" stop-color="#C2DDE7"></stop>
+                        <stop offset="0.45" stop-color="#A6C8D6"></stop>
+                        <stop offset="1" stop-color="#8FB4C4"></stop>
+                      </linearGradient>
+                      <radialGradient id="droomSunHalo">
+                        <stop offset="0" stop-color="#FFF6DC" stop-opacity=".95"></stop>
+                        <stop offset="0.55" stop-color="#FFE6BE" stop-opacity=".5"></stop>
+                        <stop offset="1" stop-color="#FFE6BE" stop-opacity="0"></stop>
+                      </radialGradient>
                       <radialGradient id="droomGlow">
                         <stop offset="0" class="droom__stopGlow"></stop>
                         <stop offset="1" class="droom__stopGlowClear"></stop>
@@ -161,7 +190,7 @@
                         <stop offset="1" stop-color="#6E4650" stop-opacity="0.09"></stop>
                       </linearGradient>
                       <clipPath id="droomWindowClip">
-                        <path d="M300,282 L300,132 A100,96 0 0 1 500,132 L500,282 Z"></path>
+                        <path d="M272,264 L272,156 A128,116 0 0 1 528,156 L528,264 Z"></path>
                       </clipPath>
                       <filter id="droomPhotoShadow" x="-25%" y="-15%" width="150%" height="135%">
                         <feDropShadow dx="0" dy="2.6" stdDeviation="3.2" flood-color="#6E4650" flood-opacity="0.24"></feDropShadow>
@@ -183,43 +212,135 @@
                     <path d="M-20,168 L330,8 L330,40 L-20,200 Z" fill="url(#droomWoodSoft)"></path>
                     <path d="M820,168 L470,8 L470,40 L820,200 Z" fill="url(#droomWoodSoft)"></path>
 
-                    <!-- 창 -->
+                    <!-- 큰 창 — 일출 · 일몰 · 바다를 담는 방 뒤쪽 창 -->
                     <g class="droom__window">
-                      <path d="M292,290 L292,130 A108,102 0 0 1 508,130 L508,290 Z" fill="#FFFAF2"></path>
+                      <path d="M262,272 L262,150 A138,124 0 0 1 538,150 L538,272 Z" fill="#FFFAF2"></path>
                       <g clip-path="url(#droomWindowClip)">
-                        <path d="M300,282 L300,132 A100,96 0 0 1 500,132 L500,282 Z" fill="url(#droomSky)"></path>
-                        <g class="droom__skyDay">
-                          <circle cx="352" cy="126" r="27" fill="#FFF7E2" opacity=".95"></circle>
-                          <circle cx="352" cy="126" r="38" fill="url(#droomGlow)" opacity=".6"></circle>
-                          <path d="M424,108 q7,-9 14,0 M446,96 q7,-9 14,0" stroke="#FFF8EA" stroke-width="2.4" fill="none" stroke-linecap="round" opacity=".85"></path>
-                        </g>
-                        <g class="droom__skyNight">
-                          <circle cx="440" cy="100" r="23" fill="#FCF2D4"></circle>
-                          <circle cx="450" cy="93" r="19" fill="url(#droomSky)"></circle>
-                          <g fill="#FFF8E4">
-                            <circle cx="322" cy="88" r="2.2"></circle><circle cx="344" cy="112" r="1.6"></circle>
-                            <circle cx="366" cy="76" r="1.8"></circle><circle cx="392" cy="104" r="2.4"></circle>
-                            <circle cx="414" cy="80" r="1.5"></circle><circle cx="470" cy="130" r="1.9"></circle>
-                            <circle cx="330" cy="150" r="1.5"></circle><circle cx="384" cy="140" r="1.4"></circle>
+
+                        <!-- 기본 창 — 작업실 분위기에 맞춘 하늘 -->
+                        <g class="droom__view droom__view--auto">
+                          <path d="M272,264 L272,156 A128,116 0 0 1 528,156 L528,264 Z" fill="url(#droomSky)"></path>
+                          <g transform="translate(0,-34)">
+                          <g class="droom__skyDay">
+                            <circle cx="358" cy="146" r="29" fill="#FFF7E2" opacity=".95"></circle>
+                            <circle cx="358" cy="146" r="44" fill="url(#droomGlow)" opacity=".6"></circle>
+                            <path d="M432,124 q8,-10 16,0 M458,110 q8,-10 16,0" stroke="#FFF8EA" stroke-width="2.4" fill="none" stroke-linecap="round" opacity=".85"></path>
                           </g>
+                          <g class="droom__skyNight">
+                            <circle cx="450" cy="116" r="25" fill="#FCF2D4"></circle>
+                            <circle cx="461" cy="108" r="21" fill="url(#droomSky)"></circle>
+                            <g fill="#FFF8E4">
+                              <circle cx="300" cy="98" r="2.2"></circle><circle cx="326" cy="126" r="1.6"></circle>
+                              <circle cx="352" cy="86" r="1.8"></circle><circle cx="382" cy="116" r="2.4"></circle>
+                              <circle cx="410" cy="88" r="1.5"></circle><circle cx="486" cy="150" r="1.9"></circle>
+                              <circle cx="308" cy="168" r="1.5"></circle><circle cx="386" cy="156" r="1.4"></circle>
+                            </g>
+                          </g>
+                          <g class="droom__skyCraft">
+                            <circle cx="352" cy="214" r="17" fill="#FFF3D4" opacity=".8"></circle>
+                            <path d="M312,132 q15,-13 32,-2 q15,-9 28,2 h-60 Z" fill="#FFF9EE" opacity=".75"></path>
+                            <path d="M414,98 q13,-11 28,-1 q13,-7 24,1 h-52 Z" fill="#FFF9EE" opacity=".6"></path>
+                          </g>
+                          <path class="droom__hills" d="M272,298 C306,246 360,238 404,266 C444,236 494,242 528,272 L528,298 Z" fill="#C3D4C0"></path>
+                          <path d="M272,298 C316,266 376,258 424,276 C464,258 498,260 528,270 L528,298 Z" fill="#B2C7AF" opacity=".8"></path>
+                          <path d="M272,70 L528,196 L528,70 Z" fill="#FFFFFF" opacity=".12"></path></g>
                         </g>
-                        <g class="droom__skyCraft">
-                          <circle cx="356" cy="196" r="16" fill="#FFF3D4" opacity=".8"></circle>
-                          <path d="M330,120 q14,-12 30,-2 q14,-8 26,2 h-56 Z" fill="#FFF9EE" opacity=".75"></path>
-                          <path d="M404,88 q12,-10 26,-1 q12,-6 22,1 h-48 Z" fill="#FFF9EE" opacity=".6"></path>
+
+                        <!-- 일출 — 떠오르는 아침 해와 부드러운 빛 · 천천히 흐르는 구름 -->
+                        <g class="droom__view droom__view--sunrise">
+                          <path d="M272,264 L272,156 A128,116 0 0 1 528,156 L528,264 Z" fill="url(#droomSunrise)"></path>
+                          <g transform="translate(0,-34)">
+                          <ellipse class="droom__sun-halo" cx="400" cy="240" rx="96" ry="74" fill="url(#droomSunHalo)" opacity=".5"></ellipse>
+                          <g class="droom__sun-rise">
+                            <g class="droom__rays" stroke="#FFFDF2" stroke-width="3" stroke-linecap="round" opacity=".6">
+                              <path d="M400,180 L400,152"></path>
+                              <path d="M352,192 L334,170"></path>
+                              <path d="M448,192 L466,170"></path>
+                              <path d="M322,238 L294,238"></path>
+                              <path d="M478,238 L506,238"></path>
+                            </g>
+                            <circle cx="400" cy="240" r="31" fill="#FFFCF0"></circle>
+                            <circle cx="400" cy="240" r="32" fill="none" stroke="#FFF0CC" stroke-width="2" opacity=".85"></circle>
+                            <circle cx="400" cy="240" r="31" fill="url(#droomSunHalo)" opacity=".6"></circle>
+                          </g>
+                          <g class="droom__clouds droom__clouds--a">
+                            <path d="M292,128 q12,-14 30,-7 q10,-12 26,-4 q17,-3 19,11 h-75 Z" fill="#FFF8EC" opacity=".82"></path>
+                            <path d="M418,102 q11,-12 26,-6 q9,-10 23,-3 q15,-2 17,9 h-66 Z" fill="#FFF8EC" opacity=".62"></path>
+                          </g>
+                          <g class="droom__clouds droom__clouds--b">
+                            <path d="M320,196 q10,-11 24,-5 q9,-9 21,-2 q13,-1 15,7 h-60 Z" fill="#FFFBF3" opacity=".55"></path>
+                          </g>
+                          <path d="M272,298 C306,258 344,246 386,262 C424,246 478,250 528,278 L528,298 Z" fill="#E2A78E"></path>
+                          <path d="M272,298 C314,272 360,266 404,280 C448,266 490,270 528,282 L528,298 Z" fill="#B3C9AE"></path>
+                          <path d="M300,290 q16,-6 32,0 M382,286 q16,-6 32,0 M462,290 q14,-5 28,0" stroke="#FFF4DF" stroke-width="2" fill="none" stroke-linecap="round" opacity=".55"></path>
+                          <path d="M432,158 q7,-8 14,0 M456,146 q7,-8 14,0" stroke="#F8D9C4" stroke-width="2.2" fill="none" stroke-linecap="round" opacity=".8"></path></g>
                         </g>
-                        <path class="droom__hills" d="M300,282 C330,240 380,236 410,262 C440,232 480,236 500,270 L500,282 Z" fill="#C3D4C0"></path>
-                        <path d="M300,282 C340,262 390,258 430,272 C460,256 485,258 500,266 L500,282 Z" fill="#B2C7AF" opacity=".8"></path>
-                        <path d="M300,60 L500,180 L500,60 Z" fill="#FFFFFF" opacity=".12"></path>
+
+                        <!-- 일몰 — 지는 노을과 붉은 빛, 천천히 흐르는 새 -->
+                        <g class="droom__view droom__view--sunset">
+                          <path d="M272,264 L272,156 A128,116 0 0 1 528,156 L528,264 Z" fill="url(#droomSunset)"></path>
+                          <g transform="translate(0,-34)">
+                          <ellipse class="droom__sun-halo droom__sun-halo--low" cx="400" cy="250" rx="112" ry="78" fill="url(#droomSunHalo)" opacity=".55"></ellipse>
+                          <g class="droom__sun-set">
+                            <circle cx="400" cy="252" r="35" fill="#FFF3D8"></circle>
+                            <circle cx="400" cy="252" r="36" fill="none" stroke="#FFDFB0" stroke-width="2" opacity=".8"></circle>
+                            <circle cx="400" cy="252" r="35" fill="url(#droomSunHalo)" opacity=".65"></circle>
+                          </g>
+                          <g class="droom__clouds droom__clouds--c">
+                            <path d="M286,152 q14,-11 32,-4 q11,-10 28,-2 q18,-2 20,10 h-80 Z" fill="#FBE2D4" opacity=".85"></path>
+                            <path d="M404,124 q12,-10 28,-3 q10,-9 25,-1 q16,0 18,9 h-71 Z" fill="#FCE6D8" opacity=".6"></path>
+                            <path d="M330,190 q12,-9 26,-2 q10,-8 22,0 q14,0 16,7 h-64 Z" fill="#FDE9DC" opacity=".5"></path>
+                          </g>
+                          <g class="droom__birds" stroke="#A9717C" stroke-width="2" fill="none" stroke-linecap="round" opacity=".55">
+                            <path d="M436,152 q7,-7 14,0 M456,142 q7,-7 14,0"></path>
+                          </g>
+                          <path d="M272,298 C304,266 348,258 392,272 C432,258 486,264 528,282 L528,298 Z" fill="#CE9FA9"></path>
+                          <path d="M272,298 C318,280 366,276 410,286 C452,278 492,280 528,288 L528,298 Z" fill="#B0869A" opacity=".9"></path>
+                          <path d="M330,288 q18,-5 36,0 M420,286 q16,-4 32,0" stroke="#FFEAD2" stroke-width="2" fill="none" stroke-linecap="round" opacity=".5"></path></g>
+                        </g>
+
+                        <!-- 바다 — 잔물결과 윤슬이 반짝이는 창 -->
+                        <g class="droom__view droom__view--ocean">
+                          <path d="M272,264 L272,156 A128,116 0 0 1 528,156 L528,264 Z" fill="url(#droomOceanSky)"></path>
+                          <g transform="translate(0,-34)">
+                          <circle cx="404" cy="120" r="26" fill="#FFF8E6" opacity=".8"></circle>
+                          <circle cx="404" cy="120" r="44" fill="url(#droomSunHalo)" opacity=".45"></circle>
+                          <g class="droom__clouds droom__clouds--d">
+                            <path d="M300,106 q11,-12 27,-5 q10,-10 24,-2 q15,-1 17,9 h-68 Z" fill="#FFFFFF" opacity=".7"></path>
+                            <path d="M430,158 q10,-10 23,-4 q9,-8 20,-1 q12,0 14,7 h-57 Z" fill="#FFFFFF" opacity=".5"></path>
+                          </g>
+                          <path d="M272,232 L528,232 L528,298 L272,298 Z" fill="url(#droomSea)"></path>
+                          <path d="M272,232 H528" stroke="#FFFFFF" stroke-width="2" opacity=".55"></path>
+                          <g class="droom__shimmer" fill="#FFFCF0">
+                            <ellipse cx="398" cy="240" rx="13" ry="2.4" opacity=".85"></ellipse>
+                            <ellipse cx="410" cy="248" rx="7" ry="2" opacity=".7"></ellipse>
+                            <ellipse cx="392" cy="256" rx="9" ry="2.2" opacity=".6"></ellipse>
+                            <ellipse cx="414" cy="266" rx="5" ry="1.8" opacity=".55"></ellipse>
+                            <ellipse cx="388" cy="276" rx="7" ry="2" opacity=".45"></ellipse>
+                            <ellipse cx="406" cy="288" rx="4" ry="1.6" opacity=".4"></ellipse>
+                          </g>
+                          <g class="droom__waves" stroke="#EEF8FA" stroke-width="2.4" fill="none" stroke-linecap="round">
+                            <path class="droom__wave droom__wave--1" d="M280,250 q12,-6 24,0 t24,0 t24,0" opacity=".5"></path>
+                            <path class="droom__wave droom__wave--2" d="M340,262 q12,-6 24,0 t24,0 t24,0" opacity=".42"></path>
+                            <path class="droom__wave droom__wave--3" d="M288,278 q14,-7 28,0 t28,0 t28,0" opacity=".34"></path>
+                          </g>
+                          <g class="droom__boat">
+                            <path d="M336,246 q13,10 26,0 z" fill="#FFF6EC"></path>
+                            <path d="M348,246 L348,224 L362,240 Z" fill="#FFFDF6"></path>
+                            <path d="M348,246 L348,230 L336,241 Z" fill="#FDF3E6" opacity=".85"></path>
+                          </g></g>
+                        </g>
                       </g>
-                      <path d="M396,34 L396,290 M298,190 L502,190" stroke="#FFFAF2" stroke-width="7" stroke-linecap="round"></path>
-                      <path d="M292,290 L292,130 A108,102 0 0 1 508,130 L508,290" fill="none" stroke="#FFFFFF" stroke-opacity=".45" stroke-width="2"></path>
-                      <rect x="282" y="284" width="236" height="13" rx="6" fill="#F3DCC8"></rect>
-                      <rect x="282" y="295" width="236" height="6" rx="3" fill="#B9855F" opacity=".28"></rect>
-                      <path d="M298,124 C280,172 284,238 294,288 L272,288 C264,236 268,168 288,118 Z" fill="#FBE7E9" opacity=".92"></path>
-                      <path d="M502,124 C520,172 516,238 506,288 L528,288 C536,236 532,168 512,118 Z" fill="#FBE7E9" opacity=".92"></path>
-                      <path d="M288,132 C274,180 278,240 286,282" stroke="#E7C9CE" stroke-width="1.6" fill="none" opacity=".8"></path>
-                      <path d="M512,132 C526,180 522,240 514,282" stroke="#E7C9CE" stroke-width="1.6" fill="none" opacity=".8"></path>
+                      <path d="M400,44 L400,262 M274,190 L526,190" stroke="#FFFAF2" stroke-width="7" stroke-linecap="round"></path>
+                      <path d="M272,264 L272,156 A128,116 0 0 1 528,156 L528,264" fill="none" stroke="#FFFFFF" stroke-opacity=".45" stroke-width="2"></path>
+                      <path d="M262,272 L262,150 A138,124 0 0 1 538,150 L538,272" fill="none" stroke="#FFFFFF" stroke-opacity=".5" stroke-width="2.6"></path>
+                      <rect x="252" y="264" width="296" height="14" rx="7" fill="#F3DCC8"></rect>
+                      <rect x="252" y="277" width="296" height="6" rx="3" fill="#B9855F" opacity=".28"></rect>
+                      <path d="M236,120 C230,168 230,224 236,268 L266,268 C258,226 256,182 262,146 C265,132 269,124 274,118 Z" fill="#FBE7E9"></path>
+                      <path d="M564,120 C570,168 570,224 564,268 L534,268 C542,226 544,182 538,146 C535,132 531,124 526,118 Z" fill="#FBE7E9"></path>
+                      <path d="M250,126 C246,172 246,222 250,264 M260,134 C257,178 257,224 260,264" stroke="#EFD5DA" stroke-width="1.8" fill="none" opacity=".85" stroke-linecap="round"></path>
+                      <path d="M550,126 C554,172 554,222 550,264 M540,134 C543,178 543,224 540,264" stroke="#EFD5DA" stroke-width="1.8" fill="none" opacity=".85" stroke-linecap="round"></path>
+                      <path d="M236,120 C244,112 254,110 262,114 M564,120 C556,112 546,110 538,114" stroke="#F6DFE3" stroke-width="2.4" fill="none" stroke-linecap="round"></path>
                     </g>
 
                     <!-- 바닥 -->
@@ -460,6 +581,144 @@
                       <path class="droom__garlandWire" d="M550,120 Q676,162 788,92"></path>
                     </g>
 
+                    <!-- ── 새 소품 7종 ────────────────────────────────────── -->
+
+                    <!-- 커피머신 — 벽 선반 위 에스프레소 머신, 김이 모락모락 -->
+                    <g class="droom__prop" data-prop="coffee">
+                      <ellipse cx="66" cy="300" rx="48" ry="7" fill="#7A4A3E" opacity=".12"></ellipse>
+                      <rect x="20" y="294" width="92" height="8" rx="4" fill="url(#droomWood)"></rect>
+                      <path d="M32,302 L32,316 M100,302 L100,316" stroke="#B9855F" stroke-width="3.4" stroke-linecap="round" opacity=".55"></path>
+                      <rect x="37" y="254" width="58" height="40" rx="7" fill="#F7E9DE"></rect>
+                      <rect x="37" y="254" width="58" height="12" rx="6" fill="#E7C9BB"></rect>
+                      <rect x="45" y="272" width="27" height="6" rx="3" fill="#CBA694"></rect>
+                      <path d="M51,278 v7 M66,278 v7" stroke="#B98D7B" stroke-width="2.2"></path>
+                      <path d="M47,288 h24 l-2,5 h-20 z" fill="#FFFBF4" stroke="#E1C3B4" stroke-width="1"></path>
+                      <path d="M71,289 h4.6 v4.2 a2.3,2.3 0 0 1 -4.6 0 z" fill="none" stroke="#D8B4A3" stroke-width="1.4"></path>
+                      <circle cx="89" cy="260" r="3.2" fill="#C9A08F"></circle>
+                      <circle cx="89" cy="260" r="1.2" fill="#F7E9DE"></circle>
+                      <circle cx="41" cy="289" r="2.2" fill="#D8B4A3"></circle>
+                      <g class="droom__steam droom__steam--coffee" stroke="#FFFFFF" stroke-width="2.6" stroke-linecap="round" fill="none" opacity=".8">
+                        <path d="M54,248 q5,-9 0,-15 q-4,-6 1,-11"></path>
+                        <path d="M67,250 q5,-10 0,-16 q-4,-6 1,-12"></path>
+                      </g>
+                    </g>
+
+                    <!-- 빈백 소파 — 폭신한 파스텔 빈백 -->
+                    <g class="droom__prop" data-prop="beanbag">
+                      <ellipse cx="166" cy="468" rx="76" ry="11" fill="#7A4A3E" opacity=".14"></ellipse>
+                      <path d="M92,464 C86,446 89,426 101,413 C106,399 119,392 133,397 C143,387 157,385 166,393 C175,385 189,387 199,397 C213,392 226,399 231,413 C243,426 246,446 240,464 Z" fill="#E3B9CA"></path>
+                      <path d="M101,413 C106,399 119,392 133,397 C143,387 157,385 166,393 C175,385 189,387 199,397 C213,392 226,399 231,413 C222,419 211,415 199,420 C187,426 177,422 166,426 C155,422 145,426 133,420 C121,415 110,419 101,413 Z" fill="#F1D6E1"></path>
+                      <path d="M99,440 C129,449 203,449 237,440" stroke="#D5A3B6" stroke-width="2" fill="none" stroke-linecap="round" opacity=".85"></path>
+                      <path d="M108,452 C131,459 201,459 226,452" stroke="#EFD8E3" stroke-width="2.6" fill="none" stroke-linecap="round" opacity=".9"></path>
+                      <path d="M136,397 C141,406 150,410 166,410 C182,410 191,406 196,397" stroke="#D5A3B6" stroke-width="1.6" fill="none" opacity=".6"></path>
+                      <circle cx="166" cy="434" r="2.8" fill="#C99BAD"></circle>
+                      <path d="M120,457 C115,442 117,428 124,419" stroke="#D5A3B6" stroke-width="2.2" fill="none" stroke-linecap="round" opacity=".55"></path>
+                      <path d="M212,457 C217,442 215,428 208,419" stroke="#D5A3B6" stroke-width="2.2" fill="none" stroke-linecap="round" opacity=".55"></path>
+                    </g>
+
+                    <!-- 캔들 워머 — 창턱에 놓인 유리 캔들, 불빛이 은은하게 흔들림 -->
+                    <g class="droom__prop" data-prop="candle">
+                        <g transform="translate(0,-34)">
+                      <ellipse cx="490" cy="300" rx="24" ry="5.4" fill="#7A4A3E" opacity=".14"></ellipse>
+                      <ellipse class="droom__candle-glow" cx="490" cy="272" rx="40" ry="38" fill="url(#droomGlow)" opacity=".95"></ellipse>
+                      <path d="M474,300 h32 v-5 h-32 z" fill="#E7CFC0"></path>
+                      <path d="M476,295 v-25 a14,10 0 0 1 28,0 v25 z" fill="#F8E4E4" opacity=".55" stroke="#E7C9CE" stroke-width="1.5"></path>
+                      <path d="M479,295 v-22 a11,8 0 0 1 22,0 v22 z" fill="#F6E2CE"></path>
+                      <path d="M479,278 q11,-4 22,0 v17 h-22 z" fill="#FFF3E2"></path>
+                      <path d="M490,268 v-4" stroke="#CDB09A" stroke-width="1.8" stroke-linecap="round"></path>
+                      <g class="droom__flame-g">
+                        <path class="droom__flame" d="M490,272 c4.6,5 7,8.4 7,11.2 a7,7 0 0 1 -14,0 c0,-2.8 2.4,-6.2 7,-11.2 z" fill="#FFD79A"></path>
+                        <path class="droom__flame-core" d="M490,279 c2.2,2.4 3.4,4 3.4,5.6 a3.4,3.4 0 0 1 -6.8,0 c0,-1.6 1.2,-3.2 3.4,-5.6 z" fill="#FFF8E4"></path>
+                      </g>
+                      <path d="M476,291 q14,3 28,0" stroke="#EBD3C0" stroke-width="1.4" fill="none" opacity=".8"></path>
+                    
+                        </g></g>
+
+                    <!-- 디저트 트레이 — 크루아상과 케이크 한 조각 -->
+                    <g class="droom__prop" data-prop="dessert">
+                        <g transform="translate(0,-34)">
+                      <ellipse cx="330" cy="300" rx="35" ry="7" fill="#7A4A3E" opacity=".12"></ellipse>
+                      <ellipse cx="330" cy="293" rx="33" ry="8.4" fill="#FCF2E7" stroke="#E7D2C1" stroke-width="1.2"></ellipse>
+                      <ellipse cx="330" cy="292" rx="25" ry="6" fill="#FFF9F2"></ellipse>
+                      <path d="M304,286 c4,-11 15,-13 21,-4 c6,-9 17,-7 19,4 c-9,5 -31,5 -40,0 z" fill="#EFC48E"></path>
+                      <path d="M310,285 c3,-6 8,-8 11,-4 M323,284 c4,-4 9,-3 11,1" stroke="#DBA76D" stroke-width="1.4" fill="none" stroke-linecap="round"></path>
+                      <path d="M338,290 l19,-7 v10 z" fill="#FBE3E6" stroke="#E9C3CB" stroke-width="1"></path>
+                      <path d="M338,290 l19,-7" stroke="#FFF6F7" stroke-width="2"></path>
+                      <circle cx="352" cy="282.4" r="2.8" fill="#E88E9E"></circle>
+                      <path d="M296,290 l-8,5" stroke="#CDB6A6" stroke-width="1.8" stroke-linecap="round"></path>
+                      <path d="M296,292 l-8,1" stroke="#CDB6A6" stroke-width="1.4" stroke-linecap="round"></path>
+                      <path d="M330,278 v-4" stroke="#E9D3C0" stroke-width="1.4" stroke-linecap="round"></path>
+                    
+                        </g></g>
+
+                    <!-- 엽서·사진 보드 — 폴라로이드와 엽서를 꿰어 둔 작은 보드 -->
+                    <g class="droom__prop" data-prop="board">
+                      <path d="M583,170 L601,148" stroke="#C9A8A0" stroke-width="1.8" stroke-linecap="round"></path>
+                      <rect x="546" y="170" width="76" height="72" rx="5" fill="url(#droomWood)"></rect>
+                      <rect x="550" y="174" width="68" height="64" rx="3" fill="#F8EEE7"></rect>
+                      <g transform="rotate(-6 567 197)">
+                        <rect x="556" y="184" width="23" height="27" rx="2" fill="#FFFDF9" stroke="#E4D0C2" stroke-width=".9"></rect>
+                        <rect x="558" y="186" width="19" height="17" fill="#CBDCC9"></rect>
+                        <circle cx="563" cy="191" r="3.2" fill="#F3DBA4"></circle>
+                        <path d="M558,203 l7,-6 5,4 4,-3 v2 h-16 z" fill="#A9C0A4"></path>
+                      </g>
+                      <g transform="rotate(5 589 200)">
+                        <rect x="578" y="187" width="23" height="27" rx="2" fill="#FFFDF9" stroke="#E4D0C2" stroke-width=".9"></rect>
+                        <rect x="580" y="189" width="19" height="17" fill="#F7DCD8"></rect>
+                        <path d="M580,204 l6,-7 5,5 4,-4 3,3 v3 h-18 z" fill="#DFA9AE"></path>
+                      </g>
+                      <g transform="rotate(-3 578 227)">
+                        <rect x="560" y="219" width="36" height="14" rx="1.6" fill="#FDF3E4" stroke="#E6D2BE" stroke-width=".9"></rect>
+                        <path d="M564,224 h15 M564,227.4 h10" stroke="#DCC6B1" stroke-width="1"></path>
+                        <rect x="584" y="221" width="8" height="6" fill="#EFD9C4"></rect>
+                      </g>
+                      <circle cx="566" cy="180" r="2.4" fill="#DC9AA6"></circle>
+                      <circle cx="589" cy="184" r="2.4" fill="#9FBBA3"></circle>
+                      <circle cx="578" cy="216" r="2.2" fill="#D8B77E"></circle>
+                    </g>
+
+                    <!-- 강아지 쿠션 — 책상 아래 폭신한 강아지 -->
+                    <g class="droom__prop" data-prop="dog">
+                      <ellipse cx="334" cy="466" rx="46" ry="9" fill="#7A4A3E" opacity=".14"></ellipse>
+                      <ellipse cx="334" cy="453" rx="43" ry="13" fill="#F2DDE4"></ellipse>
+                      <ellipse cx="334" cy="450" rx="36" ry="10" fill="#FBF0F3"></ellipse>
+                      <path d="M308,452 C308,430 319,420 334,426 C349,420 360,430 360,452 C360,460 349,464 334,464 C319,464 308,460 308,452 Z" fill="#EDD3C2"></path>
+                      <path d="M356,448 c11,-3 12,-16 2,-20" stroke="#E0C1AD" stroke-width="5" fill="none" stroke-linecap="round"></path>
+                      <ellipse cx="330" cy="458" rx="9" ry="4.4" fill="#F7E5D7"></ellipse>
+                      <circle cx="316" cy="432" r="15" fill="#F5E0D0"></circle>
+                      <path d="M302,424 c-3,-9 0,-14 3,-16 c4,3 6,7 6,12 Z" fill="#DFBFAA"></path>
+                      <path d="M330,422 c-1,-5 2,-9 6,-11 c3,3 4,8 3,13 Z" fill="#DFBFAA"></path>
+                      <path d="M308,431 q3.6,3.6 7.2,0 M318,431 q3.6,3.6 7.2,0" stroke="#7E5F56" stroke-width="1.9" fill="none" stroke-linecap="round"></path>
+                      <ellipse cx="316" cy="439" rx="4.6" ry="3.6" fill="#C6978A"></ellipse>
+                      <path d="M312.6,442 q3.4,3.4 6.8,0" stroke="#AA8478" stroke-width="1.4" fill="none" stroke-linecap="round"></path>
+                      <path d="M316,435 v3" stroke="#AA8478" stroke-width="1.4" stroke-linecap="round"></path>
+                      <ellipse cx="307" cy="442" rx="3" ry="1.9" fill="#F3C3C3" opacity=".75"></ellipse>
+                      <ellipse cx="325" cy="442" rx="3" ry="1.9" fill="#F3C3C3" opacity=".75"></ellipse>
+                    </g>
+
+                    <!-- 필름 카메라 — 창턱에 놓인 레트로 카메라 -->
+                    <g class="droom__prop" data-prop="camera">
+                        <g transform="translate(0,-34)">
+                      <ellipse cx="422" cy="300" rx="34" ry="6" fill="#7A4A3E" opacity=".14"></ellipse>
+                      <g transform="rotate(-4 422 288)">
+                        <path d="M400,300 l-8,12" stroke="#B9A08E" stroke-width="2.4" stroke-linecap="round"></path>
+                        <path d="M444,300 l8,11" stroke="#B9A08E" stroke-width="2.4" stroke-linecap="round"></path>
+                        <rect x="395" y="274" width="54" height="26" rx="5" fill="#F0E2D6" stroke="#D0B7A6" stroke-width="1.2"></rect>
+                        <rect x="395" y="277" width="54" height="9" rx="3.4" fill="#5E4A47"></rect>
+                        <rect x="400" y="277" width="44" height="2.4" fill="#8A7168" opacity=".7"></rect>
+                        <circle cx="422" cy="291" r="9.4" fill="#F9F2EB" stroke="#BFA593" stroke-width="1.8"></circle>
+                        <circle cx="422" cy="291" r="5.2" fill="#6E5A58"></circle>
+                        <circle cx="422" cy="291" r="2.4" fill="#3F3230"></circle>
+                        <circle cx="419" cy="288" r="1.7" fill="#FFFDF8"></circle>
+                        <rect x="435" y="274.6" width="10" height="5.6" rx="1.6" fill="#F6EADF" stroke="#D0B7A6" stroke-width=".8"></rect>
+                        <circle cx="400" cy="276.4" r="2.6" fill="#C9A0AC"></circle>
+                        <circle cx="400" cy="276.4" r="1.1" fill="#F7E6EC"></circle>
+                        <path d="M404,297 q18,3 36,0" stroke="#DCC7B8" stroke-width="1.2" fill="none"></path>
+                      </g>
+                      <path d="M452,270 v-5 M449.6,267.6 h5" stroke="#FFF6E0" stroke-width="1.8" stroke-linecap="round" opacity=".9"></path>
+                    
+                        </g></g>
+
                     <!-- 방 안 캐릭터 — 고른 캐릭터 한 명이 러그 옆에 서 있어요. 누르면 인사해요. -->
                     <g class="droom__char" data-room-char>
                       <!-- 고른 캐릭터가 배경을 지운 3D 전신 모습으로 러그 위에 서 있어요. 누르면 인사해요. -->
@@ -543,6 +802,7 @@
               </div>
               <figcaption class="droom-cap">
                 <span class="droom-cap__mood"><i aria-hidden="true"></i><b data-studio-mood>창가 서재</b></span>
+                <span class="droom-cap__view"><i aria-hidden="true"></i><b data-studio-view>기본 창</b></span>
                 <span class="droom-cap__theme" data-studio-theme>연분홍 벽</span>
                 <span class="droom-cap__count" data-studio-count>소품 0개</span>
               </figcaption>
@@ -572,8 +832,8 @@
         <article class="studio-editor" id="studio-editor" hidden>
           <div class="studio-editor__head">
             <p class="kicker">다락방 사무실</p>
-            <h2>캐릭터와 방 분위기를 골라 보세요 <span class="spark" aria-hidden="true"></span></h2>
-            <p class="studio-editor__desc">캐릭터를 고르면 다락방 프로필 사진과 위쪽 버튼에 그 사람이 나타나요. 작업실 분위기를 고르면 창밖 풍경과 기본 가구가 바뀌고, 소품은 누른 만큼 방 안에 놓입니다. 바꾼 모습은 바로 저장돼요.</p>
+            <h2>캐릭터와 창밖, 방 분위기를 골라 보세요 <span class="spark" aria-hidden="true"></span></h2>
+            <p class="studio-editor__desc">캐릭터를 고르면 다락방 프로필 사진과 위쪽 버튼에 그 사람이 나타나요. 큰 창밖 풍경(일출·일몰·바다)과 작업실 분위기를 고르면 방의 빛과 기본 가구가 함께 바뀌고, 소품은 누른 만큼 방 안에 놓입니다. 바꾼 모습은 바로 저장돼요.</p>
           </div>
 
           <div class="studio-group">
@@ -584,6 +844,11 @@
           <div class="studio-group">
             <p class="studio-group__label">벽지 <span class="studio-value" data-theme-name>연분홍 벽</span></p>
             <div class="attic-swatches" data-theme-picker role="group" aria-label="다락방 벽지 고르기"></div>
+          </div>
+
+          <div class="studio-group">
+            <p class="studio-group__label">큰 창밖 풍경 <span class="studio-value" data-view-name>기본 창</span> <em class="studio-group__hint">창으로 보이는 하루</em></p>
+            <div class="view-grid" data-view-picker role="group" aria-label="창밖 풍경 고르기"></div>
           </div>
 
           <div class="studio-group">

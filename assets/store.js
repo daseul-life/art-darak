@@ -28,13 +28,20 @@
   var ATTIC_THEMES = ['rose', 'cream', 'lavender', 'mint', 'butter', 'sky'];
   var DEFAULT_THEME = 'rose';
 
-  /* 다락방 사무실 — 작업실 분위기 4종과 소품 10종.
-     profiles.attic_props(jsonb)에 { mood, props: [], pos: { 소품키: {x,y} } } 로 저장합니다.
+  /* 다락방 사무실 — 작업실 분위기 4종과 소품 17종.
+     profiles.attic_props(jsonb)에 { mood, props: [], view?, pos: { 소품키: {x,y} } } 로 저장합니다.
      pos 는 방 안에서 손으로 끌어 옮긴 소품 자리(백분율)이고, 없으면 기본 자리입니다.
+     view 는 큰 창밖 풍경(일출·일몰·바다)이고, 고르지 않으면 키 없이(분위기에 맞춘 기본 창) 둡니다.
      예전에 배열([])로 저장된 값도 그대로 읽히도록 normalizeAtticProps 가 받아 줍니다. */
   var ATTIC_MOODS = ['write', 'paint', 'music', 'craft'];
-  var ATTIC_PROPS = ['easel', 'desk', 'lamp', 'guitar', 'plant', 'tea', 'garland', 'cat', 'books', 'vinyl'];
+  var ATTIC_PROPS = [
+    'easel', 'desk', 'lamp', 'guitar', 'plant', 'tea', 'garland', 'cat', 'books', 'vinyl',
+    'coffee', 'beanbag', 'candle', 'dessert', 'board', 'dog', 'camera'
+  ];
   var DEFAULT_MOOD = 'write';
+  /* 큰 창밖 풍경 — 'auto' 는 작업실 분위기에 맞춘 기본 창입니다. */
+  var ATTIC_VIEWS = ['auto', 'sunrise', 'sunset', 'ocean'];
+  var DEFAULT_VIEW = 'auto';
 
   /* 다락방 캐릭터 — 여섯 아키타입 × 여자/남자 두 버전입니다.
      저장 값은 'seoyun:f' / 'seoyun:m' 처럼 아키타입 key 뒤에 성별을 붙입니다.
@@ -133,6 +140,11 @@
 
   /* { mood, props, avatar?, gender?, pos? } — 예전 배열 값·모르는 값도 받아 줍니다.
      avatar/gender/pos 는 고른 적이 있을 때만 키를 남겨서, 예전 저장 값과 모양이 같습니다. */
+  /* 창밖 풍경 — 모르는 값은 'auto'(분위기에 맞춘 기본 창)로 조용히 돌립니다. */
+  function normalizeAtticView(value) {
+    return ATTIC_VIEWS.indexOf(value) !== -1 ? value : DEFAULT_VIEW;
+  }
+
   function normalizeAtticProps(value) {
     var raw = value;
     if (Array.isArray(raw)) raw = { props: raw };
@@ -148,6 +160,8 @@
     });
 
     var next = { mood: mood, props: props };
+    var view = normalizeAtticView(raw.view);
+    if (view !== DEFAULT_VIEW) next.view = view;
     var avatar = normalizeCharacter(raw.avatar);
     if (avatar) next.avatar = avatar;
     var gender = normalizeGender(raw.gender);
@@ -1187,6 +1201,9 @@
     DEFAULT_THEME: DEFAULT_THEME,
     ATTIC_MOODS: ATTIC_MOODS,
     ATTIC_PROPS: ATTIC_PROPS,
+    ATTIC_VIEWS: ATTIC_VIEWS,
+    DEFAULT_VIEW: DEFAULT_VIEW,
+    normalizeAtticView: normalizeAtticView,
     DEFAULT_MOOD: DEFAULT_MOOD,
     ATTIC_AVATARS: ATTIC_AVATARS,
     ATTIC_GENDERS: ATTIC_GENDERS,
