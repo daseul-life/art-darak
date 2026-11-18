@@ -148,7 +148,7 @@
 
   function bootstrapLocal() {
     var data = readLocal();
-    if (data && data.version === 2) return data;
+    if (data && data.version === 2) return syncSampleLikes(data);
 
     data = {
       version: 2,
@@ -190,6 +190,26 @@
     });
 
     writeLocal(data);
+    return data;
+  }
+
+  /* 예시 작품의 마음 수는 assets/seed.js 값을 그대로 따릅니다.
+     이미 이 브라우저에 저장돼 있던 예시 작품의 숫자도 새 값으로 맞춰 줍니다.
+     (마음을 누른 기록은 artdarak.v2.likes 에 따로 있어서 이 정리와 상관없어요.) */
+  function syncSampleLikes(data) {
+    if (!data || !Array.isArray(data.artworks)) return data;
+    var seedLikes = {};
+    (SEED.artworks || []).forEach(function (w) { seedLikes[w.id] = num(w.like_count); });
+    var changed = false;
+    data.artworks.forEach(function (w) {
+      if (!w || !w.is_sample) return;
+      if (!Object.prototype.hasOwnProperty.call(seedLikes, w.id)) return;
+      if (w.like_count !== seedLikes[w.id]) {
+        w.like_count = seedLikes[w.id];
+        changed = true;
+      }
+    });
+    if (changed) writeLocal(data);
     return data;
   }
 
