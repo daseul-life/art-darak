@@ -22,8 +22,8 @@
    · 체험 모드(위 두 칸이 빈 상태)에서는 알림을 보내지 않습니다.
    ============================================================ */
 window.DARAK_CONFIG = {
-  supabaseUrl: '',      // 예: 'https://abcdefghijkl.supabase.co'
-  supabaseAnonKey: '',  // 예: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
+  supabaseUrl: 'https://rwzggsxaedhsxexpyzas.supabase.co',
+  supabaseAnonKey: 'sb_publishable_BOcLoosWvqiM8PLGxQpdfQ_NfyImhhB',
 
   // 작품 사진을 올릴 저장소(Storage) 이름 — supabase-schema.sql 이 만들어 둡니다.
   storageBucket: 'artworks',
