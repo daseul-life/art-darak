@@ -2434,6 +2434,26 @@ body { word-break: keep-all; overflow-wrap: break-word; }
   65% { transform: rotate(7deg); }
 }
 
+/* --- 방 안 캐릭터는 고른 캐릭터의 사진 아바타로 서 있습니다 ---
+   (예전에 그린 일러스트 12종은 darakbang.html 의 .droom__char-art 안에 숨겨 둡니다) */
+.droom__char-art { display: none !important; }
+.droom__char-frame { fill: #FDF3EC; stroke: #E3C0CB; stroke-width: 1.3; }
+.droom__char-frame-edge { fill: none; stroke: #FFFDF8; stroke-opacity: .8; stroke-width: 1; }
+.droom__char-card { transform-box: fill-box; transform-origin: 50% 100%; filter: url(#droomPhotoShadow); }
+.droom__char-photo .droom__char-shadow { opacity: .17; }
+
+/* 사진이 살짝 기울며 인사합니다 */
+.droom__char-photo.is-greet .droom__char-card {
+  animation: droomPhotoGreet 1.15s cubic-bezier(.34, 1.36, .64, 1) both;
+}
+@keyframes droomPhotoGreet {
+  0%, 100% { transform: rotate(0deg); }
+  20% { transform: rotate(-4.5deg); }
+  44% { transform: rotate(3.4deg); }
+  68% { transform: rotate(-2deg); }
+  86% { transform: rotate(1deg); }
+}
+
 /* 캐릭터 위 핑크 파스텔 말풍선 */
 .droom__say {
   /* 방 크기에 맞춰 함께 커지고 작아집니다 (--room-u = 방 너비 / 800) */
@@ -2489,7 +2509,8 @@ body { word-break: keep-all; overflow-wrap: break-word; }
   .droom__char-bob, .droom__char-figure.is-greet .droom__char-bob,
   .droom__char-figure.is-greet .droom__char-head,
   .droom__char-figure.is-greet .droom__char-arm--r,
-  .droom__char-figure.is-greet .droom__char-arm--l { animation: none; }
+  .droom__char-figure.is-greet .droom__char-arm--l,
+  .droom__char-photo.is-greet .droom__char-card { animation: none; }
   .droom__sparks span { animation-duration: .01s; }
 }
 
