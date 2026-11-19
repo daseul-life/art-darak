@@ -887,15 +887,16 @@
   /* -------------------------------------------------- 다락방 방명록 */
   /* 다락방 주인에게 남기는 짧은 인사 한 줄입니다. (supabase-schema.sql 의 public.guestbook)
      · SELECT 누구나 / INSERT 남긴 사람만 / DELETE 남긴 사람 또는 다락방 주인
-     아직 Supabase 에 guestbook 표를 만들지 않았을 때(PGRST205·42P01·404)에는
-     붉은 오류 대신 '준비 중' 상태로 넘어가 화면이 그대로 쓰이도록 합니다. */
+     아직 Supabase 에 guestbook 표를 만들지 않았거나(PGRST205·42P01·404),
+     같은 이름의 다른 모양 표만 있을 때(42703)에는 붉은 오류 대신
+     '준비 중' 상태로 넘어가 화면이 그대로 쓰이도록 합니다. */
   var GUESTBOOK_STATUS = 'unknown';   /* 'ok' | 'missing' | 'error' */
 
   function isGuestbookMissing(error) {
     if (!error) return false;
     var code = String(error.code || '');
     var message = String(error.message || error.details || error || '').toLowerCase();
-    return code === 'PGRST205' || code === '42P01' || code === '404' ||
+    return code === 'PGRST205' || code === '42P01' || code === '42703' || code === '404' ||
       Number(error.status) === 404 ||
       message.indexOf('could not find the table') !== -1 ||
       message.indexOf('does not exist') !== -1 ||
@@ -940,7 +941,7 @@
 
     var res = await state.client
       .from('guestbook')
-      .select('*')
+      .select('id, owner_id, author_id, author_pen, body, created_at')
       .eq('owner_id', ownerId)
       .order('created_at', { ascending: false });
     if (res.error) {

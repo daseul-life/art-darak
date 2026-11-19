@@ -33,7 +33,7 @@ Supabase가 없어도 이 브라우저(localStorage)에서 가입·작품 등록
    - 테이블: `profiles`, `artworks`, `comments`, `notices`, `guestbook`(다락방 방명록)
    - Storage 버킷: `artworks` (작품 사진, 공개 읽기 / 로그인한 사람만 자기 폴더에 업로드)
    - 예시 작품 12점과 환영 공지가 함께 들어갑니다.
-   - 이미 예전 스키마로 연결해 둔 프로젝트라면, `supabase-guestbook.sql` 만 따로 붙여 넣고 RUN 하면 방명록 표가 추가됩니다. (여러 번 실행해도 안전)
+   - 이미 예전 스키마로 연결해 둔 프로젝트라면, `supabase-guestbook.sql` 만 따로 붙여 넣고 RUN 하면 방명록 표가 추가됩니다. (여러 번 실행해도 안전 / 같은 이름의 빈 표가 있으면 칸만 보충하고, 기존 줄은 지우지 않습니다)
 3. **Authentication → Providers → Email** 에서 **Confirm email 을 꺼 주세요.**
    - 아트다락방은 이메일 없이 필명으로만 가입하기 때문에, 켜져 있으면 로그인이 되지 않습니다.
 4. **Project Settings → API** 의 `Project URL` 과 `anon public` 키를 복사해

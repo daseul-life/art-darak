@@ -9,6 +9,9 @@
 --  ※ supabase-schema.sql 을 이미 실행한 프로젝트에서 쓰는 SQL 입니다.
 --    (profiles 표와 is_admin() 함수를 함께 씁니다)
 --  ※ 여러 번 실행해도 안전합니다.
+--  ※ 같은 이름의 빈 guestbook 표가 이미 있던 프로젝트라면
+--    그 표를 지우지 않고 빠진 칸(작성자·내용 등)만 보충합니다.
+--    기존 칸(content 등)과 기존 줄은 그대로 둡니다.
 -- ============================================================
 
 -- 1. 표
@@ -20,6 +23,63 @@ create table if not exists public.guestbook (
   body       text not null check (char_length(body) between 1 and 200),
   created_at timestamptz not null default now()
 );
+
+-- 예전에 만들어진 같은 이름의 표라면 빠진 칸만 더합니다.
+alter table public.guestbook add column if not exists owner_id   uuid;
+alter table public.guestbook add column if not exists author_id  uuid;
+alter table public.guestbook add column if not exists author_pen text not null default '';
+alter table public.guestbook add column if not exists body       text;
+alter table public.guestbook add column if not exists created_at timestamptz not null default now();
+alter table public.guestbook alter column id set default gen_random_uuid();
+alter table public.guestbook alter column created_at set default now();
+
+-- 예전 표의 content 칸이 '반드시 채워야 함'으로 되어 있으면 새 인사 저장이 막히므로 풀어 둡니다.
+do $$
+begin
+  if exists (
+    select 1 from information_schema.columns
+     where table_schema = 'public' and table_name = 'guestbook' and column_name = 'content'
+  ) then
+    execute 'alter table public.guestbook alter column content drop not null';
+  end if;
+end;
+$$;
+
+-- body 는 비어 있지 않은 200자 이하만 (기존 줄이 있으면 그 줄은 건너뜀)
+do $$
+begin
+  if not exists (
+    select 1 from pg_constraint
+     where conname = 'guestbook_body_check' and conrelid = 'public.guestbook'::regclass
+  ) then
+    alter table public.guestbook add constraint guestbook_body_check
+      check (body is null or char_length(body) between 1 and 200) not valid;
+  end if;
+end;
+$$;
+
+-- 주인·작성자와 profiles 의 연결(계정이 지워지면 인사도 함께) — 이미 있으면 건너뜀
+do $$
+begin
+  if not exists (
+    select 1 from pg_constraint c
+      join pg_attribute a on a.attrelid = c.conrelid and a.attnum = any (c.conkey)
+     where c.conrelid = 'public.guestbook'::regclass and c.contype = 'f' and a.attname = 'owner_id'
+  ) then
+    alter table public.guestbook add constraint guestbook_owner_fk
+      foreign key (owner_id) references public.profiles (id) on delete cascade not valid;
+  end if;
+
+  if not exists (
+    select 1 from pg_constraint c
+      join pg_attribute a on a.attrelid = c.conrelid and a.attnum = any (c.conkey)
+     where c.conrelid = 'public.guestbook'::regclass and c.contype = 'f' and a.attname = 'author_id'
+  ) then
+    alter table public.guestbook add constraint guestbook_author_fk
+      foreign key (author_id) references public.profiles (id) on delete cascade not valid;
+  end if;
+end;
+$$;
 
 create index if not exists guestbook_owner_idx  on public.guestbook (owner_id, created_at desc);
 create index if not exists guestbook_author_idx on public.guestbook (author_id, created_at desc);
@@ -55,6 +115,20 @@ create trigger guestbook_stamp_author before insert on public.guestbook
 
 -- 3. 접근 규칙 (RLS)
 alter table public.guestbook enable row level security;
+
+-- 같은 이름의 예전 표에 붙어 있던 접근 규칙을 먼저 정리합니다.
+do $$
+declare
+  pol record;
+begin
+  for pol in
+    select policyname from pg_policies
+     where schemaname = 'public' and tablename = 'guestbook'
+  loop
+    execute format('drop policy if exists %I on public.guestbook', pol.policyname);
+  end loop;
+end;
+$$;
 
 -- 읽기: 누구나
 drop policy if exists guestbook_read on public.guestbook;
