@@ -3771,3 +3771,123 @@ body { word-break: keep-all; overflow-wrap: break-word; }
     animation: none !important;
   }
 }
+
+
+/* === 아트다락방 캐릭터 활동 정렬 개선 ===
+   SVG 바깥 transform은 위치·크기·좌우 방향만 담당하고,
+   미세 움직임은 내부 .droom__char-3d-body 에서만 담당합니다. */
+.droom__char-3d { transform-box: view-box; }
+.droom__char-3d-body {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  will-change: transform;
+}
+.droom[data-char-activity="beanbag"] .droom__char-3d:not(.is-greet) .droom__char-3d-body {
+  transform-origin: 50% 96%;
+  animation: droomActivityRest 6.4s ease-in-out infinite;
+}
+.droom[data-char-activity="desk"] .droom__char-3d:not(.is-greet) .droom__char-3d-body {
+  transform-origin: 52% 90%;
+  animation: droomActivityFocus 2.35s ease-in-out infinite;
+}
+.droom[data-char-activity="piano"] .droom__char-3d:not(.is-greet) .droom__char-3d-body {
+  transform-origin: 50% 96%;
+  animation: droomActivityPlay 1.65s ease-in-out infinite;
+}
+.droom[data-char-activity="easel"] .droom__char-3d:not(.is-greet) .droom__char-3d-body {
+  transform-origin: 58% 84%;
+  animation: droomActivityBrush 2.15s ease-in-out infinite;
+}
+.droom[data-char-activity="coffee"] .droom__char-3d:not(.is-greet) .droom__char-3d-body {
+  transform-origin: 58% 84%;
+  animation: droomActivityPour 2.8s ease-in-out infinite;
+}
+.droom[data-char-activity="guitar"] .droom__char-3d:not(.is-greet) .droom__char-3d-body {
+  transform-origin: 52% 88%;
+  animation: droomActivityGuitar 1.25s ease-in-out infinite;
+}
+@keyframes droomActivityRest {
+  0%, 100% { transform: translateY(0) scale(1, 1); }
+  50% { transform: translateY(-.55px) scale(1.003, 1.004); }
+}
+@keyframes droomActivityFocus {
+  0%, 100% { transform: translateY(0) rotate(0); }
+  28% { transform: translateY(-.45px) rotate(-.18deg); }
+  62% { transform: translateY(.15px) rotate(.12deg); }
+}
+@keyframes droomActivityPlay {
+  0%, 100% { transform: translateY(0) rotate(0); }
+  35% { transform: translateY(-.5px) rotate(-.28deg); }
+  70% { transform: translateY(0) rotate(.22deg); }
+}
+@keyframes droomActivityBrush {
+  0%, 100% { transform: rotate(0) translateY(0); }
+  32% { transform: rotate(-.45deg) translateY(-.35px); }
+  68% { transform: rotate(.38deg) translateY(0); }
+}
+@keyframes droomActivityPour {
+  0%, 100% { transform: rotate(0) translateY(0); }
+  38% { transform: rotate(-.7deg) translateY(-.35px); }
+  74% { transform: rotate(-.2deg) translateY(0); }
+}
+@keyframes droomActivityGuitar {
+  0%, 100% { transform: rotate(0); }
+  30% { transform: rotate(-.55deg); }
+  65% { transform: rotate(.48deg); }
+}
+
+/* 소품별 활동 효과: 소품 원본 SVG와 겹치지 않는 방 안 장식 레이어 */
+.droom[data-char-activity="easel"]::after,
+.droom[data-char-activity="guitar"]::after,
+.droom[data-char-activity="desk"]::after {
+  position: absolute;
+  z-index: 4;
+  pointer-events: none;
+  color: #D69AB0;
+  font-size: clamp(13px, 2.2vw, 20px);
+  line-height: 1;
+  text-shadow: 0 1px 5px rgba(255,255,255,.85);
+  animation: droomActivitySparkle 2.4s ease-in-out infinite;
+}
+.droom[data-char-activity="easel"]::after {
+  content: "✦  ·";
+  left: 22%;
+  top: 44%;
+}
+.droom[data-char-activity="guitar"]::after {
+  content: "♪  ♫";
+  left: 66%;
+  top: 60%;
+  color: #C88BA7;
+}
+.droom[data-char-activity="desk"]::after {
+  content: "·  ✧";
+  left: 39%;
+  top: 66%;
+  color: #B998B0;
+}
+@keyframes droomActivitySparkle {
+  0%, 100% { opacity: .35; transform: translateY(2px); }
+  50% { opacity: .95; transform: translateY(-3px); }
+}
+.droom__prop.is-playing .droom__piano-notes {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.droom[data-char-activity="piano"] .droom__prop[data-prop="piano"] .droom__piano-notes {
+  opacity: 1;
+}
+.droom[data-char-activity="coffee"] .droom__prop[data-prop="coffee"] .droom__steam--coffee {
+  animation: droomCoffeeSteam 1.7s ease-in-out infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+@media (prefers-reduced-motion: reduce) {
+  .droom[data-char-activity]::after,
+  .droom[data-char-activity] .droom__char-3d:not(.is-greet) .droom__char-3d-body,
+  .droom[data-char-activity] .droom__prop.is-playing .droom__piano-notes,
+  .droom[data-char-activity] .droom__prop .droom__steam--coffee {
+    animation: none !important;
+  }
+  .droom[data-char-activity]::after { opacity: 0 !important; }
+}
