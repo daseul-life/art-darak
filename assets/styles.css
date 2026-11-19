@@ -3891,3 +3891,10 @@ body { word-break: keep-all; overflow-wrap: break-word; }
   }
   .droom[data-char-activity]::after { opacity: 0 !important; }
 }
+
+
+/* SVG 전면 가구 레이어는 문서 순서로 캐릭터 위에 그립니다.
+   SVG 자식 <g>에는 일반 HTML z-index가 일관되게 적용되지 않으므로
+   JS가 원본 소품과 동일한 이동량을 적용합니다. */
+.droom__prop-front { display: none; pointer-events: none; }
+.droom__prop-front.is-on { display: inline; }
