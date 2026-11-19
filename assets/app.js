@@ -1783,15 +1783,18 @@
     }
 
     /* -------------------------------------------------- 방 안 캐릭터 */
-    /* 고른 자세의 그림 파일 — 서기는 기본 그림(room-3d/<key>.webp)을 그대로 씁니다. */
+    /* 고른 자세의 그림 파일 — 전용 에셋이 없는 활동은 가장 가까운 기존 포즈를 사용합니다. */
     function roomPoseSrc(charKey, pose) {
       /* data-char 는 'seoyun:f' 모양이라 파일 이름('seoyun-f')에 맞춰 바꿉니다. */
       var key = String(charKey || '').replace(':', '-');
       if (!key) return '';
-      /* UI에서 고르는 기본 자세와 소품 전용 자세 에셋을 분리합니다.
-         파일이 아직 없는 전용 자세는 paintRoomCharacter의 onerror가 stand로 되돌립니다. */
-      var roomPoseAssets = { stand: true, sit: true, work: true, meditate: true, paint: true, coffee: true, guitar: true };
-      var p = roomPoseAssets[pose] ? pose : 'stand';
+      /* 현재 저장소에 실제 존재하는 포즈만 연결합니다.
+         그림 그리기·커피 내리기는 팔을 쓰는 work, 기타는 앉은 sit 포즈를 재사용합니다. */
+      var poseAsset = {
+        stand: 'stand', sit: 'sit', work: 'work', meditate: 'meditate',
+        paint: 'work', coffee: 'work', guitar: 'sit'
+      };
+      var p = poseAsset[pose] || 'stand';
       return 'images/room-3d/' + key + (p === 'stand' ? '' : '-' + p) + '.webp';
     }
 
@@ -1808,13 +1811,13 @@
       beanbag: { x: 50, y: 100, dx: 0, dy: -23, scale: 0.78, facing: 1, pose: 'sit', fx: 'breathe', fallback: { x: 169, y: 455 } },
       desk:    { x: 50, y: 75, dx: 0, dy: 0, scale: 0.80, facing: 1, pose: 'work', fx: 'type', fallback: { x: 335, y: 440 } },
       piano:   { x: 100, y: 100, dx: -24, dy: -27, scale: 0.80, facing: -1, pose: 'sit', fx: 'notes', fallback: { x: 438, y: 450 } },
-      /* 전용 포즈 파일이 추가되면 자동 사용하고, 현재 파일이 없으면 stand로 폴백합니다. */
+      /* 전용 에셋이 없는 활동은 paint/coffee=work, guitar=sit 그림을 재사용합니다. */
       easel:   { x: 100, y: 100, dx: 18, dy: 34, scale: 0.82, facing: -1, pose: 'paint', fx: 'paint', fallback: { x: 232, y: 470 } },
       coffee:  { x: 100, y: 100, dx: 18, dy: 154, scale: 0.80, facing: -1, pose: 'coffee', fx: 'steam', fallback: { x: 130, y: 470 } },
-      guitar:  { x: 0, y: 100, dx: -35, dy: 18, scale: 0.82, facing: 1, pose: 'guitar', fx: 'strum', fallback: { x: 527, y: 470 } }
+      guitar:  { x: 0, y: 100, dx: -35, dy: 18, scale: 0.82, facing: 1, pose: 'sit', fx: 'strum', fallback: { x: 527, y: 470 } }
     };
     /* 자세 그림에서 머리끝이 차지하는 높이(그림 아래 240 기준) — 말풍선을 머리 위에 놓습니다. */
-    var POSE_HEAD = { stand: 234.4, sit: 156.1, work: 166.4, meditate: 178.6 };
+    var POSE_HEAD = { stand: 234.4, sit: 156.1, work: 166.4, meditate: 178.6, paint: 166.4, coffee: 166.4, guitar: 156.1 };
     var CHAR_IMG_W = 150, CHAR_IMG_H = 240, CHAR_ANCHOR_X = 75;
     var roomCharNow = null;
     var roomCharFrame = 0;
