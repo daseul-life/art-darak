@@ -439,6 +439,7 @@
     var name = normalizePen(pen);
     extra = extra || {};
     var startingAttic = normalizeAtticProps(extra.attic_props || {});
+    var startingTheme = ATTIC_THEMES.indexOf(extra.attic_theme) !== -1 ? extra.attic_theme : DEFAULT_THEME;
 
     assert(name.length >= 2, '필명은 2자 이상으로 지어 주세요.');
     assert(name.length <= 12, '필명은 12자까지 쓸 수 있어요.');
@@ -455,7 +456,7 @@
         pen_name: name,
         bio: extra.bio || '',
         fields: extra.fields || [],
-        attic_theme: DEFAULT_THEME,
+        attic_theme: startingTheme,
         attic_note: '',
         attic_props: startingAttic,
         is_admin: false,
@@ -497,19 +498,15 @@
     }
 
     state.profile = await ensureCloudProfile(res.data.session.user, name);
-    /* 가입할 때 고른 캐릭터·성별은 프로필 줄이 생긴 뒤에 한 번 더 담습니다.
-       (실패해도 가입은 그대로 진행됩니다.) */
-    if (state.profile && (startingAttic.avatar || startingAttic.gender)) {
-      var atticRes = await state.client
-        .from('profiles')
-        .update({ attic_props: startingAttic })
-        .eq('id', state.profile.id);
-      if (atticRes.error) {
-        console.warn('[아트다락방] 가입할 때 고른 캐릭터를 담지 못했어요.', atticRes.error);
-      } else {
-        state.profile = Object.assign({}, state.profile, { attic_props: startingAttic });
-      }
-    }
+    /* 가입 직후 고른 벽지와 꾸민 다락방 전체를 프로필에 함께 저장합니다. */
+    var atticRes = await state.client
+      .from('profiles')
+      .update({ attic_theme: startingTheme, attic_props: startingAttic })
+      .eq('id', state.profile.id)
+      .select('*')
+      .single();
+    if (atticRes.error) throw new Error('가입은 되었지만 꾸민 다락방을 저장하지 못했어요. ' + atticRes.error.message);
+    state.profile = publicProfile(atticRes.data);
     notify();
     return state.profile;
   }
