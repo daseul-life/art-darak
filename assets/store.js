@@ -1453,3 +1453,202 @@
     resetLocal: resetLocal
   };
 })();
+/* [3단계] 친구 신청·수락 - 데이터 부분 (store.js 맨 아래에 붙이기) */
+(function (global) {
+  'use strict';
+
+  var TABLE = 'friendships';
+  var DEMO_KEY = 'artdarak.friends.demo.v1';
+  var _sb = null;
+
+  var DEMO_FRIENDS = [
+    { id: 'demo:1', pen_name: '달빛우물', bio: '밤마다 시를 한 줄씩 적어요.', attic_props: {} },
+    { id: 'demo:2', pen_name: '솜사탕화실', bio: '분홍빛 수채화를 모으는 중이에요.', attic_props: {} }
+  ];
+
+  // 기존 store.js 에 Supabase 클라이언트 변수가 있으면 ① 줄을 그 이름으로 바꾸세요
+  function getSb() {
+    if (_sb) return _sb;
+    if (global.DarakStore && global.DarakStore.sb) return (_sb = global.DarakStore.sb); // ①
+    if (global.__darakSb) return (_sb = global.__darakSb);
+    var cfg = global.DARAK_CONFIG || {};
+    if (!cfg.supabaseUrl || !cfg.supabaseAnonKey) return null;
+    if (!global.supabase || typeof global.supabase.createClient !== 'function') return null;
+    _sb = global.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
+    return _sb;
+  }
+
+  function mode() { return getSb() ? 'db' : 'demo'; }
+
+  function isMissing(err) {
+    if (!err) return false;
+    var code = String(err.code || '');
+    var msg = String(err.message || '').toLowerCase();
+    return code === 'PGRST205' || code === '42P01' || err.status === 404 ||
+      msg.indexOf('could not find the table') !== -1 ||
+      msg.indexOf('schema cache') !== -1 ||
+      (msg.indexOf('relation') !== -1 && msg.indexOf('does not exist') !== -1);
+  }
+
+  function fail(err) {
+    return { ok: false, missing: isMissing(err), error: err || null, code: err && err.code };
+  }
+
+  function lsGet() {
+    try { return JSON.parse(global.localStorage.getItem(DEMO_KEY) || '{}') || {}; } catch (e) { return {}; }
+  }
+  function lsSet(o) {
+    try { global.localStorage.setItem(DEMO_KEY, JSON.stringify(o)); } catch (e) {}
+  }
+
+  function norm(p) {
+    if (!p) return null;
+    var props = p.attic_props;
+    if (typeof props === 'string') { try { props = JSON.parse(props); } catch (e) { props = {}; } }
+    if (!props || typeof props !== 'object' || Array.isArray(props)) props = {};
+    return { id: p.id, pen_name: p.pen_name || '', bio: p.bio || p.intro || '', attic_props: props };
+  }
+
+  async function profilesByIds(ids) {
+    var map = {};
+    if (!ids.length) return { ok: true, map: map };
+    var r = await getSb().from('profiles').select('*').in('id', ids);
+    if (r.error) return fail(r.error);
+    (r.data || []).forEach(function (p) { map[p.id] = norm(p); });
+    return { ok: true, map: map };
+  }
+
+  async function context(pen) {
+    var sb = getSb();
+    pen = (pen || '').trim();
+    if (!sb) {
+      return {
+        mode: 'demo', loggedIn: false, me: null,
+        owner: pen ? { id: 'demo:' + pen, pen_name: pen } : null,
+        isOwn: !pen
+      };
+    }
+    var uid = null;
+    try {
+      var s = await sb.auth.getSession();
+      uid = s && s.data && s.data.session && s.data.session.user ? s.data.session.user.id : null;
+    } catch (e) { uid = null; }
+
+    var me = null;
+    if (uid) {
+      var mr = await sb.from('profiles').select('*').eq('id', uid).maybeSingle();
+      me = mr.error ? null : norm(mr.data);
+    }
+    var owner = me;
+    if (pen) {
+      var or = await sb.from('profiles').select('*').eq('pen_name', pen).maybeSingle();
+      owner = or.error ? null : norm(or.data);
+    }
+    return {
+      mode: 'db', loggedIn: !!uid, me: me, owner: owner,
+      isOwn: !!(me && owner && me.id === owner.id)
+    };
+  }
+
+  async function status(meId, otherId) {
+    if (mode() === 'demo') {
+      var s = lsGet()[otherId];
+      return { ok: true, state: s === 'sent' ? 'sent' : 'none', row: s ? { id: 'demo:' + otherId } : null };
+    }
+    var q = await getSb().from(TABLE).select('*')
+      .or('and(requester_id.eq.' + meId + ',addressee_id.eq.' + otherId + '),' +
+          'and(requester_id.eq.' + otherId + ',addressee_id.eq.' + meId + ')')
+      .limit(1);
+    if (q.error) return fail(q.error);
+    var row = q.data && q.data[0] ? q.data[0] : null;
+    var state = 'none';
+    if (row) state = row.status === 'accepted' ? 'friends' : (row.requester_id === meId ? 'sent' : 'received');
+    return { ok: true, state: state, row: row };
+  }
+
+  async function request(meId, otherId) {
+    if (mode() === 'demo') {
+      var m = lsGet(); m[otherId] = 'sent'; lsSet(m);
+      return status(meId, otherId);
+    }
+    var ins = await getSb().from(TABLE)
+      .insert({ requester_id: meId, addressee_id: otherId, status: 'pending' })
+      .select().limit(1);
+    if (ins.error) {
+      if (ins.error.code === '23505') {
+        var st = await status(meId, otherId);
+        if (st.ok && st.state === 'received') return accept(st.row.id);
+        return st;
+      }
+      return fail(ins.error);
+    }
+    return { ok: true, state: 'sent', row: ins.data && ins.data[0] ? ins.data[0] : null };
+  }
+
+  async function accept(rowId) {
+    if (mode() === 'demo') return { ok: true, state: 'friends', row: { id: rowId } };
+    var u = await getSb().from(TABLE).update({ status: 'accepted' })
+      .eq('id', rowId).eq('status', 'pending').select();
+    if (u.error) return fail(u.error);
+    if (!u.data || !u.data.length) return { ok: false, stale: true };
+    return { ok: true, state: 'friends', row: u.data[0] };
+  }
+
+  async function remove(rowId) {
+    if (mode() === 'demo') {
+      var key = String(rowId).replace(/^demo:/, '');
+      var m = lsGet(); delete m[key]; lsSet(m);
+      return { ok: true, state: 'none', row: null };
+    }
+    var d = await getSb().from(TABLE).delete().eq('id', rowId).select();
+    if (d.error) return fail(d.error);
+    return { ok: true, state: 'none', row: null };
+  }
+
+  async function listIncoming(meId) {
+    if (mode() === 'demo') return { ok: true, data: [] };
+    var q = await getSb().from(TABLE).select('*')
+      .eq('addressee_id', meId).eq('status', 'pending')
+      .order('created_at', { ascending: false });
+    if (q.error) return fail(q.error);
+    var rows = q.data || [];
+    var pr = await profilesByIds(rows.map(function (r) { return r.requester_id; }));
+    if (!pr.ok) return pr;
+    return {
+      ok: true,
+      data: rows.map(function (r) {
+        return { rowId: r.id, created_at: r.created_at, profile: pr.map[r.requester_id] || null };
+      }).filter(function (x) { return x.profile; })
+    };
+  }
+
+  async function listFriends(meId) {
+    if (mode() === 'demo') {
+      return {
+        ok: true, demo: true,
+        data: DEMO_FRIENDS.map(function (p) { return { rowId: p.id, created_at: null, profile: p }; })
+      };
+    }
+    var q = await getSb().from(TABLE).select('*')
+      .eq('status', 'accepted')
+      .or('requester_id.eq.' + meId + ',addressee_id.eq.' + meId)
+      .order('created_at', { ascending: false });
+    if (q.error) return fail(q.error);
+    var rows = q.data || [];
+    var otherOf = function (r) { return r.requester_id === meId ? r.addressee_id : r.requester_id; };
+    var pr = await profilesByIds(rows.map(otherOf));
+    if (!pr.ok) return pr;
+    return {
+      ok: true,
+      data: rows.map(function (r) {
+        return { rowId: r.id, created_at: r.created_at, profile: pr.map[otherOf(r)] || null };
+      }).filter(function (x) { return x.profile; })
+    };
+  }
+
+  global.DarakFriends = {
+    mode: mode, context: context, status: status, request: request,
+    accept: accept, cancel: remove, decline: remove, unfriend: remove,
+    listIncoming: listIncoming, listFriends: listFriends, isMissing: isMissing
+  };
+})(window);
