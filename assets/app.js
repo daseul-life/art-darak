@@ -2316,6 +2316,27 @@
         var ot=ctx.createOscillator(),gt=ctx.createGain(),at=now+i*.075;ot.type='triangle';ot.frequency.value=680+(i%3)*130;
         gt.gain.setValueAtTime(.0001,at);gt.gain.exponentialRampToValueAtTime(.035,at+.004);gt.gain.exponentialRampToValueAtTime(.0001,at+.04);
         ot.connect(gt);gt.connect(audioMaster);ot.start(at);ot.stop(at+.045);
+      } else if(type==='candle') {
+        /* 촛불은 긴 백색소음 대신 짧고 불규칙한 장작 심지의 타닥임으로 만듭니다. */
+        for(var i=0;i<9;i++){
+          var at=now+Math.random()*1.45;
+          var duration=.018+Math.random()*.045;
+          var len=Math.max(1,Math.floor(ctx.sampleRate*duration));
+          var buf=ctx.createBuffer(1,len,ctx.sampleRate),data=buf.getChannelData(0);
+          for(var n=0;n<len;n++){
+            var fade=1-(n/len);
+            data[n]=(Math.random()*2-1)*fade;
+          }
+          var src=ctx.createBufferSource(),high=ctx.createBiquadFilter(),low=ctx.createBiquadFilter(),gn=ctx.createGain();
+          src.buffer=buf;high.type='highpass';high.frequency.value=850+Math.random()*700;
+          low.type='lowpass';low.frequency.value=3200+Math.random()*1500;
+          var peak=.012+Math.random()*.022;
+          gn.gain.setValueAtTime(.0001,at);
+          gn.gain.linearRampToValueAtTime(peak,at+.004);
+          gn.gain.exponentialRampToValueAtTime(.0001,at+duration);
+          src.connect(high);high.connect(low);low.connect(gn);gn.connect(audioMaster);
+          src.start(at);src.stop(at+duration+.005);
+        }
       } else {
         var len=Math.floor(ctx.sampleRate*.65),buf=ctx.createBuffer(1,len,ctx.sampleRate),d=buf.getChannelData(0);
         for(var n=0;n<len;n++)d[n]=(Math.random()*2-1)*.17;
