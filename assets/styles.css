@@ -3718,3 +3718,56 @@ body { word-break: keep-all; overflow-wrap: break-word; }
 
 .droom__prop.is-playing .droom__steam--coffee{animation:droomCoffeeSteam 1.7s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
 @keyframes droomCoffeeSteam{0%{opacity:.15;transform:translateY(5px)}45%{opacity:.9}100%{opacity:.1;transform:translateY(-9px)}}
+
+
+/* 소품별 활동 상태: 같은 기본 자세라도 소품을 사용하는 느낌이 나도록 미세하게 움직입니다. */
+.droom[data-char-activity="beanbag"] .droom__char-3d:not(.is-greet) .droom__char-3d-body,
+.droom[data-char-activity="piano"] .droom__char-3d:not(.is-greet) .droom__char-3d-body {
+  transform-origin: 50% 100%;
+  animation: droomActivityBreathe 5.8s ease-in-out infinite;
+}
+.droom[data-char-activity="desk"] .droom__char-3d:not(.is-greet) .droom__char-3d-body {
+  transform-origin: 50% 90%;
+  animation: droomActivityType 2.8s ease-in-out infinite;
+}
+.droom[data-char-activity="coffee"] .droom__char-3d:not(.is-greet) .droom__char-3d-body {
+  transform-origin: 58% 82%;
+  animation: droomActivityReach 3.2s ease-in-out infinite;
+}
+.droom[data-char-activity="easel"] .droom__char-3d:not(.is-greet) .droom__char-3d-body {
+  transform-origin: 58% 86%;
+  animation: droomActivityPaint 4.4s ease-in-out infinite;
+}
+.droom[data-char-activity="guitar"] .droom__char-3d:not(.is-greet) .droom__char-3d-body {
+  transform-origin: 52% 88%;
+  animation: droomActivityStrum 1.9s ease-in-out infinite;
+}
+@keyframes droomActivityBreathe {
+  0%, 100% { transform: translateY(0) scale(1, 1); }
+  50% { transform: translateY(-.7px) scale(1.003, 1.002); }
+}
+@keyframes droomActivityType {
+  0%, 100% { transform: translateY(0) rotate(0); }
+  35% { transform: translateY(-.6px) rotate(-.25deg); }
+  70% { transform: translateY(.2px) rotate(.15deg); }
+}
+@keyframes droomActivityReach {
+  0%, 100% { transform: rotate(0) translateY(0); }
+  38% { transform: rotate(-1.1deg) translateY(-.4px); }
+  72% { transform: rotate(-.45deg) translateY(0); }
+}
+@keyframes droomActivityPaint {
+  0%, 100% { transform: rotate(0) translateY(0); }
+  32% { transform: rotate(.55deg) translateY(-.4px); }
+  68% { transform: rotate(-.45deg) translateY(0); }
+}
+@keyframes droomActivityStrum {
+  0%, 100% { transform: rotate(0); }
+  30% { transform: rotate(-.65deg); }
+  65% { transform: rotate(.55deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .droom[data-char-activity] .droom__char-3d:not(.is-greet) .droom__char-3d-body {
+    animation: none !important;
+  }
+}
