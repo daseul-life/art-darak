@@ -110,8 +110,31 @@ alter table public.guestbook add column if not exists author_id  uuid;
 alter table public.guestbook add column if not exists author_pen text not null default '';
 alter table public.guestbook add column if not exists body       text;
 alter table public.guestbook add column if not exists created_at timestamptz not null default now();
-alter table public.guestbook alter column id set default gen_random_uuid();
-alter table public.guestbook alter column created_at set default now();
+do $$
+begin
+  if exists (
+    select 1 from information_schema.columns
+     where table_schema = 'public' and table_name = 'guestbook'
+       and column_name = 'created_at'
+       and data_type in ('timestamp with time zone', 'timestamp without time zone')
+  ) then
+    execute 'alter table public.guestbook alter column created_at set default now()';
+  end if;
+end;
+$$;
+
+-- id 가 uuid 인 표에만 기본값을 답니다. (예전 표가 숫자 id 를 쓰면 그대로 둡니다)
+do $$
+begin
+  if exists (
+    select 1 from information_schema.columns
+     where table_schema = 'public' and table_name = 'guestbook'
+       and column_name = 'id' and data_type = 'uuid'
+  ) then
+    execute 'alter table public.guestbook alter column id set default gen_random_uuid()';
+  end if;
+end;
+$$;
 
 -- 예전 표의 content 칸이 '반드시 채워야 함'으로 되어 있으면 새 인사 저장이 막히므로 풀어 둡니다.
 do $$
@@ -141,11 +164,16 @@ $$;
 -- 주인·작성자와 profiles 의 연결(계정이 지워지면 인사도 함께) — 이미 있으면 건너뜀
 do $$
 begin
-  if not exists (
-    select 1 from pg_constraint c
-      join pg_attribute a on a.attrelid = c.conrelid and a.attnum = any (c.conkey)
-     where c.conrelid = 'public.guestbook'::regclass and c.contype = 'f' and a.attname = 'owner_id'
-  ) then
+  if exists (
+       select 1 from information_schema.columns
+        where table_schema = 'public' and table_name = 'guestbook'
+          and column_name = 'owner_id' and data_type = 'uuid'
+     )
+     and not exists (
+       select 1 from pg_constraint c
+         join pg_attribute a on a.attrelid = c.conrelid and a.attnum = any (c.conkey)
+        where c.conrelid = 'public.guestbook'::regclass and c.contype = 'f' and a.attname = 'owner_id'
+     ) then
     alter table public.guestbook add constraint guestbook_owner_fk
       foreign key (owner_id) references public.profiles (id) on delete cascade not valid;
   end if;
