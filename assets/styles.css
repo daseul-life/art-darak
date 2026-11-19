@@ -3512,3 +3512,16 @@ body { word-break: keep-all; overflow-wrap: break-word; }
   .dgb-form__foot { justify-content: flex-end; }
   .dgb-form__hint { width: 100%; }
 }
+
+/* 다락방 피아노와 ASMR 설정 */
+.droom__piano-notes{opacity:0;transform-box:fill-box;transform-origin:center}
+.droom__prop.is-playing .droom__piano-notes{opacity:1;animation:droomPianoNotes 1.8s ease-in-out infinite}
+@keyframes droomPianoNotes{0%{transform:translateY(8px);opacity:0}35%{opacity:1}100%{transform:translateY(-24px);opacity:0}}
+.droom-sound{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:.45rem;margin:.65rem auto .25rem;color:var(--plum-2);font-size:.75rem}
+.droom-sound button,.droom-sound select{border:1px solid var(--line);border-radius:999px;padding:.38rem .65rem;background:#FFFCFD;color:inherit;font:inherit}
+.droom-sound button{cursor:pointer;font-weight:700}
+.droom-sound__toggle[aria-pressed="true"]{background:#FCE7EE;border-color:#E5B5C5}
+.droom-sound__field{display:inline-flex;align-items:center;gap:.3rem}
+.droom-sound input[type="range"]{width:74px;accent-color:#C77F9B}
+.droom-return{display:flex;justify-content:center;margin:.15rem 0 .55rem}
+@media(max-width:520px){.droom-sound{gap:.35rem;font-size:.69rem}.droom-sound input[type="range"]{width:58px}}
