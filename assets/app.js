@@ -1376,6 +1376,7 @@
     var posePicker = document.querySelector('[data-pose-picker]');
     var propPicker = document.querySelector('[data-prop-picker]');
     var propsReset = document.querySelector('[data-props-reset]');
+    var propsLock = document.querySelector('[data-props-lock]');
     var roomReset = document.querySelector('[data-room-reset]');
     var visitOwn = document.querySelector('[data-visit-own]');
     var visitJoin = document.querySelector('[data-visit-join]');
@@ -1395,6 +1396,7 @@
     var activityProp = '';
     var activityPoseOverride = '';
     var lastPropDragAt = 0;
+    var lastPropTapAt = 0;
     var audioContext = null, audioMaster = null, audioEnabled = false, audioTimer = null;
 
     /* 이웃 다락방 · 방명록 */
@@ -1425,7 +1427,7 @@
     var isOwner = false;
     var canCustomize = false;
     var draftMode = false;
-    var attic = { mood: 'write', props: [], view: 'auto', pose: 'stand', avatar: '', gender: '', pos: {} };
+    var attic = { mood: 'write', props: [], view: 'auto', pose: 'stand', avatar: '', gender: '', pos: {}, locked: false };
     var avatarPicker = null;
     var currentTheme = 'rose';
     var lastSignature = null;
@@ -1450,7 +1452,8 @@
         pose: normalized.pose || 'stand',
         avatar: normalized.avatar || '',
         gender: normalized.gender || '',
-        pos: normalized.pos ? Object.assign({}, normalized.pos) : {}
+        pos: normalized.pos ? Object.assign({}, normalized.pos) : {},
+        locked: normalized.locked === true
       };
     }
 
@@ -1494,6 +1497,7 @@
         (canCustomize ? ' 소품은 끌어서 자리를 옮길 수 있어요.' : ''));
 
       paintPropPositions();
+      paintPropLock();
 
       if (moodPicker) {
         moodPicker.querySelectorAll('[data-mood]').forEach(function (chip) {
@@ -1616,6 +1620,8 @@
 
     function startPropDrag(event) {
       if (!studio || !canCustomize || propDrag) return;
+      /* 소품 고정을 켜 두면 손가락이 스쳐도 자리가 움직이지 않습니다. */
+      if (attic.locked) return;
       if (event.button != null && event.button !== 0) return;
       var node = event.target && event.target.closest ? event.target.closest('.droom__prop') : null;
       if (!node || !studio.contains(node) || !node.classList.contains('is-on')) return;
@@ -1632,6 +1638,8 @@
         pointerId: event.pointerId,
         startX: start.x,
         startY: start.y,
+        startClientX: event.clientX,
+        startClientY: event.clientY,
         baseDx: offset.dx,
         baseDy: offset.dy,
         dx: offset.dx,
@@ -1645,6 +1653,13 @@
 
     function movePropDrag(event) {
       if (!propDrag || event.pointerId !== propDrag.pointerId) return;
+      /* 손가락이 화면에서 6px 넘게 움직였을 때만 끌기로 봅니다. 방 좌표(0.5)로 재면
+         누를 때의 미세한 흔들림도 끌기로 잡혀 탭이 먹히지 않았습니다. */
+      if (Math.abs(event.clientX - propDrag.startClientX) > 6 ||
+          Math.abs(event.clientY - propDrag.startClientY) > 6) {
+        propDrag.moved = true;
+      }
+      if (!propDrag.moved) return;
       var point = roomPoint(propDrag.node, event.clientX, event.clientY);
       if (!point) return;
       var moved = clampPropOffset(propDrag.box,
@@ -1652,9 +1667,6 @@
         propDrag.baseDy + (point.y - propDrag.startY));
       propDrag.dx = moved.dx;
       propDrag.dy = moved.dy;
-      if (Math.abs(point.x - propDrag.startX) > 0.5 || Math.abs(point.y - propDrag.startY) > 0.5) {
-        propDrag.moved = true;
-      }
       setPropOffset(propDrag.node, moved.dx, moved.dy);
       event.preventDefault();
     }
@@ -1668,10 +1680,13 @@
       if (drag.moved) lastPropDragAt = Date.now();
       try { drag.node.releasePointerCapture(drag.pointerId); } catch (err) { /* 이미 풀렸어요 */ }
 
-      /* 그냥 눌렀다 뗀 것이라면 자리를 건드리지 않습니다. */
+      /* 그냥 눌렀다 뗀 것이라면 자리를 건드리지 않고 소품을 이용합니다.
+         (터치 화면에서는 pointerdown 의 기본 동작을 막으면 click 이 오지 않아
+          예전처럼 click 만 기다리면 소품이 눌리지 않았습니다.) */
       if (!drag.moved) {
         var back = propOffset(drag.box, attic.pos[drag.key]);
         setPropOffset(drag.node, back.dx, back.dy);
+        tapProp(drag.node);
         return;
       }
 
@@ -1686,6 +1701,8 @@
       /* 저장값(소수 한 자리)과 화면을 똑같이 맞춥니다. */
       var settled = propOffset(drag.box, attic.pos[drag.key]);
       setPropOffset(drag.node, settled.dx, settled.dy);
+      /* 소품을 쓰던 중이면 캐릭터도 옮긴 자리를 따라갑니다. */
+      paintRoomCharacter();
       persistAttic(PROP_LABEL[drag.key] + ' 소품을 옮겨 두었어요.');
     }
 
@@ -1699,14 +1716,46 @@
       setPropOffset(drag.node, offset.dx, offset.dy);
     }
 
+    /* 소품을 눌렀을 때 — 고정 여부와 상관없이 이용(앉기·작업)만 켭니다. */
+    function tapProp(node) {
+      if (!node) return;
+      var key = node.getAttribute('data-prop');
+      if (!key) return;
+      lastPropTapAt = Date.now();
+      activatePropInteraction(key);
+    }
+
+    /* 손가락·마우스가 찍은 자리에 깔린 소품 — 캐릭터가 앞을 가려도 소품을 찾아냅니다. */
+    function propUnderPoint(x, y) {
+      if (!studio || !document.elementsFromPoint) return null;
+      var list = document.elementsFromPoint(x, y) || [];
+      for (var i = 0; i < list.length; i += 1) {
+        var el = list[i];
+        var prop = el && el.closest ? el.closest('.droom__prop.is-on') : null;
+        if (prop && studio.contains(prop)) return prop;
+      }
+      return null;
+    }
+
     function setupPropDrag() {
       if (!studio) return;
       studio.addEventListener('pointerdown', startPropDrag);
       studio.addEventListener('pointermove', movePropDrag);
-      studio.addEventListener('pointerup', finishPropDrag);
+      studio.addEventListener('pointerup', function (event) {
+        if (propDrag) { finishPropDrag(event); return; }
+        /* 고정 중에는 끌기가 아예 시작되지 않으니, 뗀 자리에서 소품을 눌렀는지 봅니다. */
+        if (!attic.locked) return;
+        var prop = (event.target && event.target.closest ? event.target.closest('.droom__prop.is-on') : null) ||
+          propUnderPoint(event.clientX, event.clientY);
+        if (prop && studio.contains(prop)) tapProp(prop);
+      });
       studio.addEventListener('click', function (event) {
         var prop = event.target && event.target.closest ? event.target.closest('.droom__prop.is-on') : null;
-        if (prop && studio.contains(prop) && Date.now() - lastPropDragAt >= 350) activatePropInteraction(prop.getAttribute('data-prop'));
+        if (!prop || !studio.contains(prop)) return;
+        /* 이미 pointerup 에서 켰으면 click 으로 또 켜지 않게 합니다. */
+        if (Date.now() - lastPropTapAt < 450) return;
+        if (Date.now() - lastPropDragAt < 350) return;
+        tapProp(prop);
       });
       studio.addEventListener('pointercancel', cancelPropDrag);
       studio.addEventListener('lostpointercapture', function (event) {
@@ -1730,14 +1779,122 @@
       return 'images/room-3d/' + key + (p === 'stand' ? '' : '-' + p) + '.webp';
     }
 
+    /* 소품마다 캐릭터가 어디에 앉고/서는지 — 방(800×500) 좌표.
+       x: 캐릭터의 허리 중심, y: 발이 닿는 바닥, s: 크기, pose: 그때의 자세.
+       소품을 끌어 옮겼다면 같은 거리만큼 캐릭터도 따라갑니다(아래 roomCharSpotFor). */
+    var PROP_SPOTS = {
+      beanbag: { x: 166, y: 470, s: 0.80, pose: 'sit' },   /* 2인용 소파 — 쿠션 가운데에 앉아요 */
+      piano: { x: 438, y: 470, s: 0.78, pose: 'sit' },     /* 피아노 의자 — 건반 쪽으로 앉아요 */
+      desk: { x: 272, y: 470, s: 0.75, pose: 'work' },     /* 노트북 책상 — 책상 앞에 앉아 작업 */
+      easel: { x: 246, y: 470, s: 0.86, pose: 'stand' },   /* 이젤 — 캔버스 바로 앞 */
+      coffee: { x: 104, y: 470, s: 0.80, pose: 'stand' },  /* 커피머신 선반 아래 */
+      guitar: { x: 512, y: 470, s: 0.86, pose: 'stand' }   /* 기타 바로 옆 */
+    };
+    /* 자세 그림에서 머리끝이 차지하는 높이(그림 아래 240 기준) — 말풍선을 머리 위에 놓습니다. */
+    var POSE_HEAD = { stand: 234.4, sit: 156.1, work: 166.4, meditate: 178.6 };
+    var CHAR_IMG_W = 150, CHAR_IMG_H = 240, CHAR_ANCHOR_X = 75;
+    var roomCharNow = null;
+    var roomCharFrame = 0;
+
+    function parseCharSpot(value) {
+      var m = /translate\(\s*(-?[\d.]+)\s*[ ,]\s*(-?[\d.]+)\s*\)\s*scale\(\s*(-?[\d.]+)\s*\)/.exec(String(value || ''));
+      if (!m) return null;
+      return { x: parseFloat(m[1]), y: parseFloat(m[2]), s: parseFloat(m[3]) };
+    }
+
+    /* 소품 자리(중심·바닥·크기) → 캐릭터 그림의 transform 값 */
+    function spotToTransform(spot) {
+      return {
+        x: spot.x - CHAR_ANCHOR_X * spot.s,
+        y: spot.y - CHAR_IMG_H * spot.s,
+        s: spot.s
+      };
+    }
+
+    function hasReducedMotion() {
+      return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+    }
+
+    function applyCharTransform(node, t) {
+      if (!node) return;
+      node.setAttribute('transform', 'translate(' + t.x.toFixed(1) + ',' + t.y.toFixed(1) + ') scale(' + t.s + ')');
+    }
+
+    /* 캐릭터를 새 자리로 옮깁니다 — 순간 이동하지 않고 0.4초 동안 부드럽게 미끄러집니다. */
+    function moveRoomCharacter(spot, immediate) {
+      if (!roomChar) return;
+      var nodes = Array.prototype.slice.call(roomChar.querySelectorAll('[data-char]'));
+      if (!nodes.length) return;
+      var to = spotToTransform(spot);
+      var from = roomCharNow;
+      if (!from) {
+        var base = parseCharSpot(nodes[0].getAttribute('data-base-transform') || nodes[0].getAttribute('transform'));
+        from = base || to;
+      }
+      if (roomCharFrame) { window.cancelAnimationFrame(roomCharFrame); roomCharFrame = 0; }
+      var settled = Math.abs(from.x - to.x) < 0.4 && Math.abs(from.y - to.y) < 0.4 && Math.abs(from.s - to.s) < 0.002;
+      if (immediate || settled || hasReducedMotion()) {
+        roomCharNow = to;
+        nodes.forEach(function (node) { applyCharTransform(node, to); });
+        return;
+      }
+      var start = 0;
+      var duration = 420;
+      function step(now) {
+        if (!start) start = now;
+        var p = Math.min(1, (now - start) / duration);
+        var e = 1 - Math.pow(1 - p, 3);
+        var cur = {
+          x: from.x + (to.x - from.x) * e,
+          y: from.y + (to.y - from.y) * e,
+          s: from.s + (to.s - from.s) * e
+        };
+        roomCharNow = cur;
+        nodes.forEach(function (node) { applyCharTransform(node, cur); });
+        roomCharFrame = p < 1 ? window.requestAnimationFrame(step) : 0;
+      }
+      roomCharFrame = window.requestAnimationFrame(step);
+    }
+
+    /* 지금 이용 중인 소품에 맞춘 자리 — 소품을 끌어 옮긴 거리만큼 함께 옮깁니다. */
+    function roomCharSpotFor(key) {
+      var spec = PROP_SPOTS[key];
+      if (!spec || !studio) return null;
+      var propNode = studio.querySelector('[data-prop="' + key + '"]');
+      var box = propBBox(propNode);
+      var offset = propOffset(box, attic.pos[key]);
+      return {
+        x: Math.max(40, Math.min(ROOM_W - 40, spec.x + offset.dx)),
+        y: Math.max(60, Math.min(ROOM_H - 6, spec.y + offset.dy)),
+        s: spec.s,
+        pose: spec.pose
+      };
+    }
+
+    /* 말풍선·반짝임이 캐릭터 머리 위에 오도록 방 안 비율을 맞춥니다. */
+    function paintRoomOverlay(spot, pose) {
+      if (!studio) return;
+      if (!spot) {
+        studio.style.removeProperty('--room-char-x');
+        studio.style.removeProperty('--room-say-bottom');
+        return;
+      }
+      studio.style.setProperty('--room-char-x', Math.max(6, Math.min(94, (spot.x / ROOM_W) * 100)).toFixed(2) + '%');
+      var head = POSE_HEAD[pose] || POSE_HEAD.stand;
+      var headTop = spot.y - head * spot.s;
+      var bottomPct = ((ROOM_H - (headTop - 14)) / ROOM_H) * 100;
+      studio.style.setProperty('--room-say-bottom', Math.max(6, Math.min(88, bottomPct)).toFixed(2) + '%');
+    }
+
     /* 고른 캐릭터 한 명만 방에 서고, 나머지는 방에서 빠집니다.
        글자 기본(빈 값)이면 방에 아무도 없어요. */
-    function paintRoomCharacter() {
+    function paintRoomCharacter(immediate) {
       if (!roomChar) return;
       sizeRoomOverlay();
       var key = attic.avatar || '';
       var pose = activityPoseOverride || (POSE_LABEL[attic.pose] ? attic.pose : 'stand');
       var shown = false;
+      var spot = null;
       Array.prototype.forEach.call(roomChar.querySelectorAll('[data-char]'), function (node) {
         var on = !!key && node.getAttribute('data-char') === key;
         node.classList.toggle('is-on', on);
@@ -1745,31 +1902,33 @@
         if (!node.hasAttribute('data-base-transform')) node.setAttribute('data-base-transform', node.getAttribute('transform') || '');
         if (on) {
           shown = true;
-          if (activityProp) {
-            var propNode = studio.querySelector('[data-prop="' + activityProp + '"]');
-            var propBox = propBBox(propNode);
-            if (propBox) {
-              var propOffsetNow = propOffset(propBox, attic.pos[activityProp]);
-              var propX = propBox.x + propOffsetNow.dx;
-              var propY = propBox.y + propOffsetNow.dy;
-              var propCenter = propX + propBox.width / 2;
-              var targetX = propCenter < 470 ? propX + propBox.width + 16 : propX - 166;
-              var dx = Math.max(-380, Math.min(250, targetX - 401));
-              var dy = Math.max(-65, Math.min(35, propY + propBox.height - 487));
-              if (studio) studio.style.setProperty('--room-char-x', Math.max(8, Math.min(92, ((targetX + 75) / ROOM_W) * 100)) + '%');
-              node.setAttribute('transform', 'translate(' + (401 + dx).toFixed(1) + ',' + (249.2 + dy).toFixed(1) + ') scale(0.92)');
-            }
-          } else {
-            if (studio) studio.style.removeProperty('--room-char-x');
-            node.setAttribute('transform', node.getAttribute('data-base-transform') || '');
-          }
+          if (activityProp) spot = roomCharSpotFor(activityProp);
           var img = node.querySelector('.droom__char-3d-img');
           var src = roomPoseSrc(node.getAttribute('data-char'), pose);
           if (img && src && img.getAttribute('href') !== src) img.setAttribute('href', src);
         }
       });
+      if (shown) {
+        var base = parseCharSpot(roomChar.querySelector('[data-char].is-on').getAttribute('data-base-transform')) ||
+          { x: 401, y: 249.2, s: 0.92 };
+        if (spot) {
+          moveRoomCharacter(spot, immediate);
+          paintRoomOverlay(spot, pose);
+        } else {
+          moveRoomCharacter({
+            x: base.x + CHAR_ANCHOR_X * base.s,
+            y: base.y + CHAR_IMG_H * base.s,
+            s: base.s
+          }, immediate);
+          paintRoomOverlay(null, pose);
+        }
+      }
       roomChar.classList.toggle('is-on', shown);
       roomChar.setAttribute('aria-hidden', String(!shown));
+      if (studio) {
+        studio.setAttribute('data-char-pose', pose);
+        studio.toggleAttribute('data-char-seat', !!(spot && (spot.pose === 'sit')));
+      }
 
       if (!shown) {
         hideRoomSay();
@@ -1792,6 +1951,7 @@
       if (!roomSay || !text) return;
       hideRoomSay();
       roomSay.textContent = text;
+      placeRoomSay();
       roomSay.classList.add('is-on');
       roomSayTimer = window.setTimeout(function () {
         if (roomSay) roomSay.classList.remove('is-on');
@@ -1856,6 +2016,26 @@
       if (!studio) return;
       var width = studio.clientWidth || 320;
       studio.style.setProperty('--room-u', (width / 800).toFixed(4) + 'px');
+      if (roomSay && roomSay.classList.contains('is-on')) placeRoomSay();
+    }
+
+    /* 말풍선이 방 밖으로 밀려나지 않게 — 캐릭터 머리 위에 두되 방 안으로 붙잡아 둡니다. */
+    function placeRoomSay() {
+      if (!roomSay || !studio) return;
+      var W = studio.clientWidth || 320;
+      var pct = parseFloat(studio.style.getPropertyValue('--room-char-x'));
+      var center = W * ((isFinite(pct) ? pct : 58.6) / 100);
+      var width = roomSay.offsetWidth || 0;
+      var half = width / 2;
+      var margin = Math.max(4, W * 0.02);
+      var placed = center;
+      if (width + margin * 2 >= W) {
+        placed = W / 2;
+      } else {
+        placed = Math.max(margin + half, Math.min(W - margin - half, center));
+      }
+      roomSay.style.setProperty('--say-left', placed.toFixed(1) + 'px');
+      roomSay.style.setProperty('--say-tail', (center - placed).toFixed(1) + 'px');
     }
 
     function setupRoomCharacter() {
@@ -1866,6 +2046,12 @@
       studio.addEventListener('click', function (event) {
         var figure = event.target && event.target.closest ? event.target.closest('[data-char]') : null;
         if (!figure || !roomChar.contains(figure)) return;
+        /* 캐릭터가 소품 앞을 가리고 있어도, 그 자리에 소품이 있으면 소품을 누른 것으로 봅니다. */
+        var prop = propUnderPoint(event.clientX, event.clientY);
+        if (prop) {
+          if (Date.now() - lastPropTapAt >= 450) tapProp(prop);
+          return;
+        }
         greetRoomCharacter(figure);
       });
 
@@ -1909,7 +2095,8 @@
         pose: attic.pose,
         avatar: attic.avatar,
         gender: attic.gender,
-        pos: Object.assign({}, attic.pos)
+        pos: Object.assign({}, attic.pos),
+        locked: attic.locked === true
       };
       saveChain = saveChain
         .then(function () {
@@ -2060,31 +2247,55 @@
           persistAttic('소품을 처음 자리로 되돌렸어요.');
         });
       }
+      /* 소품 고정 — 켜 두면 손가락이 스쳐도 자리가 움직이지 않고, 눌러서 이용만 할 수 있어요. */
+      if (propsLock) {
+        propsLock.addEventListener('click', function () {
+          if (!canCustomize) return;
+          attic.locked = !attic.locked;
+          paintPropLock();
+          persistAttic(attic.locked
+            ? '소품을 고정했어요. 눌러서 이용만 할 수 있어요.'
+            : '소품 고정을 풀었어요. 다시 끌어 옮길 수 있어요.');
+        });
+      }
+    }
+
+    /* 소품 고정 상태를 화면(버튼·방)에 반영합니다. */
+    function paintPropLock() {
+      var on = attic.locked === true;
+      if (studio) studio.classList.toggle('droom--locked', on);
+      if (!propsLock) return;
+      propsLock.classList.toggle('is-active', on);
+      propsLock.setAttribute('aria-pressed', String(on));
+      propsLock.title = on ? '소품이 고정되어 있어요. 누르면 다시 옮길 수 있어요.' : '소품이 스쳐도 움직이지 않게 고정해요.';
+      var label = propsLock.querySelector('[data-props-lock-label]');
+      if (label) label.textContent = on ? '소품 고정됨' : '소품 고정';
     }
 
 
     function restoreRoomActivity() {
       activityProp = ''; activityPoseOverride = '';
-      if (roomChar) roomChar.querySelectorAll('[data-char]').forEach(function (node) {
-        node.setAttribute('transform', node.getAttribute('data-base-transform') || '');
-      });
       if (studio) studio.querySelectorAll('.droom__prop.is-playing').forEach(function (node) { node.classList.remove('is-playing'); });
       stopAmbientAudio();
+      if (studio) studio.removeAttribute('data-char-seat');
       paintRoomCharacter();
     }
     function activatePropInteraction(key) {
       if (activityProp === key) { restoreRoomActivity(); showRoomSay('원래 자리와 자세로 돌아왔어요.'); return; }
       if (studio) studio.querySelectorAll('.droom__prop.is-playing').forEach(function (node) { node.classList.remove('is-playing'); });
-      var actions = {
-        desk:['work','노트북으로 작업 중...'], easel:['work','캔버스에 그림 그리는 중...'],
-        coffee:['stand','따뜻한 커피 내리는 중...'], beanbag:['sit','소파에 편히 기대어 쉬는 중...'],
-        piano:['work','피아노 연주하는 중...'], guitar:['work','기타 선율 고르는 중...']
+      /* 소품마다 하는 일 — 자세와 자리는 PROP_SPOTS 가 정합니다. */
+      var say = {
+        desk: '노트북으로 작업 중...', easel: '캔버스에 그림 그리는 중...',
+        coffee: '따뜻한 커피 내리는 중...', beanbag: '소파에 편히 기대어 쉬는 중...',
+        piano: '피아노 연주하는 중...', guitar: '기타 선율 고르는 중...'
       };
       if (key === 'candle') { playSound('candle'); showRoomSay('촛불이 조용히 타닥이고 있어요.'); return; }
-      if (!actions[key] || !roomChar || !attic.avatar) return;
-      activityProp = key; activityPoseOverride = actions[key][0];
+      var spot = PROP_SPOTS[key];
+      if (!say[key] || !spot || !roomChar) return;
+      if (!attic.avatar) { showRoomSay('방에 세울 캐릭터를 먼저 골라 주세요.'); return; }
+      activityProp = key; activityPoseOverride = spot.pose;
       paintRoomCharacter(); studio.setAttribute('data-char-pose', activityPoseOverride);
-      showRoomSay(actions[key][1]);
+      showRoomSay(say[key]);
       if (key === 'piano' || key === 'coffee') { var activeProp=studio.querySelector('[data-prop="' + key + '"]'); if(activeProp)activeProp.classList.add('is-playing'); }
       if (key === 'desk') playSound('typing');
     }
@@ -2354,7 +2565,8 @@
           pendingDarakDraft = {
             attic_theme: currentTheme,
             attic_props: { mood: attic.mood, props: attic.props.slice(), view: attic.view,
-              pose: attic.pose, avatar: attic.avatar, gender: attic.gender, pos: Object.assign({}, attic.pos) }
+              pose: attic.pose, avatar: attic.avatar, gender: attic.gender, pos: Object.assign({}, attic.pos),
+              locked: attic.locked === true }
           };
           openAuth('signup');
         };
@@ -2650,7 +2862,8 @@
             pose: currentAttic.pose || 'stand',
             avatar: profileAvatar ? profileAvatar.get() : '',
             gender: profileGender ? profileGender.get() : '',
-            pos: currentAttic.pos || {}
+            pos: currentAttic.pos || {},
+            locked: currentAttic.locked === true
           }
         });
         closeProfileModal();

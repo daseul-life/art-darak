@@ -2307,6 +2307,8 @@ body { word-break: keep-all; overflow-wrap: break-word; }
   aspect-ratio: 16 / 10;
   border-radius: 18px;
   overflow: hidden;
+  /* 소품을 눌러 쓸 때 두 번 톡 치면 화면이 확대되며 누른 자리가 어긋나지 않게 합니다. */
+  touch-action: manipulation;
   background: var(--attic-a, #FBEDE9);
   isolation: isolate;
 }
@@ -2448,7 +2450,8 @@ body { word-break: keep-all; overflow-wrap: break-word; }
 
 /* 소품 — 누른 것만 방에 나타납니다 */
 .droom__prop { display: none; }
-.droom__prop.is-on { display: inline; animation: droomPop .42s var(--ease) both; }
+/* 소품은 방을 구경하는 사람도 눌러서 이용할 수 있습니다 (끌기는 주인만). */
+.droom__prop.is-on { display: inline; animation: droomPop .42s var(--ease) both; pointer-events: auto; cursor: pointer; }
 @keyframes droomPop { from { opacity: 0; } to { opacity: 1; } }
 
 /* 내 다락방에서는 소품을 손으로 끌어 옮길 수 있습니다 — 끌 때 화면이 스크롤되지 않게 터치 처리 */
@@ -2457,6 +2460,9 @@ body { word-break: keep-all; overflow-wrap: break-word; }
   cursor: grabbing;
   filter: drop-shadow(0 7px 10px rgba(110, 70, 80, .2));
 }
+/* 소품을 고정해 두면 끌리지 않고, 누르면 이용만 됩니다. */
+.droom--locked .droom__prop.is-on { cursor: pointer; touch-action: auto; }
+.droom--locked .droom__prop.is-dragging { cursor: pointer; filter: none; }
 
 /* --- 방 안 캐릭터 — 고른 캐릭터 한 명이 러그 옆에 서 있어요 --- */
 .droom__char, .droom__char-figure { display: none; }
@@ -2561,6 +2567,11 @@ body { word-break: keep-all; overflow-wrap: break-word; }
   transform-origin: 50% 96%;
   animation: droomPoseSway 9.6s ease-in-out infinite;
 }
+/* 소파·피아노 의자에 앉았을 때는 좌우로 흔들리지 않고 잔잔한 숨쉬기만 */
+.droom[data-char-pose="sit"][data-char-seat] .droom__char-3d:not(.is-greet) .droom__char-3d-body {
+  transform-origin: 50% 100%;
+  animation: droomPoseBreathe 8.4s ease-in-out infinite;
+}
 .droom[data-char-pose="work"] .droom__char-3d:not(.is-greet) .droom__char-3d-body {
   transform-origin: 50% 100%;
   animation: droomPoseWork 3.8s ease-in-out infinite;
@@ -2617,10 +2628,10 @@ body { word-break: keep-all; overflow-wrap: break-word; }
 
 /* 캐릭터 위 핑크 파스텔 말풍선 — 3D 전신 캐릭터의 머리 위에서 시작합니다 */
 .droom__say {
-  left: var(--room-char-x, 58.6%);
+  left: var(--say-left, var(--room-char-x, 58.6%));
   /* 방 크기에 맞춰 함께 커지고 작아집니다 (--room-u = 방 너비 / 800) */
   --u: var(--room-u, .4px);
-  position: absolute; left: 58.6%; bottom: 54%; z-index: 3;
+  position: absolute; bottom: var(--room-say-bottom, 54%); z-index: 3;
   max-width: calc(var(--u) * 450);
   margin: 0; padding: calc(var(--u) * 17) calc(var(--u) * 27);
   border-radius: calc(var(--u) * 34);
@@ -2634,7 +2645,7 @@ body { word-break: keep-all; overflow-wrap: break-word; }
 }
 .droom__say.is-on { opacity: 1; visibility: visible; transform: translate(-50%, 0) scale(1); }
 .droom__say::after {
-  content: ''; position: absolute; left: 50%; bottom: calc(var(--u) * -17);
+  content: ''; position: absolute; left: calc(50% + var(--say-tail, 0px)); bottom: calc(var(--u) * -17);
   width: calc(var(--u) * 29); height: calc(var(--u) * 29); border-radius: 0 0 calc(var(--u) * 8) 0;
   background: #FDE7EE;
   border-right: max(1px, calc(var(--u) * 2.6)) solid #F3C2D2;
@@ -2751,7 +2762,11 @@ body { word-break: keep-all; overflow-wrap: break-word; }
   background: var(--ivory); font-size: .72rem; font-weight: 800; color: var(--plum-2);
 }
 .studio-editor .attic-swatches { margin-top: .6rem; }
-.studio-reset { display: flex; justify-content: flex-end; margin-top: .55rem; }
+.studio-reset { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: .4rem; margin-top: .55rem; }
+/* 소품 고정 버튼이 켜진 모습 — 옆의 소품 칩과 같은 결 */
+.studio-reset .btn.is-active {
+  background: #FBE7EE; border-color: #E6B7C8; color: #8E5F76; box-shadow: var(--shadow-glow);
+}
 
 .mood-grid {
   display: grid; grid-template-columns: repeat(4, 1fr); gap: .45rem;

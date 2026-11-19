@@ -175,6 +175,8 @@
     if (gender) next.gender = gender;
     var pos = normalizePropPos(raw.pos);
     if (Object.keys(pos).length) next.pos = pos;
+    /* 소품 고정 — 켜 두면 손가락이 스쳐도 소품 자리가 움직이지 않습니다. */
+    if (raw.locked === true) next.locked = true;
     return next;
   }
 
