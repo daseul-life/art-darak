@@ -3526,6 +3526,103 @@ body { word-break: keep-all; overflow-wrap: break-word; }
 .droom-sound__field{display:inline-flex;align-items:center;gap:.3rem}
 .droom-sound input[type="range"]{width:74px;accent-color:#C77F9B}
 .droom-return{display:flex;justify-content:center;margin:.15rem 0 .55rem}
+/* [3단계] 친구 신청·수락 (styles.css 맨 아래에 붙이기) */
+.friends,
+.friend-actions {
+  --fr-card: #FFFAFB;
+  --fr-tint: #FDF2F3;
+  --fr-line: #F3D6DD;
+  --fr-rose: #C88B96;
+  --fr-mauve: #AF84A0;
+  --fr-text: #4A3239;
+  --fr-sub: #7A5F66;
+  --fr-small: #8A6D74;
+  --fr-plum: #6E4650;
+}
+
+.friends [hidden],
+.friends[hidden],
+.friend-actions[hidden] { display: none !important; }
+
+/* 남의 다락방: 상태별 버튼 */
+.friend-actions { margin-top: 14px; }
+.friend-actions__row { display: flex; flex-wrap: wrap; gap: 8px; }
+.friend-actions .btn { min-height: 44px; }
+.friend-actions__note {
+  margin: 8px 0 0;
+  font-size: .88rem;
+  line-height: 1.5;
+  color: var(--fr-small);
+}
+.friend-actions__note:empty { display: none; }
+
+/* 내 다락방: 친구 모아보기 */
+.friends {
+  margin-top: 24px;
+  padding: 20px 18px 22px;
+  background: var(--fr-card);
+  border: 1px solid var(--fr-line);
+  border-radius: 22px;
+  box-shadow: 0 8px 22px rgba(200, 139, 150, .12);
+}
+.friends__head h3 {
+  margin: 0;
+  font-family: 'Gowun Batang', serif;
+  font-size: 1.2rem;
+  line-height: 1.4;
+  color: var(--fr-text);
+}
+.friends__count {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 10px;
+  border-radius: 999px;
+  background: #F9DAE2;
+  color: var(--fr-plum);
+  font-family: 'Gowun Dodum', sans-serif;
+  font-size: .8rem;
+  vertical-align: middle;
+}
+.friends__count:empty { display: none; }
+.friends__note,
+.friends__empty {
+  margin: 12px 0 0;
+  font-size: .9rem;
+  line-height: 1.6;
+  color: var(--fr-small);
+}
+
+/* 받은 신청 */
+.friend-requests {
+  margin-top: 16px;
+  padding: 14px;
+  background: var(--fr-tint);
+  border: 1px solid var(--fr-line);
+  border-radius: 18px;
+}
+.friend-requests__title {
+  margin: 0 0 10px;
+  font-size: 1rem;
+  color: var(--fr-plum);
+}
+.friend-requests__list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.friend-request {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 12px;
+}
+.friend-request__who {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  color: var(--fr-text);
+  text-decoration: none;
+}
+.friend-request__who:focus-visible { outline: 2px solid var(--fr-mauve); outline-offset: 3px; border-radius: 12px; }
+.friend-request__text { display: grid; gap:
 @media(max-width:520px){.droom-sound{gap:.35rem;font-size:.69rem}.droom-sound input[type="range"]{width:58px}}
 
 .droom__prop.is-playing .droom__steam--coffee{animation:droomCoffeeSteam 1.7s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
