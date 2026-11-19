@@ -1388,6 +1388,8 @@
     ATTIC_AVATARS: ATTIC_AVATARS,
     ATTIC_GENDERS: ATTIC_GENDERS,
     avatarByKey: avatarByKey,
+    /* 친구 기능처럼 다른 파일이 같은 Supabase 연결을 함께 쓸 때 (연결 전이면 null) */
+    get client() { return state.client; },
     normalizeCharacter: normalizeCharacter,
     characterValue: characterValue,
     CHARACTER_GENDER_LABEL: CHARACTER_GENDER_LABEL,
@@ -1469,7 +1471,7 @@
   // 기존 store.js 에 Supabase 클라이언트 변수가 있으면 ① 줄을 그 이름으로 바꾸세요
   function getSb() {
     if (_sb) return _sb;
-    if (global.DarakStore && global.DarakStore.sb) return (_sb = global.DarakStore.sb); // ①
+    if (global.DarakStore && global.DarakStore.client) return (_sb = global.DarakStore.client); // ①
     if (global.__darakSb) return (_sb = global.__darakSb);
     var cfg = global.DARAK_CONFIG || {};
     if (!cfg.supabaseUrl || !cfg.supabaseAnonKey) return null;
@@ -1480,14 +1482,17 @@
 
   function mode() { return getSb() ? 'db' : 'demo'; }
 
+  /* 표가 아직 없거나, 있어도 열 권한이 없는 경우 — 화면은 조용한 '준비 중' 안내로 넘어갑니다. */
   function isMissing(err) {
     if (!err) return false;
     var code = String(err.code || '');
     var msg = String(err.message || '').toLowerCase();
-    return code === 'PGRST205' || code === '42P01' || err.status === 404 ||
+    return code === 'PGRST205' || code === '42P01' || code === '42501' || code === '42703' || err.status === 404 ||
       msg.indexOf('could not find the table') !== -1 ||
       msg.indexOf('schema cache') !== -1 ||
-      (msg.indexOf('relation') !== -1 && msg.indexOf('does not exist') !== -1);
+      msg.indexOf('permission denied') !== -1 ||
+      (msg.indexOf('relation') !== -1 && msg.indexOf('does not exist') !== -1) ||
+      (msg.indexOf('column') !== -1 && msg.indexOf('does not exist') !== -1);
   }
 
   function fail(err) {
@@ -1522,10 +1527,15 @@
     var sb = getSb();
     pen = (pen || '').trim();
     if (!sb) {
+      /* 체험 모드 — 이 브라우저에 저장된 내 필명을 '나'로 씁니다. */
+      var local = global.DarakStore && typeof global.DarakStore.profile === 'function'
+        ? global.DarakStore.profile()
+        : null;
+      var key = function (value) { return String(value == null ? '' : value).trim().toLowerCase(); };
       return {
-        mode: 'demo', loggedIn: false, me: null,
+        mode: 'demo', loggedIn: !!local, me: local,
         owner: pen ? { id: 'demo:' + pen, pen_name: pen } : null,
-        isOwn: !pen
+        isOwn: !!(local && pen && key(local.pen_name) === key(pen))
       };
     }
     var uid = null;
@@ -1704,8 +1714,10 @@
     var letter = Array.from(pen)[0] || '✦';
     var box = el('span', { 'class': 'friend-avatar', 'aria-hidden': 'true' });
     var id = p && p.attic_props && p.attic_props.avatar;
-    if (typeof id === 'string' && !NO_PHOTO[id] && /^[a-z0-9_-]+$/i.test(id)) {
-      var img = el('img', { src: 'images/avatars/' + id + '.webp', alt: '', loading: 'lazy', width: '48', height: '48' });
+    var entry = id && global.DarakStore && global.DarakStore.avatarByKey ? global.DarakStore.avatarByKey(id) : null;
+    var photo = entry && entry.photo;
+    if (typeof photo === 'string' && !NO_PHOTO[photo] && /^[a-z0-9_-]+$/i.test(photo)) {
+      var img = el('img', { src: 'images/avatars/' + photo + '.webp', alt: '', loading: 'lazy', width: '48', height: '48' });
       img.addEventListener('error', function () { box.textContent = letter; });
       box.appendChild(img);
     } else {
@@ -1733,6 +1745,11 @@
       el('div', { 'class': 'friend-actions__row', 'data-friend-buttons': true }),
       el('p', { 'class': 'friend-actions__note', 'data-friend-note': true, role: 'status', 'aria-live': 'polite' })
     ]);
+    /* 이름·소개가 끝난 자리(분야 태그 아래)에 놓아 프로필을 가리지 않게 합니다. */
+    var tags = document.querySelector('#profile-card .profile__tags');
+    if (tags && tags.parentNode) { tags.parentNode.insertBefore(box, tags.nextSibling); return box; }
+    var nameRow = document.querySelector('#profile-card .profile__name-row');
+    if (nameRow && nameRow.parentNode) { nameRow.parentNode.insertBefore(box, nameRow.nextSibling); return box; }
     var top = document.querySelector('#profile-card .profile__top');
     if (top && top.parentNode) { top.parentNode.insertBefore(box, top.nextSibling); return box; }
     var body = document.querySelector('#profile-card .profile__body');
@@ -1741,4 +1758,304 @@
   }
 
   /* 남의 다락방: 상태별 버튼 */
-  function
+  function button(children, action, variant, data) {
+    var attrs = { type: 'button', 'data-friend-act': action || '' };
+    var cls = 'btn btn--sm ' + (variant || 'btn--ghost');
+    Object.keys(data || {}).forEach(function (key) {
+      var value = data[key];
+      if (key === 'class') { if (value) cls += ' ' + value; }
+      else if (value !== null && value !== undefined && value !== '') attrs[key] = value;
+    });
+    attrs['class'] = cls;
+    return el('button', attrs, children || []);
+  }
+
+  function setNote(node, text) {
+    if (!node) return;
+    node.textContent = text || '';
+    node.hidden = !text;
+  }
+
+  function failedNote(res) {
+    return res && res.missing ? MSG.notReady : MSG.failed;
+  }
+
+  function samePen(a, b) {
+    var key = function (value) {
+      return String(value == null ? '' : value).trim().toLowerCase().replace(/\s+/g, '');
+    };
+    return !!key(a) && key(a) === key(b);
+  }
+
+  function ownPen() {
+    return (new URLSearchParams(global.location.search).get('pen') || '').trim();
+  }
+
+  function myProfile() {
+    return global.DarakStore && typeof global.DarakStore.profile === 'function'
+      ? global.DarakStore.profile()
+      : null;
+  }
+
+  /* 동작이 실패했을 때는 상태 버튼 자리에 그 까닭을 한 번 보여 줍니다. */
+  var LAST_ERROR = '';
+  function takeError() {
+    var text = LAST_ERROR;
+    LAST_ERROR = '';
+    return text;
+  }
+
+  function hideActions() {
+    var box = document.querySelector('[data-friend-actions]');
+    if (box) box.hidden = true;
+  }
+
+  var BUSY = false;
+  var SEQ = 0;
+
+  /* -------------------------------------------------- 남의 다락방 */
+  async function paintActions(pen, me, owner) {
+    var F = global.DarakFriends;
+    var box = ensureActions();
+    if (!box) return;
+    var row = box.querySelector('[data-friend-buttons]');
+    var note = box.querySelector('[data-friend-note]');
+    if (!row) return;
+
+    var seq = ++SEQ;
+    if (!F || !pen) { box.hidden = true; return; }
+
+    /* 필명으로 들어오기 전 — 들어오면 친구 신청을 보낼 수 있어요. */
+    if (!me) {
+      row.innerHTML = '';
+      row.appendChild(el('button', {
+        'class': 'btn btn--ghost btn--sm', type: 'button', 'data-open-auth': 'signin'
+      }, ['로그인하고 친구 신청']));
+      setNote(note, takeError() || MSG.loginHint);
+      box.hidden = false;
+      return;
+    }
+
+    if (!owner) {
+      try {
+        var ctx = await F.context(pen);
+        owner = ctx && ctx.owner;
+      } catch (err) {
+        owner = null;
+      }
+      if (seq !== SEQ) return;
+    }
+    if (!owner || owner.id === me.id) { box.hidden = true; return; }
+
+    var res = null;
+    try { res = await F.status(me.id, owner.id); } catch (err) { res = { ok: false, error: err }; }
+    if (seq !== SEQ) return;
+
+    row.innerHTML = '';
+    if (!res || !res.ok) {
+      setNote(note, takeError() || failedNote(res));
+      box.hidden = false;
+      return;
+    }
+
+    var data = { 'data-row': (res.row && res.row.id) || '', 'data-pen': owner.pen_name };
+    var text = '';
+
+    if (res.state === 'friends') {
+      row.appendChild(button(['친구 끊기'], 'unfriend', 'btn--ghost', data));
+      text = owner.pen_name + '님과 친구예요. 새 작품이 걸리면 놀러 와 보세요.';
+    } else if (res.state === 'sent') {
+      row.appendChild(button(['신청 취소'], 'cancel', 'btn--ghost', data));
+      text = '친구 신청을 보냈어요. 상대가 수락하면 친구가 돼요.';
+    } else if (res.state === 'received') {
+      row.appendChild(button(['친구 신청 수락'], 'accept', 'btn--primary', data));
+      row.appendChild(button(['거절'], 'decline', 'btn--ghost', data));
+      text = owner.pen_name + '님에게서 친구 신청이 왔어요.';
+    } else {
+      row.appendChild(button(['친구 신청'], 'request', 'btn--primary', data));
+      text = F.mode() === 'demo' ? MSG.demoNote : '';
+    }
+
+    setNote(note, takeError() || text);
+    box.hidden = false;
+  }
+
+  /* -------------------------------------------------- 내 다락방 */
+  function friendRow(p, rowId, demo) {
+    var kids = [
+      el('a', { 'class': 'friend-card__who', href: penUrl(p.pen_name) }, [
+        avatarNode(p),
+        el('span', { 'class': 'friend-card__text' }, [
+          el('b', { 'class': 'friend-card__pen', text: p.pen_name }),
+          el('span', { 'class': 'friend-card__bio', text: p.bio || '아직 소개가 없어요.' })
+        ])
+      ])
+    ];
+    if (!demo) {
+      kids.push(button(['친구 끊기'], 'unfriend', 'btn--ghost', {
+        'class': 'friend-card__more',
+        'data-row': rowId,
+        'data-pen': p.pen_name,
+        'aria-label': p.pen_name + '님과 친구 끊기'
+      }));
+    }
+    return el('li', { 'class': 'friend-card' }, kids);
+  }
+
+  function requestRow(item) {
+    var p = item.profile || {};
+    var data = { 'data-row': item.rowId, 'data-pen': p.pen_name };
+    return el('li', { 'class': 'friend-request' }, [
+      el('a', { 'class': 'friend-request__who', href: penUrl(p.pen_name) }, [
+        avatarNode(p),
+        el('span', { 'class': 'friend-request__text' }, [
+          el('b', { 'class': 'friend-request__pen', text: p.pen_name }),
+          el('span', { 'class': 'friend-request__bio', text: p.bio || '친구가 되고 싶어 해요.' })
+        ])
+      ]),
+      el('span', { 'class': 'friend-request__actions' }, [
+        button(['수락'], 'accept', 'btn--primary', data),
+        button(['거절'], 'decline', 'btn--ghost', data)
+      ])
+    ]);
+  }
+
+  async function paintOwn(me) {
+    var F = global.DarakFriends;
+    var sec = ensureSection();
+    if (!sec) return;
+    hideActions();
+
+    var note = sec.querySelector('[data-friends-note]');
+    var friendsList = sec.querySelector('[data-friends-list]');
+    var emptyEl = sec.querySelector('[data-friends-empty]');
+    var countEl = sec.querySelector('[data-friends-count]');
+    var reqBox = sec.querySelector('[data-friend-requests]');
+    var reqList = sec.querySelector('[data-requests-list]');
+    var reqCount = sec.querySelector('[data-requests-count]');
+
+    if (!F || !me) {
+      sec.hidden = true;
+      return;
+    }
+
+    var seq = ++SEQ;
+    var friends = null;
+    var incoming = null;
+    try { friends = await F.listFriends(me.id); } catch (err) { friends = { ok: false, error: err }; }
+    try { incoming = await F.listIncoming(me.id); } catch (err) { incoming = { ok: false, error: err }; }
+    if (seq !== SEQ) return;
+
+    var friendItems = friends && friends.ok ? friends.data : [];
+    var requestItems = incoming && incoming.ok ? incoming.data : [];
+    var demo = !!(friends && friends.demo);
+    var missing = !!((friends && friends.missing) || (incoming && incoming.missing));
+
+    if (friendsList) {
+      friendsList.innerHTML = '';
+      friendItems.forEach(function (item) {
+        if (item && item.profile) friendsList.appendChild(friendRow(item.profile, item.rowId, demo));
+      });
+      friendsList.hidden = friendItems.length === 0;
+    }
+    if (countEl) countEl.textContent = friendItems.length ? friendItems.length + '명' : '';
+    if (emptyEl) emptyEl.hidden = friendItems.length > 0 || !(friends && friends.ok);
+
+    if (reqList) {
+      reqList.innerHTML = '';
+      requestItems.forEach(function (item) { reqList.appendChild(requestRow(item)); });
+    }
+    if (reqBox) reqBox.hidden = requestItems.length === 0;
+    if (reqCount) reqCount.textContent = requestItems.length ? requestItems.length + '개' : '';
+
+    var text = '';
+    if (missing) text = MSG.notReady;
+    else if (!friends || !friends.ok || !incoming || !incoming.ok) text = MSG.loadFailed;
+    else if (demo) text = MSG.demoFriends;
+
+    setNote(note, takeError() || text);
+    sec.hidden = false;
+  }
+
+  /* -------------------------------------------------- 한 곳에서 그리기 */
+  function render(ctx) {
+    ctx = ctx || {};
+    var me = 'me' in ctx ? ctx.me : myProfile();
+    var pen = 'pen' in ctx ? String(ctx.pen || '').trim() : ownPen();
+    var other = pen && !(me && samePen(me.pen_name, pen)) ? pen : '';
+
+    if (other) {
+      var sec = document.getElementById('friends-section');
+      if (sec) sec.hidden = true;
+      var owner = ctx.target && samePen(ctx.target.pen_name, other) ? ctx.target : null;
+      return paintActions(other, me, owner);
+    }
+
+    if (!me || ctx.draftMode) {
+      var hidden = document.getElementById('friends-section');
+      if (hidden) hidden.hidden = true;
+      hideActions();
+      return;
+    }
+
+    return paintOwn(me);
+  }
+
+  /* -------------------------------------------------- 버튼 누르기 */
+  async function runAction(node) {
+    var F = global.DarakFriends;
+    var act = node.getAttribute('data-friend-act') || '';
+    var rowId = node.getAttribute('data-row') || '';
+    var pen = node.getAttribute('data-pen') || '';
+    if (!F || !act || BUSY) return;
+
+    var me = myProfile();
+    if (!me) {
+      LAST_ERROR = MSG.loginHint;
+      return render();
+    }
+    if (act === 'unfriend' && typeof global.confirm === 'function' && !global.confirm(MSG.unfriendAsk)) return;
+
+    BUSY = true;
+    var label = node.textContent;
+    node.disabled = true;
+    node.textContent = '잠시만요…';
+
+    try {
+      var res = null;
+      if (act === 'request') {
+        var info = await F.context(pen);
+        if (!info || !info.me || !info.owner) { LAST_ERROR = MSG.failed; return; }
+        res = await F.request(info.me.id, info.owner.id);
+      } else if (act === 'accept') res = await F.accept(rowId);
+      else if (act === 'decline') res = await F.decline(rowId);
+      else if (act === 'cancel') res = await F.cancel(rowId);
+      else if (act === 'unfriend') res = await F.unfriend(rowId);
+
+      if (!res || !res.ok) {
+        LAST_ERROR = res && res.stale
+          ? '이미 처리된 신청이에요. 새로 고쳐 볼게요.'
+          : failedNote(res);
+      }
+    } catch (err) {
+      LAST_ERROR = MSG.failed;
+      if (global.console && console.warn) console.warn('[아트다락방] 친구 동작에 실패했어요.', err);
+    } finally {
+      BUSY = false;
+      if (node.isConnected) {
+        node.disabled = false;
+        node.textContent = label;
+      }
+      render({ pen: pen });
+    }
+  }
+
+  document.addEventListener('click', function (event) {
+    var node = event.target && event.target.closest ? event.target.closest('[data-friend-act]') : null;
+    if (!node) return;
+    event.preventDefault();
+    runAction(node);
+  });
+
+  global.DarakFriendsUI = { render: render };
+})();

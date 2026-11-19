@@ -2460,6 +2460,15 @@
       await renderNeighbors();
       await renderGuestbook();
 
+      /* 친구 다락방 — 내 방이면 친구 목록, 남의 방이면 친구 신청 버튼 */
+      if (window.DarakFriendsUI && typeof window.DarakFriendsUI.render === 'function') {
+        try {
+          window.DarakFriendsUI.render({ target: target, me: me, isOwner: isOwner, draftMode: draftMode });
+        } catch (err) {
+          console.warn('[아트다락방] 친구 칸을 그리지 못했어요.', err);
+        }
+      }
+
       lastSignature = profileSignature(target);
     }
 
