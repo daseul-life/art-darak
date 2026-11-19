@@ -1805,9 +1805,9 @@
     var ACTIVITY = {
       /* 발끝 앵커는 각 소품의 실제 좌석/바닥 위치에 맞춥니다.
          소품 이동량은 propOffset에서 같은 SVG 좌표만큼 더해집니다. */
-      beanbag: { x: 50, y: 100, dx: 0, dy: -13, scale: 0.78, facing: 1, pose: 'sit', fx: 'breathe', fallback: { x: 166, y: 464 } },
-      desk:    { x: 50, y: 100, dx: 0, dy: 4, scale: 0.80, facing: 1, pose: 'work', fx: 'type', fallback: { x: 336, y: 470 } },
-      piano:   { x: 100, y: 100, dx: -24, dy: 3, scale: 0.80, facing: -1, pose: 'sit', fx: 'notes', fallback: { x: 438, y: 470 } },
+      beanbag: { x: 50, y: 100, dx: 0, dy: -23, scale: 0.78, facing: 1, pose: 'sit', fx: 'breathe', fallback: { x: 169, y: 455 } },
+      desk:    { x: 50, y: 75, dx: 0, dy: 0, scale: 0.80, facing: 1, pose: 'work', fx: 'type', fallback: { x: 335, y: 440 } },
+      piano:   { x: 100, y: 100, dx: -24, dy: -27, scale: 0.80, facing: -1, pose: 'sit', fx: 'notes', fallback: { x: 438, y: 450 } },
       /* 전용 포즈 파일이 추가되면 자동 사용하고, 현재 파일이 없으면 stand로 폴백합니다. */
       easel:   { x: 100, y: 100, dx: 18, dy: 34, scale: 0.82, facing: -1, pose: 'paint', fx: 'paint', fallback: { x: 232, y: 470 } },
       coffee:  { x: 100, y: 100, dx: 18, dy: 154, scale: 0.80, facing: -1, pose: 'coffee', fx: 'steam', fallback: { x: 130, y: 470 } },
