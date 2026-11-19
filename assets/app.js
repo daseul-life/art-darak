@@ -1748,9 +1748,13 @@
               var targetX = propCenter < 470 ? propX + propBox.width + 16 : propX - 166;
               var dx = Math.max(-380, Math.min(250, targetX - 401));
               var dy = Math.max(-65, Math.min(35, propY + propBox.height - 487));
+              if (studio) studio.style.setProperty('--room-char-x', Math.max(8, Math.min(92, ((targetX + 75) / ROOM_W) * 100)) + '%');
               node.setAttribute('transform', 'translate(' + (401 + dx).toFixed(1) + ',' + (249.2 + dy).toFixed(1) + ') scale(0.92)');
             }
-          } else node.setAttribute('transform', node.getAttribute('data-base-transform') || '');
+          } else {
+            if (studio) studio.style.removeProperty('--room-char-x');
+            node.setAttribute('transform', node.getAttribute('data-base-transform') || '');
+          }
           var img = node.querySelector('.droom__char-3d-img');
           var src = roomPoseSrc(node.getAttribute('data-char'), pose);
           if (img && src && img.getAttribute('href') !== src) img.setAttribute('href', src);
