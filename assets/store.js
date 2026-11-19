@@ -36,7 +36,7 @@
   var ATTIC_MOODS = ['write', 'paint', 'music', 'craft'];
   var ATTIC_PROPS = [
     'easel', 'desk', 'lamp', 'guitar', 'plant', 'tea', 'garland', 'cat', 'books', 'vinyl',
-    'coffee', 'beanbag', 'candle', 'dessert', 'board', 'dog', 'camera'
+    'coffee', 'beanbag', 'piano', 'candle', 'dessert', 'board', 'dog', 'camera'
   ];
   var DEFAULT_MOOD = 'write';
   /* 큰 창밖 풍경 — 'auto' 는 작업실 분위기에 맞춘 기본 창입니다. */

@@ -2617,6 +2617,7 @@ body { word-break: keep-all; overflow-wrap: break-word; }
 
 /* 캐릭터 위 핑크 파스텔 말풍선 — 3D 전신 캐릭터의 머리 위에서 시작합니다 */
 .droom__say {
+  left: var(--room-char-x, 58.6%);
   /* 방 크기에 맞춰 함께 커지고 작아집니다 (--room-u = 방 너비 / 800) */
   --u: var(--room-u, .4px);
   position: absolute; left: 58.6%; bottom: 54%; z-index: 3;
@@ -2643,6 +2644,7 @@ body { word-break: keep-all; overflow-wrap: break-word; }
 
 /* 반짝임 — ✦ · ♡ 가 살짝 떠올랐다 사라집니다 */
 .droom__sparks {
+  left: var(--room-char-x, 58.6%);
   position: absolute; left: 58.6%; top: 67%; z-index: 4;
   width: 0; height: 0; pointer-events: none;
 }
@@ -3513,3 +3515,19 @@ body { word-break: keep-all; overflow-wrap: break-word; }
   .dgb-form__foot { justify-content: flex-end; }
   .dgb-form__hint { width: 100%; }
 }
+
+/* 다락방 피아노와 ASMR 설정 */
+.droom__piano-notes{opacity:0;transform-box:fill-box;transform-origin:center}
+.droom__prop.is-playing .droom__piano-notes{opacity:1;animation:droomPianoNotes 1.8s ease-in-out infinite}
+@keyframes droomPianoNotes{0%{transform:translateY(8px);opacity:0}35%{opacity:1}100%{transform:translateY(-24px);opacity:0}}
+.droom-sound{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:.45rem;margin:.65rem auto .25rem;color:var(--plum-2);font-size:.75rem}
+.droom-sound button,.droom-sound select{border:1px solid var(--line);border-radius:999px;padding:.38rem .65rem;background:#FFFCFD;color:inherit;font:inherit}
+.droom-sound button{cursor:pointer;font-weight:700}
+.droom-sound__toggle[aria-pressed="true"]{background:#FCE7EE;border-color:#E5B5C5}
+.droom-sound__field{display:inline-flex;align-items:center;gap:.3rem}
+.droom-sound input[type="range"]{width:74px;accent-color:#C77F9B}
+.droom-return{display:flex;justify-content:center;margin:.15rem 0 .55rem}
+@media(max-width:520px){.droom-sound{gap:.35rem;font-size:.69rem}.droom-sound input[type="range"]{width:58px}}
+
+.droom__prop.is-playing .droom__steam--coffee{animation:droomCoffeeSteam 1.7s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
+@keyframes droomCoffeeSteam{0%{opacity:.15;transform:translateY(5px)}45%{opacity:.9}100%{opacity:.1;transform:translateY(-9px)}}
