@@ -1779,16 +1779,16 @@
       return 'images/room-3d/' + key + (p === 'stand' ? '' : '-' + p) + '.webp';
     }
 
-    /* 소품마다 캐릭터가 어디에 앉고/서는지 — 방(800×500) 좌표.
-       x: 캐릭터의 허리 중심, y: 발이 닿는 바닥, s: 크기, pose: 그때의 자세.
-       소품을 끌어 옮겼다면 같은 거리만큼 캐릭터도 따라갑니다(아래 roomCharSpotFor). */
-    var PROP_SPOTS = {
-      beanbag: { x: 166, y: 452, s: 0.76, pose: 'sit' },   /* 2인용 소파 — 좌석 쿠션 중앙에 몸을 맞춰 편하게 앉아요 */
-      piano: { x: 438, y: 470, s: 0.78, pose: 'sit' },     /* 피아노 의자 — 건반 쪽으로 앉아요 */
-      desk: { x: 272, y: 470, s: 0.75, pose: 'work' },     /* 노트북 책상 — 책상 앞에 앉아 작업 */
-      easel: { x: 246, y: 470, s: 0.86, pose: 'stand' },   /* 이젤 — 캔버스 바로 앞 */
-      coffee: { x: 104, y: 470, s: 0.80, pose: 'stand' },  /* 커피머신 선반 아래 */
-      guitar: { x: 512, y: 470, s: 0.86, pose: 'stand' }   /* 기타 바로 옆 */
+    /* 소품별 캐릭터 앵커 — x/y는 소품 SVG 박스 안의 비율(%).
+       캐릭터 발끝이 앵커에 닿으며 facing -1은 왼쪽을 바라보도록 좌우 반전합니다.
+       beanbag은 화면 표시명 '소파'에 대응하는 실제 저장 키입니다. */
+    var ACTIVITY = {
+      beanbag: { x: 50, y: 58, scale: 0.90, facing: 1, pose: 'sit', fx: 'breathe', fallback: { x: 166, y: 452 } },
+      desk:    { x: 38, y: 70, scale: 0.85, facing: 1, pose: 'work', fx: 'type', fallback: { x: 272, y: 470 } },
+      piano:   { x: 50, y: 74, scale: 0.85, facing: 1, pose: 'sit', fx: 'notes', fallback: { x: 438, y: 470 } },
+      easel:   { x: 30, y: 92, scale: 0.90, facing: 1, pose: 'stand', fx: 'paint', fallback: { x: 246, y: 470 } },
+      coffee:  { x: 50, y: 96, scale: 0.90, facing: -1, pose: 'stand', fx: 'steam', fallback: { x: 104, y: 470 } },
+      guitar:  { x: 60, y: 92, scale: 0.90, facing: -1, pose: 'stand', fx: 'strum', fallback: { x: 512, y: 470 } }
     };
     /* 자세 그림에서 머리끝이 차지하는 높이(그림 아래 240 기준) — 말풍선을 머리 위에 놓습니다. */
     var POSE_HEAD = { stand: 234.4, sit: 156.1, work: 166.4, meditate: 178.6 };
@@ -1797,18 +1797,15 @@
     var roomCharFrame = 0;
 
     function parseCharSpot(value) {
-      var m = /translate\(\s*(-?[\d.]+)\s*[ ,]\s*(-?[\d.]+)\s*\)\s*scale\(\s*(-?[\d.]+)\s*\)/.exec(String(value || ''));
+      var m = /translate\\(\\s*(-?[\\d.]+)\\s*[ ,]\\s*(-?[\\d.]+)\\s*\\)\\s*scale\\(\\s*(-?[\\d.]+)(?:\\s*[, ]\\s*(-?[\\d.]+))?\\s*\\)/.exec(String(value || ''));
       if (!m) return null;
-      return { x: parseFloat(m[1]), y: parseFloat(m[2]), s: parseFloat(m[3]) };
+      return { x: parseFloat(m[1]), y: parseFloat(m[2]), s: Math.abs(parseFloat(m[3])), facing: parseFloat(m[3]) < 0 ? -1 : 1 };
     }
 
-    /* 소품 자리(중심·바닥·크기) → 캐릭터 그림의 transform 값 */
+    /* 발끝 앵커를 기준으로 SVG 캐릭터의 좌우 방향까지 반영합니다. */
     function spotToTransform(spot) {
-      return {
-        x: spot.x - CHAR_ANCHOR_X * spot.s,
-        y: spot.y - CHAR_IMG_H * spot.s,
-        s: spot.s
-      };
+      var facing = spot.facing === -1 ? -1 : 1;
+      return { x: spot.x - CHAR_ANCHOR_X * spot.s * facing, y: spot.y - CHAR_IMG_H * spot.s, s: spot.s, facing: facing };
     }
 
     function hasReducedMotion() {
@@ -1817,7 +1814,8 @@
 
     function applyCharTransform(node, t) {
       if (!node) return;
-      node.setAttribute('transform', 'translate(' + t.x.toFixed(1) + ',' + t.y.toFixed(1) + ') scale(' + t.s + ')');
+      var facing = t.facing === -1 ? -1 : 1;
+      node.setAttribute('transform', 'translate(' + t.x.toFixed(1) + ',' + t.y.toFixed(1) + ') scale(' + (t.s * facing) + ',' + t.s + ')');
     }
 
     /* 캐릭터를 새 자리로 옮깁니다 — 순간 이동하지 않고 0.4초 동안 부드럽게 미끄러집니다. */
@@ -1832,7 +1830,9 @@
         from = base || to;
       }
       if (roomCharFrame) { window.cancelAnimationFrame(roomCharFrame); roomCharFrame = 0; }
-      var settled = Math.abs(from.x - to.x) < 0.4 && Math.abs(from.y - to.y) < 0.4 && Math.abs(from.s - to.s) < 0.002;
+      from.facing = from.facing === -1 ? -1 : 1;
+      var settled = Math.abs(from.x - to.x) < 0.4 && Math.abs(from.y - to.y) < 0.4 &&
+        Math.abs(from.s - to.s) < 0.002 && from.facing === to.facing;
       if (immediate || settled || hasReducedMotion()) {
         roomCharNow = to;
         nodes.forEach(function (node) { applyCharTransform(node, to); });
@@ -1847,7 +1847,8 @@
         var cur = {
           x: from.x + (to.x - from.x) * e,
           y: from.y + (to.y - from.y) * e,
-          s: from.s + (to.s - from.s) * e
+          s: from.s + (to.s - from.s) * e,
+          facing: p < 0.5 ? from.facing : to.facing
         };
         roomCharNow = cur;
         nodes.forEach(function (node) { applyCharTransform(node, cur); });
@@ -1856,18 +1857,20 @@
       roomCharFrame = window.requestAnimationFrame(step);
     }
 
-    /* 지금 이용 중인 소품에 맞춘 자리 — 소품을 끌어 옮긴 거리만큼 함께 옮깁니다. */
+    /* 소품 박스 안의 비율로 발끝 위치를 계산합니다.
+       소품을 직접 옮겼다면 저장된 이동량도 앵커에 함께 반영합니다. */
     function roomCharSpotFor(key) {
-      var spec = PROP_SPOTS[key];
+      var spec = ACTIVITY[key];
       if (!spec || !studio) return null;
       var propNode = studio.querySelector('[data-prop="' + key + '"]');
       var box = propBBox(propNode);
       var offset = propOffset(box, attic.pos[key]);
+      var anchorX = box ? box.x + box.width * spec.x / 100 : spec.fallback.x;
+      var anchorY = box ? box.y + box.height * spec.y / 100 : spec.fallback.y;
       return {
-        x: Math.max(40, Math.min(ROOM_W - 40, spec.x + offset.dx)),
-        y: Math.max(60, Math.min(ROOM_H - 6, spec.y + offset.dy)),
-        s: spec.s,
-        pose: spec.pose
+        x: Math.max(40, Math.min(ROOM_W - 40, anchorX + offset.dx)),
+        y: Math.max(60, Math.min(ROOM_H - 6, anchorY + offset.dy)),
+        s: spec.scale, facing: spec.facing, pose: spec.pose, fx: spec.fx
       };
     }
 
@@ -1916,9 +1919,10 @@
           paintRoomOverlay(spot, pose);
         } else {
           moveRoomCharacter({
-            x: base.x + CHAR_ANCHOR_X * base.s,
+            x: base.x + CHAR_ANCHOR_X * base.s * (base.facing === -1 ? -1 : 1),
             y: base.y + CHAR_IMG_H * base.s,
-            s: base.s
+            s: base.s,
+            facing: base.facing === -1 ? -1 : 1
           }, immediate);
           paintRoomOverlay(null, pose);
         }
@@ -2279,6 +2283,7 @@
         studio.querySelectorAll('.droom__prop.is-playing').forEach(function (node) { node.classList.remove('is-playing'); });
         studio.removeAttribute('data-char-seat');
         studio.removeAttribute('data-char-activity');
+        studio.removeAttribute('data-char-fx');
       }
       stopAmbientAudio();
       paintRoomCharacter();
@@ -2286,20 +2291,21 @@
     function activatePropInteraction(key) {
       if (activityProp === key) { restoreRoomActivity(); showRoomSay('원래 자리와 자세로 돌아왔어요.'); return; }
       if (studio) studio.querySelectorAll('.droom__prop.is-playing').forEach(function (node) { node.classList.remove('is-playing'); });
-      /* 소품마다 하는 일 — 자세와 자리는 PROP_SPOTS 가 정합니다. */
+      /* 소품마다 하는 일 — 자세와 앵커는 ACTIVITY 설정이 정합니다. */
       var say = {
         desk: '노트북으로 작업 중...', easel: '캔버스에 그림 그리는 중...',
         coffee: '따뜻한 커피 내리는 중...', beanbag: '소파에 편히 기대어 쉬는 중...',
         piano: '피아노 연주하는 중...', guitar: '기타 선율 고르는 중...'
       };
       if (key === 'candle') { playSound('candle'); showRoomSay('촛불이 조용히 타닥이고 있어요.'); return; }
-      var spot = PROP_SPOTS[key];
+      var spot = ACTIVITY[key];
       if (!say[key] || !spot || !roomChar) return;
       if (!attic.avatar) { showRoomSay('방에 세울 캐릭터를 먼저 골라 주세요.'); return; }
       activityProp = key; activityPoseOverride = spot.pose;
       paintRoomCharacter();
       studio.setAttribute('data-char-pose', activityPoseOverride);
       studio.setAttribute('data-char-activity', key);
+      studio.setAttribute('data-char-fx', spot.fx);
       /* 앉아서 사용하는 소품은 앉기 전용 호흡 애니메이션을 적용합니다. */
       if (key === 'beanbag' || key === 'piano' || key === 'desk') {
         studio.setAttribute('data-char-seat', 'true');
