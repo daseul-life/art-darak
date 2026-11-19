@@ -503,6 +503,10 @@
                     </g>
 
                     <g class="droom__prop" data-prop="desk">
+                      <!-- 노트북 앞 작업 의자: 캐릭터가 책상 앞에 앉았을 때 좌석과 등받이가 보입니다. -->
+                      <rect x="313" y="390" width="46" height="43" rx="9" fill="#C89FA9" stroke="#A97988" stroke-width="2"></rect>
+                      <rect x="305" y="428" width="62" height="11" rx="5" fill="#D8B4BC" stroke="#A97988" stroke-width="1.6"></rect>
+                      <path d="M314,439 L310,463 M358,439 L362,463" stroke="#A97988" stroke-width="4" stroke-linecap="round"></path>
                       <ellipse cx="335" cy="466" rx="102" ry="10" fill="#7A4A3E" opacity=".14"></ellipse>
                       <rect x="240" y="368" width="192" height="13" rx="6" fill="url(#droomWood)"></rect>
                       <rect x="252" y="381" width="9" height="80" rx="3" fill="#C09473"></rect>
@@ -784,7 +788,32 @@
                          aria-label="문장을 빚는 산책자(여) 캐릭터와 인사하기" transform="translate(401,249.2) scale(0.92)"><rect class="droom__char-hit" x="40" y="8" width="70" height="150" fill="none" pointer-events="all"></rect><ellipse class="droom__char-shadow" cx="75" cy="238" rx="27" ry="6"></ellipse><ellipse class="droom__char-ring" cx="75" cy="236" rx="32" ry="7.4"></ellipse><g class="droom__char-bob"><g class="droom__char-3d-body"><image class="droom__char-3d-img" href="images/room-3d/doyun-f.webp" x="0" y="0" width="150" height="240"></image></g></g></g>
 
                       <g class="droom__char-figure droom__char-3d" data-char="doyun:m" role="button" tabindex="0"
-                         aria-label="문장을 빚는 산책자(남) 캐릭터와 인사하기" transform="translate(401,249.2) scale(0.92)"><rect class="droom__char-hit" x="40" y="8" width="70" height="150" fill="none" pointer-events="all"></rect><ellipse class="droom__char-shadow" cx="75" cy="238" rx="27" ry="6"></ellipse><ellipse class="droom__char-ring" cx="75" cy="236" rx="32" ry="7.4"></ellipse><g class="droom__char-bob"><g class="droom__char-3d-body"><image class="droom__char-3d-img" href="images/room-3d/doyun-m.webp" x="0" y="0" width="150" height="240"></image></g></g></g>
+                         aria-label="문장을 빚는 산책자(남) 캐릭터와 인사하기" transform="translate(401,249.2) scale(0.92)"><rect class="droom__char-hit" x="40" y="8" width="70" height="150" fill="none" pointer-events="all"></rect><ellipse class="droom__char-shadow" cx="75" cy="238" rx="27" ry="6"></ellipse><ellipse class="droom__char-ring" cx="75" cy="236" rx="32" ry="7.4"></ellipse><g class="droom__char-bob"><g class="droom__char-3d-body"><image class="droom__char-3d-img" href="images/room-3d/doyun-m.webp" x="0" y="0" width="150" height="240"></image></g></g></g> 
+                      <!-- 가구 전면 레이어: 캐릭터보다 앞에 그려 실제로 소파에 앉고 책상/건반 뒤에 위치하게 합니다.
+                           data-prop-front는 원본 소품의 드래그 이동량을 JS에서 그대로 따라갑니다. -->
+                      <g class="droom__prop-front" data-prop-front="beanbag" pointer-events="none">
+                        <path d="M94,444 Q166,458 238,444 L238,463 Q166,477 94,463 Z" fill="#D9AEBB" stroke="#C995A5" stroke-width="1.5"></path>
+                      </g>
+                      <g class="droom__prop-front" data-prop-front="desk" pointer-events="none">
+                        <rect x="240" y="368" width="192" height="13" rx="6" fill="url(#droomWood)"></rect>
+                        <path d="M246,370 Q335,373 426,370" fill="none" stroke="#F2D0B6" stroke-width="1.5" opacity=".7"></path>
+                      </g>
+                      <g class="droom__prop-front" data-prop-front="guitar" pointer-events="none">
+                        <g transform="rotate(-8 600 430)">
+                          <path d="M600,336 C585,336 574,346 574,360 C574,372 580,380 582,388 C570,396 562,414 568,430 C576,448 624,448 632,430 C638,414 630,396 618,388 C620,380 626,372 626,360 C626,346 615,336 600,336 Z" fill="url(#droomWood)"></path>
+                          <circle cx="600" cy="396" r="12.5" fill="#6E4B33"></circle>
+                          <circle cx="600" cy="396" r="7.5" fill="#3F2C22"></circle>
+                          <rect x="588" y="430" width="24" height="5" rx="2" fill="#8B6244"></rect>
+                          <rect x="596" y="268" width="8" height="72" rx="3" fill="#C08F63"></rect>
+                          <rect x="586" y="248" width="28" height="20" rx="4" fill="#A87A52"></rect>
+                          <path d="M596,320 L596,430 M600,320 L600,430 M604,320 L604,430" stroke="#F6E9D0" stroke-width="1.1"></path>
+                        </g>
+                      </g>
+                      <g class="droom__prop-front" data-prop-front="piano" pointer-events="none">
+                        <rect x="300" y="414" width="96" height="25" rx="2" fill="#FFF9EF" stroke="#E7D8C9" stroke-width="1.2"></rect>
+                        <path d="M312,414 v16 M324,414 v16 M336,414 v16 M348,414 v16 M360,414 v16 M372,414 v16 M384,414 v16" stroke="#BBA99D" stroke-width="1"></path>
+                        <path d="M308,414 v12 h7 v-12 M329,414 v12 h7 v-12 M350,414 v12 h7 v-12 M371,414 v12 h7 v-12" fill="#594447"></path>
+                      </g>
 
                       <!-- 3D 전신 이전에 쓰던 사진 카드(액자) 12종은 make_photo_chars.py 로, 그 이전 일러스트 12종은 아래 그룹에 있습니다. 되돌릴 때는 아래 그룹을 꺼내고
                            data-char-svg 를 data-char 로 바꾸면 됩니다. 지우지 않고 숨겨 둡니다. -->
