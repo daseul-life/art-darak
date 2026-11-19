@@ -1741,10 +1741,13 @@
             var propNode = studio.querySelector('[data-prop="' + activityProp + '"]');
             var propBox = propBBox(propNode);
             if (propBox) {
-              var propCenter = propBox.x + propBox.width / 2;
-              var targetX = propCenter < 470 ? propBox.x + propBox.width + 16 : propBox.x - 166;
+              var propOffsetNow = propOffset(propBox, attic.pos[activityProp]);
+              var propX = propBox.x + propOffsetNow.dx;
+              var propY = propBox.y + propOffsetNow.dy;
+              var propCenter = propX + propBox.width / 2;
+              var targetX = propCenter < 470 ? propX + propBox.width + 16 : propX - 166;
               var dx = Math.max(-380, Math.min(250, targetX - 401));
-              var dy = Math.max(-65, Math.min(35, propBox.y + propBox.height - 487));
+              var dy = Math.max(-65, Math.min(35, propY + propBox.height - 487));
               node.setAttribute('transform', 'translate(' + (401 + dx).toFixed(1) + ',' + (249.2 + dy).toFixed(1) + ') scale(0.92)');
             }
           } else node.setAttribute('transform', node.getAttribute('data-base-transform') || '');
