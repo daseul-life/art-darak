@@ -1805,9 +1805,11 @@
       beanbag: { x: 50, y: 100, dx: 0, dy: -13, scale: 0.78, facing: 1, pose: 'sit', fx: 'breathe', fallback: { x: 166, y: 464 } },
       desk:    { x: 50, y: 100, dx: 0, dy: 4, scale: 0.80, facing: 1, pose: 'work', fx: 'type', fallback: { x: 336, y: 470 } },
       piano:   { x: 100, y: 100, dx: -24, dy: 3, scale: 0.80, facing: -1, pose: 'sit', fx: 'notes', fallback: { x: 438, y: 470 } },
-      easel:   { x: 100, y: 100, dx: 18, dy: 34, scale: 0.82, facing: -1, pose: 'work', fx: 'paint', fallback: { x: 232, y: 470 } },
-      coffee:  { x: 100, y: 100, dx: 18, dy: 154, scale: 0.80, facing: -1, pose: 'work', fx: 'steam', fallback: { x: 130, y: 470 } },
-      guitar:  { x: 0, y: 100, dx: -35, dy: 18, scale: 0.82, facing: 1, pose: 'work', fx: 'strum', fallback: { x: 527, y: 470 } }
+      /* 전용 그림이 없는 서서 하는 활동은 기본 서기 그림을 씁니다.
+         책상 작업용 work 이미지를 억지로 재활용해 앉은 자세가 되는 것을 막습니다. */
+      easel:   { x: 100, y: 100, dx: 18, dy: 34, scale: 0.82, facing: -1, pose: 'stand', fx: 'paint', fallback: { x: 232, y: 470 } },
+      coffee:  { x: 100, y: 100, dx: 18, dy: 154, scale: 0.80, facing: -1, pose: 'stand', fx: 'steam', fallback: { x: 130, y: 470 } },
+      guitar:  { x: 0, y: 100, dx: -35, dy: 18, scale: 0.82, facing: 1, pose: 'stand', fx: 'strum', fallback: { x: 527, y: 470 } }
     };
     /* 자세 그림에서 머리끝이 차지하는 높이(그림 아래 240 기준) — 말풍선을 머리 위에 놓습니다. */
     var POSE_HEAD = { stand: 234.4, sit: 156.1, work: 166.4, meditate: 178.6 };
