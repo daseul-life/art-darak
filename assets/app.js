@@ -2350,10 +2350,6 @@
       canCustomize = draftMode || isOwner;
       setupTools(isOwner, me, canCustomize);
       if (draftMode) {
-        var accountText = document.querySelector('[data-account-text]');
-        var accountButton = document.querySelector('[data-account]');
-        if (accountText) accountText.textContent = '저장하기';
-        if (accountButton) accountButton.setAttribute('aria-label', '꾸민 다락방 저장하기');
         darakSaveRequest = function () {
           pendingDarakDraft = {
             attic_theme: currentTheme,
