@@ -47,7 +47,8 @@
     { key: 'books', label: '책 더미', icon: 'books' },
     { key: 'vinyl', label: '레코드판', icon: 'vinyl' },
     { key: 'coffee', label: '커피머신', icon: 'coffee' },
-    { key: 'beanbag', label: '빈백 소파', icon: 'beanbag' },
+    { key: 'beanbag', label: '2인용 소파', icon: 'beanbag' },
+    { key: 'piano', label: '피아노', icon: 'note' },
     { key: 'candle', label: '캔들 워머', icon: 'candle' },
     { key: 'dessert', label: '디저트 트레이', icon: 'dessert' },
     { key: 'board', label: '엽서·사진 보드', icon: 'board' },
@@ -58,7 +59,7 @@
     easel: '이젤 & 캔버스', desk: '원목 책상 & 노트북', lamp: '스탠드 조명',
     guitar: '어쿠스틱 기타', plant: '작은 화분', tea: '찻잔 세트', garland: '전구 가랜드',
     cat: '고양이 방석', books: '책 더미', vinyl: '레코드판',
-    coffee: '커피머신', beanbag: '빈백 소파', candle: '캔들 워머', dessert: '디저트 트레이',
+    coffee: '커피머신', beanbag: '2인용 소파', piano: '피아노', candle: '캔들 워머', dessert: '디저트 트레이',
     board: '엽서·사진 보드', dog: '강아지 쿠션', camera: '필름 카메라'
   };
 
@@ -528,6 +529,8 @@
      ============================================================ */
   var auth = { mode: 'signup', modal: null, form: null, errorEl: null, submit: null,
     avatarPicker: null, genderChips: null };
+  var pendingDarakDraft = null;
+  var darakSaveRequest = null;
 
   function authModalHTML() {
     return '' +
@@ -730,7 +733,9 @@
       var pickedAvatar = auth.avatarPicker ? auth.avatarPicker.get() : '';
       var pickedGender = auth.genderChips ? auth.genderChips.get() : '';
       var extra = auth.mode === 'signup'
-        ? { attic_props: { avatar: pickedAvatar, gender: pickedGender } }
+        ? (pendingDarakDraft
+          ? { attic_theme: pendingDarakDraft.attic_theme, attic_props: pendingDarakDraft.attic_props }
+          : { attic_props: { avatar: pickedAvatar, gender: pickedGender } })
         : undefined;
       var profile = auth.mode === 'signup'
         ? await Store.signUp(pen, password, extra)
@@ -739,6 +744,7 @@
         /* 관리자 메일 알림 — 기다리지 않고 보내고, 실패해도 가입은 그대로 진행됩니다. */
         notifyNewSignup(profile || { pen_name: pen });
       }
+      pendingDarakDraft = null;
       auth.form.reset();
       if (auth.avatarPicker) auth.avatarPicker.reset();
       if (auth.genderChips) auth.genderChips.reset();
@@ -758,6 +764,7 @@
       if (account) {
         event.preventDefault();
         if (Store.profile()) window.location.href = 'darakbang.html';
+        else if (document.body.getAttribute('data-page') === 'darakbang' && darakSaveRequest) darakSaveRequest();
         else openAuth('signup');
         return;
       }
@@ -1369,6 +1376,7 @@
     var posePicker = document.querySelector('[data-pose-picker]');
     var propPicker = document.querySelector('[data-prop-picker]');
     var propsReset = document.querySelector('[data-props-reset]');
+    var roomReset = document.querySelector('[data-room-reset]');
     var visitOwn = document.querySelector('[data-visit-own]');
     var visitJoin = document.querySelector('[data-visit-join]');
     var editBtn = document.getElementById('edit-profile');
@@ -1384,6 +1392,10 @@
     var roomGreetTimer = null;
     var roomSayTimer = null;
     var roomSparkTimer = null;
+    var activityProp = '';
+    var activityPoseOverride = '';
+    var lastPropDragAt = 0;
+    var audioContext = null, audioMaster = null, audioEnabled = false, audioTimer = null;
 
     /* 이웃 다락방 · 방명록 */
     var neighborGrid = document.getElementById('neighbor-grid');
@@ -1403,7 +1415,7 @@
     var guestbookHint = document.querySelector('[data-guestbook-hint]');
     var guestbookSubmit = document.querySelector('[data-guestbook-submit]');
     var guestbookBusy = false;
-    var guestbookHintBase = '짧은 인사 한 줄이면 충분해요. 200자까지 쓸 수 있어요.';
+    var guestbookHintBase = '짧은 인사 한 줄이면 충분해요.';
     var neighborMap = {};
     var NEIGHBOR_LIMIT = 12;
 
@@ -1411,6 +1423,8 @@
     var penParam = (new URLSearchParams(window.location.search).get('pen') || '').trim();
     var target = null;
     var isOwner = false;
+    var canCustomize = false;
+    var draftMode = false;
     var attic = { mood: 'write', props: [], view: 'auto', pose: 'stand', avatar: '', gender: '', pos: {} };
     var avatarPicker = null;
     var currentTheme = 'rose';
@@ -1477,7 +1491,7 @@
         VIEW_SUBLABEL[view] + '. ' +
         (attic.avatar ? '캐릭터는 ' + POSE_LABEL[pose] + ' 자세로 있어요. ' : '') +
         (propNames.length ? '소품: ' + propNames.join(', ') + '.' : '아직 놓은 소품이 없어요.') +
-        (isOwner ? ' 소품은 끌어서 자리를 옮길 수 있어요.' : ''));
+        (canCustomize ? ' 소품은 끌어서 자리를 옮길 수 있어요.' : ''));
 
       paintPropPositions();
 
@@ -1601,7 +1615,7 @@
     }
 
     function startPropDrag(event) {
-      if (!studio || !isOwner || propDrag) return;
+      if (!studio || !canCustomize || propDrag) return;
       if (event.button != null && event.button !== 0) return;
       var node = event.target && event.target.closest ? event.target.closest('.droom__prop') : null;
       if (!node || !studio.contains(node) || !node.classList.contains('is-on')) return;
@@ -1651,6 +1665,7 @@
       var drag = propDrag;
       propDrag = null;
       drag.node.classList.remove('is-dragging');
+      if (drag.moved) lastPropDragAt = Date.now();
       try { drag.node.releasePointerCapture(drag.pointerId); } catch (err) { /* 이미 풀렸어요 */ }
 
       /* 그냥 눌렀다 뗀 것이라면 자리를 건드리지 않습니다. */
@@ -1689,6 +1704,10 @@
       studio.addEventListener('pointerdown', startPropDrag);
       studio.addEventListener('pointermove', movePropDrag);
       studio.addEventListener('pointerup', finishPropDrag);
+      studio.addEventListener('click', function (event) {
+        var prop = event.target && event.target.closest ? event.target.closest('.droom__prop.is-on') : null;
+        if (prop && studio.contains(prop) && Date.now() - lastPropDragAt >= 350) activatePropInteraction(prop.getAttribute('data-prop'));
+      });
       studio.addEventListener('pointercancel', cancelPropDrag);
       studio.addEventListener('lostpointercapture', function (event) {
         if (propDrag && event.pointerId === propDrag.pointerId) finishPropDrag(event);
@@ -1717,14 +1736,33 @@
       if (!roomChar) return;
       sizeRoomOverlay();
       var key = attic.avatar || '';
-      var pose = POSE_LABEL[attic.pose] ? attic.pose : 'stand';
+      var pose = activityPoseOverride || (POSE_LABEL[attic.pose] ? attic.pose : 'stand');
       var shown = false;
       Array.prototype.forEach.call(roomChar.querySelectorAll('[data-char]'), function (node) {
         var on = !!key && node.getAttribute('data-char') === key;
         node.classList.toggle('is-on', on);
         node.setAttribute('aria-hidden', String(!on));
+        if (!node.hasAttribute('data-base-transform')) node.setAttribute('data-base-transform', node.getAttribute('transform') || '');
         if (on) {
           shown = true;
+          if (activityProp) {
+            var propNode = studio.querySelector('[data-prop="' + activityProp + '"]');
+            var propBox = propBBox(propNode);
+            if (propBox) {
+              var propOffsetNow = propOffset(propBox, attic.pos[activityProp]);
+              var propX = propBox.x + propOffsetNow.dx;
+              var propY = propBox.y + propOffsetNow.dy;
+              var propCenter = propX + propBox.width / 2;
+              var targetX = propCenter < 470 ? propX + propBox.width + 16 : propX - 166;
+              var dx = Math.max(-380, Math.min(250, targetX - 401));
+              var dy = Math.max(-65, Math.min(35, propY + propBox.height - 487));
+              if (studio) studio.style.setProperty('--room-char-x', Math.max(8, Math.min(92, ((targetX + 75) / ROOM_W) * 100)) + '%');
+              node.setAttribute('transform', 'translate(' + (401 + dx).toFixed(1) + ',' + (249.2 + dy).toFixed(1) + ') scale(0.92)');
+            }
+          } else {
+            if (studio) studio.style.removeProperty('--room-char-x');
+            node.setAttribute('transform', node.getAttribute('data-base-transform') || '');
+          }
           var img = node.querySelector('.droom__char-3d-img');
           var src = roomPoseSrc(node.getAttribute('data-char'), pose);
           if (img && src && img.getAttribute('href') !== src) img.setAttribute('href', src);
@@ -1890,7 +1928,7 @@
       if (avatarRoot) {
         avatarRoot.innerHTML = avatarPickerHTML('avatar-picker--studio');
         avatarPicker = createAvatarPicker(avatarRoot.querySelector('[data-avatar-picker]'), function (key) {
-          if (!isOwner) return;
+          if (!canCustomize) return;
           attic.avatar = key;
           paintCharacter(target);
           var entry = avatarEntry(key);
@@ -1906,11 +1944,12 @@
 
         swatches.addEventListener('click', async function (event) {
           var dot = event.target.closest ? event.target.closest('[data-theme]') : null;
-          if (!dot || !isOwner) return;
+          if (!dot || !canCustomize) return;
           var theme = dot.getAttribute('data-theme');
           if (!THEME_LABEL[theme] || currentTheme === theme) return;
           applyTheme(theme);
           paintStudio();
+          if (!isOwner) return;
           try {
             await Store.updateProfile({ attic_theme: theme });
             toast(THEME_LABEL[theme] + ' 벽지로 바꿨어요.');
@@ -1931,7 +1970,7 @@
 
         moodPicker.addEventListener('click', function (event) {
           var chip = event.target.closest ? event.target.closest('[data-mood]') : null;
-          if (!chip || !isOwner) return;
+          if (!chip || !canCustomize) return;
           var mood = chip.getAttribute('data-mood');
           if (!MOOD_LABEL[mood] || attic.mood === mood) return;
           attic.mood = mood;
@@ -1952,7 +1991,7 @@
 
         viewPicker.addEventListener('click', function (event) {
           var chip = event.target.closest ? event.target.closest('[data-view]') : null;
-          if (!chip || !isOwner) return;
+          if (!chip || !canCustomize) return;
           var view = chip.getAttribute('data-view');
           if (!VIEW_LABEL[view] || attic.view === view) return;
           attic.view = view;
@@ -1973,10 +2012,11 @@
 
         posePicker.addEventListener('click', function (event) {
           var chip = event.target.closest ? event.target.closest('[data-pose]') : null;
-          if (!chip || !isOwner) return;
+          if (!chip || !canCustomize) return;
           var pose = chip.getAttribute('data-pose');
           if (!POSE_LABEL[pose] || attic.pose === pose) return;
           attic.pose = pose;
+          if (pose === 'meditate') playSound('bowl');
           paintStudio();
           paintRoomCharacter();
           persistAttic(!attic.avatar
@@ -1995,7 +2035,7 @@
 
         propPicker.addEventListener('click', function (event) {
           var chip = event.target.closest ? event.target.closest('[data-prop]') : null;
-          if (!chip || !isOwner) return;
+          if (!chip || !canCustomize) return;
           var key = chip.getAttribute('data-prop');
           if (!PROP_LABEL[key]) return;
           var index = attic.props.indexOf(key);
@@ -2006,10 +2046,11 @@
         });
       }
 
+      if (roomReset) roomReset.addEventListener('click', function () { restoreRoomActivity(); showRoomSay('기본 자리와 자세로 돌아왔어요.'); });
       /* 소품 자리 되돌리기 — 끌어 옮긴 자리를 모두 기본 자리로 돌립니다. */
       if (propsReset) {
         propsReset.addEventListener('click', function () {
-          if (!isOwner) return;
+          if (!canCustomize) return;
           if (!Object.keys(attic.pos || {}).length) {
             toast('소품이 모두 처음 자리에 있어요.');
             return;
@@ -2019,6 +2060,70 @@
           persistAttic('소품을 처음 자리로 되돌렸어요.');
         });
       }
+    }
+
+
+    function restoreRoomActivity() {
+      activityProp = ''; activityPoseOverride = '';
+      if (roomChar) roomChar.querySelectorAll('[data-char]').forEach(function (node) {
+        node.setAttribute('transform', node.getAttribute('data-base-transform') || '');
+      });
+      if (studio) studio.querySelectorAll('.droom__prop.is-playing').forEach(function (node) { node.classList.remove('is-playing'); });
+      stopAmbientAudio();
+      paintRoomCharacter();
+    }
+    function activatePropInteraction(key) {
+      if (activityProp === key) { restoreRoomActivity(); showRoomSay('원래 자리와 자세로 돌아왔어요.'); return; }
+      if (studio) studio.querySelectorAll('.droom__prop.is-playing').forEach(function (node) { node.classList.remove('is-playing'); });
+      var actions = {
+        desk:['work','노트북으로 작업 중...'], easel:['work','캔버스에 그림 그리는 중...'],
+        coffee:['stand','따뜻한 커피 내리는 중...'], beanbag:['sit','소파에 편히 기대어 쉬는 중...'],
+        piano:['work','피아노 연주하는 중...'], guitar:['work','기타 선율 고르는 중...']
+      };
+      if (key === 'candle') { playSound('candle'); showRoomSay('촛불이 조용히 타닥이고 있어요.'); return; }
+      if (!actions[key] || !roomChar || !attic.avatar) return;
+      activityProp = key; activityPoseOverride = actions[key][0];
+      paintRoomCharacter(); studio.setAttribute('data-char-pose', activityPoseOverride);
+      showRoomSay(actions[key][1]);
+      if (key === 'piano' || key === 'coffee') { var activeProp=studio.querySelector('[data-prop="' + key + '"]'); if(activeProp)activeProp.classList.add('is-playing'); }
+      if (key === 'desk') playSound('typing');
+    }
+    function ensureAudio() {
+      if (audioContext) return audioContext;
+      var C=window.AudioContext||window.webkitAudioContext; if(!C)return null;
+      audioContext=new C(); audioMaster=audioContext.createGain(); audioMaster.gain.value=.35; audioMaster.connect(audioContext.destination); return audioContext;
+    }
+    function playSound(type) {
+      var ctx=ensureAudio(); if(!ctx)return; if(ctx.state==='suspended')ctx.resume();
+      var now=ctx.currentTime;
+      if(type==='bowl') [432,648,864].forEach(function(freq,i){
+        var o=ctx.createOscillator(),g=ctx.createGain();o.type='sine';o.frequency.value=freq;
+        g.gain.setValueAtTime(.0001,now);g.gain.exponentialRampToValueAtTime(.075/(i+1),now+.04);g.gain.exponentialRampToValueAtTime(.0001,now+4.8+i*.3);
+        o.connect(g);g.connect(audioMaster);o.start(now);o.stop(now+5.2+i*.3);
+      });
+      else if(type==='typing') for(var i=0;i<6;i++){
+        var ot=ctx.createOscillator(),gt=ctx.createGain(),at=now+i*.075;ot.type='triangle';ot.frequency.value=680+(i%3)*130;
+        gt.gain.setValueAtTime(.0001,at);gt.gain.exponentialRampToValueAtTime(.035,at+.004);gt.gain.exponentialRampToValueAtTime(.0001,at+.04);
+        ot.connect(gt);gt.connect(audioMaster);ot.start(at);ot.stop(at+.045);
+      } else {
+        var len=Math.floor(ctx.sampleRate*.65),buf=ctx.createBuffer(1,len,ctx.sampleRate),d=buf.getChannelData(0);
+        for(var n=0;n<len;n++)d[n]=(Math.random()*2-1)*.17;
+        var src=ctx.createBufferSource(),filter=ctx.createBiquadFilter(),gn=ctx.createGain();src.buffer=buf;filter.type='lowpass';filter.frequency.value=1350;
+        gn.gain.setValueAtTime(.0001,now);gn.gain.linearRampToValueAtTime(.04,now+.07);gn.gain.linearRampToValueAtTime(.0001,now+.65);
+        src.connect(filter);filter.connect(gn);gn.connect(audioMaster);src.start(now);src.stop(now+.66);
+      }
+    }
+    function stopAmbientAudio(){if(audioTimer)window.clearInterval(audioTimer);audioTimer=null;}
+    function startAmbientAudio(){
+      stopAmbientAudio();if(!audioEnabled)return;var sel=document.querySelector('[data-sound-type]'),type=sel?sel.value:'bowl';playSound(type);
+      audioTimer=window.setInterval(function(){if(audioEnabled)playSound(type);},type==='bowl'?6500:type==='typing'?950:1900);
+    }
+    function setupRoomAudio(){
+      var toggle=document.querySelector('[data-sound-toggle]'),sel=document.querySelector('[data-sound-type]'),vol=document.querySelector('[data-sound-volume]'),bowl=document.querySelector('[data-sound-bowl]');
+      if(toggle)toggle.addEventListener('click',function(){audioEnabled=!audioEnabled;toggle.setAttribute('aria-pressed',String(audioEnabled));toggle.textContent=audioEnabled?'♪ 소리 끄기':'♪ 소리 켜기';if(audioEnabled)startAmbientAudio();else stopAmbientAudio();});
+      if(sel)sel.addEventListener('change',function(){if(audioEnabled)startAmbientAudio();else playSound(sel.value);});
+      if(vol)vol.addEventListener('input',function(){var c=ensureAudio();if(c)audioMaster.gain.value=Number(vol.value)/100;});
+      if(bowl)bowl.addEventListener('click',function(){playSound('bowl');});
     }
 
     /* -------------------------------------------------- 벽지 */
@@ -2064,13 +2169,13 @@
       document.title = myRoom ? '내 다락방 · 아트다락방' : name + '님의 다락방 · 아트다락방';
     }
 
-    function setupTools(owner, me) {
+    function setupTools(owner, me, editable) {
       if (editBtn) editBtn.hidden = !owner;
       if (logoutBtn) logoutBtn.hidden = !owner;
-      if (studio) studio.classList.toggle('droom--moveable', owner);
+      if (studio) studio.classList.toggle('droom--moveable', editable);
       if (visitOwn) visitOwn.hidden = owner || !me;
-      if (visitJoin) visitJoin.hidden = owner || !!me;
-      if (editor) editor.hidden = !owner;
+      if (visitJoin) visitJoin.hidden = editable || !!me;
+      if (editor) editor.hidden = !editable;
       if (invite) invite.hidden = !owner;
       if (receivedHead) receivedHead.hidden = !owner;
       if (commentList) commentList.hidden = !owner;
@@ -2185,14 +2290,16 @@
       if (!guestbookList || !target) return;
       var me = Store.profile();
       var entries = [];
-      try { entries = await Store.listGuestbook(target.id); } catch (err) { entries = []; }
+      if (!draftMode) {
+        try { entries = await Store.listGuestbook(target.id); } catch (err) { entries = []; }
+      }
       var missing = !!(Store.guestbookStatus && Store.guestbookStatus() === 'missing');
 
       if (guestbookTitle) {
-        guestbookTitle.textContent = isOwner ? '다락방 방명록' : target.pen_name + '님의 다락방 방명록';
+        guestbookTitle.textContent = (isOwner || draftMode) ? '다락방 방명록' : target.pen_name + '님의 다락방 방명록';
       }
       if (guestbookDesc) {
-        guestbookDesc.textContent = isOwner
+        guestbookDesc.textContent = (isOwner || draftMode)
           ? '찾아온 사람들이 남긴 인사가 여기에 쌓입니다. 내 방에도 한 줄 남겨 볼 수 있어요.'
           : target.pen_name + '님의 다락방에 짧은 인사를 남겨 보세요. 남긴 사람과 다락방 주인은 그 인사를 지울 수 있어요.';
       }
@@ -2205,9 +2312,9 @@
       if (guestbookForm) guestbookForm.hidden = missing || !me;
       if (guestbookGate) guestbookGate.hidden = missing || !!me;
 
-      guestbookHintBase = isOwner
-        ? '내 방명록에 남겨도 괜찮아요. 200자까지 쓸 수 있어요.'
-        : '짧은 인사 한 줄이면 충분해요. 200자까지 쓸 수 있어요.';
+      guestbookHintBase = (isOwner || draftMode)
+        ? '찾아온 사람이 남긴 인사를 여기서 볼 수 있어요. 내 방에도 한 줄 남겨 볼 수 있어요.'
+        : '짧은 인사 한 줄이면 충분해요.';
       if (guestbookHint) {
         guestbookHint.textContent = guestbookBody && guestbookBody.value.trim()
           ? guestbookBody.value.trim().length + '/200자'
@@ -2219,7 +2326,7 @@
 
       if (guestbookEmpty) guestbookEmpty.classList.toggle('is-visible', !missing && entries.length === 0);
       if (guestbookEmptyText) {
-        guestbookEmptyText.innerHTML = isOwner
+        guestbookEmptyText.innerHTML = (isOwner || draftMode)
           ? '<b>아직 방명록이 비어 있어요.</b><br>찾아온 사람이 한 줄 남기면 여기에 쌓여요.'
           : '<b>아직 방명록이 비어 있어요.</b><br>첫 한 줄을 남겨 보세요.';
       }
@@ -2228,15 +2335,32 @@
     async function render() {
       var me = Store.profile();
       target = null;
+      draftMode = !penParam && !me;
 
       if (penParam && !(me && samePen(me.pen_name, penParam))) {
         target = await Store.profileByPen(penParam);
       } else {
         target = me;
       }
+      if (draftMode) {
+        target = { id: '__darak_preview__', pen_name: '나의 다락방', bio: '', fields: [],
+          attic_theme: 'rose', attic_note: '', attic_props: {}, created_at: new Date().toISOString() };
+      }
       isOwner = !!(me && target && target.id === me.id);
-
-      setupTools(isOwner, me);
+      canCustomize = draftMode || isOwner;
+      setupTools(isOwner, me, canCustomize);
+      if (draftMode) {
+        darakSaveRequest = function () {
+          pendingDarakDraft = {
+            attic_theme: currentTheme,
+            attic_props: { mood: attic.mood, props: attic.props.slice(), view: attic.view,
+              pose: attic.pose, avatar: attic.avatar, gender: attic.gender, pos: Object.assign({}, attic.pos) }
+          };
+          openAuth('signup');
+        };
+      } else {
+        darakSaveRequest = null;
+      }
 
       if (guest) guest.hidden = !!(target || penParam);
       if (missing) missing.hidden = !(penParam && !target);
@@ -2253,7 +2377,7 @@
         return;
       }
 
-      updateHead(target, isOwner);
+      updateHead(target, isOwner || draftMode);
       applyTheme(target.attic_theme || 'rose');
       attic = readAttic(target);
       paintStudio();
@@ -2277,12 +2401,12 @@
         if (attic.gender && GENDER_LABEL[attic.gender]) {
           chips.push('<span class="tag tag--gender">' + GENDER_LABEL[attic.gender] + '</span>');
         }
-        chips.push('<span class="tag">' + dateLabel(target.created_at) + '부터</span>');
+        if (!draftMode) chips.push('<span class="tag">' + dateLabel(target.created_at) + '부터</span>');
         tags.innerHTML = chips.join('');
       }
 
-      var works = await Store.listArtworks({ userId: target.id });
-      var received = await Store.commentsForAuthor(target.id);
+      var works = draftMode ? [] : await Store.listArtworks({ userId: target.id });
+      var received = draftMode ? [] : await Store.commentsForAuthor(target.id);
 
       setText('[data-stat-works]', nf(works.length));
       setText('[data-stat-comments]', nf(received.length));
@@ -2343,6 +2467,7 @@
     setupStudioEditor();
     setupRoomCharacter();
     setupPropDrag();
+    setupRoomAudio();
     ensureProfileModal();
 
     /* 방명록 — 짧은 인사 남기기 */
