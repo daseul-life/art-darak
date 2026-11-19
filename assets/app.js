@@ -47,7 +47,8 @@
     { key: 'books', label: '책 더미', icon: 'books' },
     { key: 'vinyl', label: '레코드판', icon: 'vinyl' },
     { key: 'coffee', label: '커피머신', icon: 'coffee' },
-    { key: 'beanbag', label: '빈백 소파', icon: 'beanbag' },
+    { key: 'beanbag', label: '2인용 소파', icon: 'beanbag' },
+    { key: 'piano', label: '피아노', icon: 'note' },
     { key: 'candle', label: '캔들 워머', icon: 'candle' },
     { key: 'dessert', label: '디저트 트레이', icon: 'dessert' },
     { key: 'board', label: '엽서·사진 보드', icon: 'board' },
@@ -58,7 +59,7 @@
     easel: '이젤 & 캔버스', desk: '원목 책상 & 노트북', lamp: '스탠드 조명',
     guitar: '어쿠스틱 기타', plant: '작은 화분', tea: '찻잔 세트', garland: '전구 가랜드',
     cat: '고양이 방석', books: '책 더미', vinyl: '레코드판',
-    coffee: '커피머신', beanbag: '빈백 소파', candle: '캔들 워머', dessert: '디저트 트레이',
+    coffee: '커피머신', beanbag: '2인용 소파', piano: '피아노', candle: '캔들 워머', dessert: '디저트 트레이',
     board: '엽서·사진 보드', dog: '강아지 쿠션', camera: '필름 카메라'
   };
 
@@ -1369,6 +1370,7 @@
     var posePicker = document.querySelector('[data-pose-picker]');
     var propPicker = document.querySelector('[data-prop-picker]');
     var propsReset = document.querySelector('[data-props-reset]');
+    var roomReset = document.querySelector('[data-room-reset]');
     var visitOwn = document.querySelector('[data-visit-own]');
     var visitJoin = document.querySelector('[data-visit-join]');
     var editBtn = document.getElementById('edit-profile');
@@ -1384,6 +1386,10 @@
     var roomGreetTimer = null;
     var roomSayTimer = null;
     var roomSparkTimer = null;
+    var activityProp = '';
+    var activityPoseOverride = '';
+    var lastPropDragAt = 0;
+    var audioContext = null, audioMaster = null, audioEnabled = false, audioTimer = null;
 
     /* 이웃 다락방 · 방명록 */
     var neighborGrid = document.getElementById('neighbor-grid');
@@ -1651,6 +1657,7 @@
       var drag = propDrag;
       propDrag = null;
       drag.node.classList.remove('is-dragging');
+      if (drag.moved) lastPropDragAt = Date.now();
       try { drag.node.releasePointerCapture(drag.pointerId); } catch (err) { /* 이미 풀렸어요 */ }
 
       /* 그냥 눌렀다 뗀 것이라면 자리를 건드리지 않습니다. */
@@ -1689,6 +1696,10 @@
       studio.addEventListener('pointerdown', startPropDrag);
       studio.addEventListener('pointermove', movePropDrag);
       studio.addEventListener('pointerup', finishPropDrag);
+      studio.addEventListener('click', function (event) {
+        var prop = event.target && event.target.closest ? event.target.closest('.droom__prop.is-on') : null;
+        if (prop && studio.contains(prop) && Date.now() - lastPropDragAt >= 350) activatePropInteraction(prop.getAttribute('data-prop'));
+      });
       studio.addEventListener('pointercancel', cancelPropDrag);
       studio.addEventListener('lostpointercapture', function (event) {
         if (propDrag && event.pointerId === propDrag.pointerId) finishPropDrag(event);
@@ -1717,7 +1728,7 @@
       if (!roomChar) return;
       sizeRoomOverlay();
       var key = attic.avatar || '';
-      var pose = POSE_LABEL[attic.pose] ? attic.pose : 'stand';
+      var pose = activityPoseOverride || (POSE_LABEL[attic.pose] ? attic.pose : 'stand');
       var shown = false;
       Array.prototype.forEach.call(roomChar.querySelectorAll('[data-char]'), function (node) {
         var on = !!key && node.getAttribute('data-char') === key;
@@ -1725,6 +1736,16 @@
         node.setAttribute('aria-hidden', String(!on));
         if (on) {
           shown = true;
+          if (!node.getAttribute('data-base-transform')) node.setAttribute('data-base-transform', node.getAttribute('transform') || '');
+          if (activityProp) {
+            var propNode = studio.querySelector('[data-prop="' + activityProp + '"]');
+            var propBox = propBBox(propNode);
+            if (propBox) {
+              var dx = Math.max(-220, Math.min(220, propBox.x + propBox.width / 2 - 470));
+              var dy = Math.max(-65, Math.min(35, propBox.y + propBox.height - 487));
+              node.setAttribute('transform', 'translate(' + (401 + dx).toFixed(1) + ',' + (249.2 + dy).toFixed(1) + ') scale(0.92)');
+            }
+          } else node.setAttribute('transform', node.getAttribute('data-base-transform') || '');
           var img = node.querySelector('.droom__char-3d-img');
           var src = roomPoseSrc(node.getAttribute('data-char'), pose);
           if (img && src && img.getAttribute('href') !== src) img.setAttribute('href', src);
@@ -1977,6 +1998,7 @@
           var pose = chip.getAttribute('data-pose');
           if (!POSE_LABEL[pose] || attic.pose === pose) return;
           attic.pose = pose;
+          if (pose === 'meditate') playSound('bowl');
           paintStudio();
           paintRoomCharacter();
           persistAttic(!attic.avatar
@@ -2006,6 +2028,7 @@
         });
       }
 
+      if (roomReset) roomReset.addEventListener('click', function () { restoreRoomActivity(); showRoomSay('기본 자리와 자세로 돌아왔어요.'); });
       /* 소품 자리 되돌리기 — 끌어 옮긴 자리를 모두 기본 자리로 돌립니다. */
       if (propsReset) {
         propsReset.addEventListener('click', function () {
@@ -2019,6 +2042,69 @@
           persistAttic('소품을 처음 자리로 되돌렸어요.');
         });
       }
+    }
+
+
+    function restoreRoomActivity() {
+      activityProp = ''; activityPoseOverride = '';
+      if (roomChar) roomChar.querySelectorAll('[data-char]').forEach(function (node) {
+        node.setAttribute('transform', node.getAttribute('data-base-transform') || '');
+      });
+      if (studio) studio.querySelectorAll('.droom__prop.is-playing').forEach(function (node) { node.classList.remove('is-playing'); });
+      stopAmbientAudio();
+      paintRoomCharacter();
+    }
+    function activatePropInteraction(key) {
+      if (activityProp === key) { restoreRoomActivity(); showRoomSay('원래 자리와 자세로 돌아왔어요.'); return; }
+      var actions = {
+        desk:['work','노트북으로 작업 중...'], easel:['work','캔버스에 그림 그리는 중...'],
+        coffee:['stand','따뜻한 커피 내리는 중...'], beanbag:['sit','소파에 편히 기대어 쉬는 중...'],
+        piano:['work','피아노 연주하는 중...'], guitar:['work','기타 선율 고르는 중...']
+      };
+      if (key === 'candle') { playSound('candle'); showRoomSay('촛불이 조용히 타닥이고 있어요.'); return; }
+      if (!actions[key] || !roomChar || !attic.avatar) return;
+      activityProp = key; activityPoseOverride = actions[key][0];
+      paintRoomCharacter(); studio.setAttribute('data-char-pose', activityPoseOverride);
+      showRoomSay(actions[key][1]);
+      if (key === 'piano') { var piano=studio.querySelector('[data-prop="piano"]'); if(piano)piano.classList.add('is-playing'); }
+      if (key === 'desk') playSound('typing');
+    }
+    function ensureAudio() {
+      if (audioContext) return audioContext;
+      var C=window.AudioContext||window.webkitAudioContext; if(!C)return null;
+      audioContext=new C(); audioMaster=audioContext.createGain(); audioMaster.gain.value=.35; audioMaster.connect(audioContext.destination); return audioContext;
+    }
+    function playSound(type) {
+      var ctx=ensureAudio(); if(!ctx)return; if(ctx.state==='suspended')ctx.resume();
+      var now=ctx.currentTime;
+      if(type==='bowl') [432,648,864].forEach(function(freq,i){
+        var o=ctx.createOscillator(),g=ctx.createGain();o.type='sine';o.frequency.value=freq;
+        g.gain.setValueAtTime(.0001,now);g.gain.exponentialRampToValueAtTime(.075/(i+1),now+.04);g.gain.exponentialRampToValueAtTime(.0001,now+4.8+i*.3);
+        o.connect(g);g.connect(audioMaster);o.start(now);o.stop(now+5.2+i*.3);
+      });
+      else if(type==='typing') for(var i=0;i<6;i++){
+        var ot=ctx.createOscillator(),gt=ctx.createGain(),at=now+i*.075;ot.type='triangle';ot.frequency.value=680+(i%3)*130;
+        gt.gain.setValueAtTime(.0001,at);gt.gain.exponentialRampToValueAtTime(.035,at+.004);gt.gain.exponentialRampToValueAtTime(.0001,at+.04);
+        ot.connect(gt);gt.connect(audioMaster);ot.start(at);ot.stop(at+.045);
+      } else {
+        var len=Math.floor(ctx.sampleRate*.65),buf=ctx.createBuffer(1,len,ctx.sampleRate),d=buf.getChannelData(0);
+        for(var n=0;n<len;n++)d[n]=(Math.random()*2-1)*.17;
+        var src=ctx.createBufferSource(),filter=ctx.createBiquadFilter(),gn=ctx.createGain();src.buffer=buf;filter.type='lowpass';filter.frequency.value=1350;
+        gn.gain.setValueAtTime(.0001,now);gn.gain.linearRampToValueAtTime(.04,now+.07);gn.gain.linearRampToValueAtTime(.0001,now+.65);
+        src.connect(filter);filter.connect(gn);gn.connect(audioMaster);src.start(now);src.stop(now+.66);
+      }
+    }
+    function stopAmbientAudio(){if(audioTimer)window.clearInterval(audioTimer);audioTimer=null;}
+    function startAmbientAudio(){
+      stopAmbientAudio();if(!audioEnabled)return;var sel=document.querySelector('[data-sound-type]'),type=sel?sel.value:'bowl';playSound(type);
+      audioTimer=window.setInterval(function(){if(audioEnabled)playSound(type);},type==='bowl'?6500:type==='typing'?950:1900);
+    }
+    function setupRoomAudio(){
+      var toggle=document.querySelector('[data-sound-toggle]'),sel=document.querySelector('[data-sound-type]'),vol=document.querySelector('[data-sound-volume]'),bowl=document.querySelector('[data-sound-bowl]');
+      if(toggle)toggle.addEventListener('click',function(){audioEnabled=!audioEnabled;toggle.setAttribute('aria-pressed',String(audioEnabled));toggle.textContent=audioEnabled?'♪ 소리 끄기':'♪ 소리 켜기';if(audioEnabled)startAmbientAudio();else stopAmbientAudio();});
+      if(sel)sel.addEventListener('change',function(){if(audioEnabled)startAmbientAudio();else playSound(sel.value);});
+      if(vol)vol.addEventListener('input',function(){var c=ensureAudio();if(c)audioMaster.gain.value=Number(vol.value)/100;});
+      if(bowl)bowl.addEventListener('click',function(){playSound('bowl');});
     }
 
     /* -------------------------------------------------- 벽지 */
@@ -2343,6 +2429,7 @@
     setupStudioEditor();
     setupRoomCharacter();
     setupPropDrag();
+    setupRoomAudio();
     ensureProfileModal();
 
     /* 방명록 — 짧은 인사 남기기 */
