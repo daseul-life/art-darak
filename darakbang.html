@@ -609,17 +609,32 @@
                       </g>
                     </g>
 
-                    <!-- 빈백 소파 — 폭신한 파스텔 빈백 -->
+                    <!-- 2인용 패브릭 소파 -->
                     <g class="droom__prop" data-prop="beanbag">
-                      <ellipse cx="166" cy="468" rx="76" ry="11" fill="#7A4A3E" opacity=".14"></ellipse>
-                      <path d="M92,464 C86,446 89,426 101,413 C106,399 119,392 133,397 C143,387 157,385 166,393 C175,385 189,387 199,397 C213,392 226,399 231,413 C243,426 246,446 240,464 Z" fill="#E3B9CA"></path>
-                      <path d="M101,413 C106,399 119,392 133,397 C143,387 157,385 166,393 C175,385 189,387 199,397 C213,392 226,399 231,413 C222,419 211,415 199,420 C187,426 177,422 166,426 C155,422 145,426 133,420 C121,415 110,419 101,413 Z" fill="#F1D6E1"></path>
-                      <path d="M99,440 C129,449 203,449 237,440" stroke="#D5A3B6" stroke-width="2" fill="none" stroke-linecap="round" opacity=".85"></path>
-                      <path d="M108,452 C131,459 201,459 226,452" stroke="#EFD8E3" stroke-width="2.6" fill="none" stroke-linecap="round" opacity=".9"></path>
-                      <path d="M136,397 C141,406 150,410 166,410 C182,410 191,406 196,397" stroke="#D5A3B6" stroke-width="1.6" fill="none" opacity=".6"></path>
-                      <circle cx="166" cy="434" r="2.8" fill="#C99BAD"></circle>
-                      <path d="M120,457 C115,442 117,428 124,419" stroke="#D5A3B6" stroke-width="2.2" fill="none" stroke-linecap="round" opacity=".55"></path>
-                      <path d="M212,457 C217,442 215,428 208,419" stroke="#D5A3B6" stroke-width="2.2" fill="none" stroke-linecap="round" opacity=".55"></path>
+                      <ellipse cx="166" cy="468" rx="78" ry="10" fill="#7A4A3E" opacity=".14"></ellipse>
+                      <rect x="94" y="397" width="144" height="67" rx="17" fill="#D9AEBB"></rect>
+                      <rect x="103" y="385" width="126" height="59" rx="15" fill="#F0D9DE" stroke="#D3A6B3" stroke-width="2"></rect>
+                      <rect x="90" y="414" width="27" height="49" rx="10" fill="#E7C4CD" stroke="#D3A6B3" stroke-width="2"></rect>
+                      <rect x="221" y="414" width="27" height="49" rx="10" fill="#E7C4CD" stroke="#D3A6B3" stroke-width="2"></rect>
+                      <rect x="113" y="420" width="51" height="35" rx="10" fill="#FFF2E9" stroke="#E4CEC5" stroke-width="1.4"></rect>
+                      <rect x="168" y="420" width="51" height="35" rx="10" fill="#F8E8E9" stroke="#E1C4CB" stroke-width="1.4"></rect>
+                      <path d="M120,428 q14,-7 34,0 M175,428 q14,-7 34,0" fill="none" stroke="#FFFFFF" stroke-width="2" opacity=".8" stroke-linecap="round"></path>
+                      <path d="M104,460 v7 M234,460 v7" stroke="#A97882" stroke-width="5" stroke-linecap="round"></path>
+                    </g>
+                    <!-- 업라이트 피아노와 의자 -->
+                    <g class="droom__prop" data-prop="piano">
+                      <ellipse cx="350" cy="468" rx="76" ry="9" fill="#7A4A3E" opacity=".14"></ellipse>
+                      <rect x="292" y="366" width="112" height="94" rx="5" fill="#805653" stroke="#5F3B3A" stroke-width="2"></rect>
+                      <rect x="299" y="373" width="98" height="39" rx="3" fill="#AD7D78"></rect>
+                      <path d="M301,377 h94 v7 h-94z" fill="#D9A9A2" opacity=".8"></path>
+                      <rect x="300" y="414" width="96" height="25" rx="2" fill="#FFF9EF" stroke="#E7D8C9" stroke-width="1.2"></rect>
+                      <path d="M312,414 v16 M324,414 v16 M336,414 v16 M348,414 v16 M360,414 v16 M372,414 v16 M384,414 v16" stroke="#BBA99D" stroke-width="1"></path>
+                      <path d="M308,414 v12 h7 v-12 M329,414 v12 h7 v-12 M350,414 v12 h7 v-12 M371,414 v12 h7 v-12" fill="#594447"></path>
+                      <rect x="301" y="439" width="94" height="5" rx="2" fill="#5F3B3A"></rect>
+                      <path d="M302,460 v7 M394,460 v7" stroke="#5F3B3A" stroke-width="5" stroke-linecap="round"></path>
+                      <rect x="414" y="437" width="48" height="13" rx="4" fill="#D9B7A9"></rect>
+                      <path d="M420,450 v17 M456,450 v17" stroke="#9B7469" stroke-width="5" stroke-linecap="round"></path>
+                      <g class="droom__piano-notes" fill="#E8A0BA" font-size="22" font-weight="700"><text x="400" y="350">♪</text><text x="425" y="332">♫</text></g>
                     </g>
 
                     <!-- 캔들 워머 — 창턱에 놓인 유리 캔들, 불빛이 은은하게 흔들림 -->
@@ -820,6 +835,13 @@
                 <span class="droom-cap__count" data-studio-count>소품 0개</span>
               </figcaption>
             </figure>
+              <div class="droom-sound" aria-label="다락방 소리 설정">
+                <button class="droom-sound__toggle" type="button" data-sound-toggle aria-pressed="false">♪ 소리 켜기</button>
+                <label class="droom-sound__field">종류 <select data-sound-type aria-label="소리 종류"><option value="bowl">싱잉볼</option><option value="candle">촛불 타닥임</option><option value="typing">키보드 타자</option></select></label>
+                <label class="droom-sound__field">볼륨 <input type="range" data-sound-volume min="0" max="100" value="35" aria-label="소리 크기"></label>
+                <button type="button" data-sound-bowl>싱잉볼 울리기</button>
+              </div>
+              <div class="droom-return"><button class="btn btn--ghost btn--sm" type="button" data-room-reset>↶ 원래 자리로</button></div>
 
             <!-- 다락방 숨 고르기 — 사무실 그림 아래에서 가볍게 눌러 여는 호흡 코너입니다. -->
             <button class="calm-card" type="button" data-calm-open aria-haspopup="dialog" aria-controls="calm-modal"
@@ -929,7 +951,7 @@
             <textarea id="guestbook-body" name="body" rows="2" maxlength="200"
                       placeholder="짧은 인사 한 줄을 남겨 주세요."></textarea>
             <div class="dgb-form__foot">
-              <span class="dgb-form__hint" data-guestbook-hint>짧은 인사 한 줄이면 충분해요. 200자까지 쓸 수 있어요.</span>
+              <span class="dgb-form__hint" data-guestbook-hint>짧은 인사 한 줄이면 충분해요.</span>
               <button class="btn btn--primary btn--sm" type="submit" data-guestbook-submit>한 줄 남기기</button>
             </div>
           </form>
