@@ -1782,13 +1782,17 @@
     /* 소품별 캐릭터 앵커 — x/y는 소품 SVG 박스 안의 비율(%).
        캐릭터 발끝이 앵커에 닿으며 facing -1은 왼쪽을 바라보도록 좌우 반전합니다.
        beanbag은 화면 표시명 '소파'에 대응하는 실제 저장 키입니다. */
+    /* 소품별 발끝 앵커.
+       x/y는 소품 SVG 박스의 비율이고 dx/dy는 실제 바닥·좌석 위치까지의 보정값입니다.
+       이동한 소품은 propOffset을 통해 캐릭터 앵커에도 같은 이동량이 반영됩니다.
+       facing은 캐릭터가 작업 대상 쪽을 향하도록 지정합니다. */
     var ACTIVITY = {
-      beanbag: { x: 50, y: 58, scale: 0.90, facing: 1, pose: 'sit', fx: 'breathe', fallback: { x: 166, y: 452 } },
-      desk:    { x: 38, y: 70, scale: 0.85, facing: 1, pose: 'work', fx: 'type', fallback: { x: 272, y: 470 } },
-      piano:   { x: 50, y: 74, scale: 0.85, facing: 1, pose: 'sit', fx: 'notes', fallback: { x: 438, y: 470 } },
-      easel:   { x: 30, y: 92, scale: 0.90, facing: 1, pose: 'stand', fx: 'paint', fallback: { x: 246, y: 470 } },
-      coffee:  { x: 50, y: 96, scale: 0.90, facing: -1, pose: 'stand', fx: 'steam', fallback: { x: 104, y: 470 } },
-      guitar:  { x: 60, y: 92, scale: 0.90, facing: -1, pose: 'stand', fx: 'strum', fallback: { x: 512, y: 470 } }
+      beanbag: { x: 50, y: 100, dx: 0, dy: -13, scale: 0.78, facing: 1, pose: 'sit', fx: 'breathe', fallback: { x: 166, y: 455 } },
+      desk:    { x: 50, y: 100, dx: 0, dy: 4, scale: 0.80, facing: 1, pose: 'work', fx: 'type', fallback: { x: 336, y: 470 } },
+      piano:   { x: 100, y: 100, dx: -24, dy: 3, scale: 0.80, facing: -1, pose: 'sit', fx: 'notes', fallback: { x: 438, y: 470 } },
+      easel:   { x: 100, y: 100, dx: 18, dy: 34, scale: 0.82, facing: -1, pose: 'stand', fx: 'paint', fallback: { x: 230, y: 470 } },
+      coffee:  { x: 100, y: 100, dx: 18, dy: 154, scale: 0.80, facing: -1, pose: 'stand', fx: 'steam', fallback: { x: 130, y: 470 } },
+      guitar:  { x: 0, y: 100, dx: -35, dy: 18, scale: 0.82, facing: 1, pose: 'stand', fx: 'strum', fallback: { x: 527, y: 470 } }
     };
     /* 자세 그림에서 머리끝이 차지하는 높이(그림 아래 240 기준) — 말풍선을 머리 위에 놓습니다. */
     var POSE_HEAD = { stand: 234.4, sit: 156.1, work: 166.4, meditate: 178.6 };
@@ -1865,8 +1869,8 @@
       var propNode = studio.querySelector('[data-prop="' + key + '"]');
       var box = propBBox(propNode);
       var offset = propOffset(box, attic.pos[key]);
-      var anchorX = box ? box.x + box.width * spec.x / 100 : spec.fallback.x;
-      var anchorY = box ? box.y + box.height * spec.y / 100 : spec.fallback.y;
+      var anchorX = box ? box.x + box.width * spec.x / 100 + (spec.dx || 0) : spec.fallback.x;
+      var anchorY = box ? box.y + box.height * spec.y / 100 + (spec.dy || 0) : spec.fallback.y;
       return {
         x: Math.max(40, Math.min(ROOM_W - 40, anchorX + offset.dx)),
         y: Math.max(60, Math.min(ROOM_H - 6, anchorY + offset.dy)),
@@ -2290,33 +2294,42 @@
     }
     function activatePropInteraction(key) {
       if (activityProp === key) { restoreRoomActivity(); showRoomSay('원래 자리와 자세로 돌아왔어요.'); return; }
-      if (studio) studio.querySelectorAll('.droom__prop.is-playing').forEach(function (node) { node.classList.remove('is-playing'); });
+
+      /* 다른 소품으로 넘어가기 전에 이전 활동의 시각·청각 상태를 한 번에 정리합니다. */
+      if (studio) {
+        studio.querySelectorAll('.droom__prop.is-playing').forEach(function (node) { node.classList.remove('is-playing'); });
+        studio.removeAttribute('data-char-seat');
+        studio.removeAttribute('data-char-activity');
+        studio.removeAttribute('data-char-fx');
+      }
+      stopAmbientAudio();
+      hideRoomSay();
+      activityProp = '';
+      activityPoseOverride = '';
+
       /* 소품마다 하는 일 — 자세와 앵커는 ACTIVITY 설정이 정합니다. */
       var say = {
         desk: '노트북으로 작업 중...', easel: '캔버스에 그림 그리는 중...',
         coffee: '따뜻한 커피 내리는 중...', beanbag: '소파에 편히 기대어 쉬는 중...',
         piano: '피아노 연주하는 중...', guitar: '기타 선율 고르는 중...'
       };
-      if (key === 'candle') { playSound('candle'); showRoomSay('촛불이 조용히 타닥이고 있어요.'); return; }
+      if (key === 'candle') { paintRoomCharacter(); playSound('candle'); showRoomSay('촛불이 조용히 타닥이고 있어요.'); return; }
       var spot = ACTIVITY[key];
-      if (!say[key] || !spot || !roomChar) return;
-      if (!attic.avatar) { showRoomSay('방에 세울 캐릭터를 먼저 골라 주세요.'); return; }
-      activityProp = key; activityPoseOverride = spot.pose;
+      if (!say[key] || !spot || !roomChar) { paintRoomCharacter(); return; }
+      if (!attic.avatar) { paintRoomCharacter(); showRoomSay('방에 세울 캐릭터를 먼저 골라 주세요.'); return; }
+
+      activityProp = key;
+      activityPoseOverride = spot.pose;
       paintRoomCharacter();
-      studio.setAttribute('data-char-pose', activityPoseOverride);
-      studio.setAttribute('data-char-activity', key);
-      studio.setAttribute('data-char-fx', spot.fx);
-      /* 앉아서 사용하는 소품은 앉기 전용 호흡 애니메이션을 적용합니다. */
-      if (key === 'beanbag' || key === 'piano' || key === 'desk') {
-        studio.setAttribute('data-char-seat', 'true');
-      } else {
-        studio.removeAttribute('data-char-seat');
+      if (studio) {
+        studio.setAttribute('data-char-pose', activityPoseOverride);
+        studio.setAttribute('data-char-activity', key);
+        studio.setAttribute('data-char-fx', spot.fx);
+        if (spot.pose === 'sit' || key === 'desk') studio.setAttribute('data-char-seat', 'true');
       }
       showRoomSay(say[key]);
-      if (key === 'piano' || key === 'coffee') {
-        var activeProp=studio.querySelector('[data-prop="' + key + '"]');
-        if(activeProp)activeProp.classList.add('is-playing');
-      }
+      var activeProp = studio && studio.querySelector('[data-prop="' + key + '"]');
+      if (activeProp) activeProp.classList.add('is-playing');
       if (key === 'desk') playSound('typing');
     }
     function ensureAudio() {
