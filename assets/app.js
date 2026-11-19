@@ -529,6 +529,8 @@
      ============================================================ */
   var auth = { mode: 'signup', modal: null, form: null, errorEl: null, submit: null,
     avatarPicker: null, genderChips: null };
+  var pendingDarakDraft = null;
+  var darakSaveRequest = null;
 
   function authModalHTML() {
     return '' +
@@ -731,7 +733,9 @@
       var pickedAvatar = auth.avatarPicker ? auth.avatarPicker.get() : '';
       var pickedGender = auth.genderChips ? auth.genderChips.get() : '';
       var extra = auth.mode === 'signup'
-        ? { attic_props: { avatar: pickedAvatar, gender: pickedGender } }
+        ? (pendingDarakDraft
+          ? { attic_theme: pendingDarakDraft.attic_theme, attic_props: pendingDarakDraft.attic_props }
+          : { attic_props: { avatar: pickedAvatar, gender: pickedGender } })
         : undefined;
       var profile = auth.mode === 'signup'
         ? await Store.signUp(pen, password, extra)
@@ -740,6 +744,7 @@
         /* 관리자 메일 알림 — 기다리지 않고 보내고, 실패해도 가입은 그대로 진행됩니다. */
         notifyNewSignup(profile || { pen_name: pen });
       }
+      pendingDarakDraft = null;
       auth.form.reset();
       if (auth.avatarPicker) auth.avatarPicker.reset();
       if (auth.genderChips) auth.genderChips.reset();
@@ -759,6 +764,7 @@
       if (account) {
         event.preventDefault();
         if (Store.profile()) window.location.href = 'darakbang.html';
+        else if (document.body.getAttribute('data-page') === 'darakbang' && darakSaveRequest) darakSaveRequest();
         else openAuth('signup');
         return;
       }
@@ -1417,6 +1423,8 @@
     var penParam = (new URLSearchParams(window.location.search).get('pen') || '').trim();
     var target = null;
     var isOwner = false;
+    var canCustomize = false;
+    var draftMode = false;
     var attic = { mood: 'write', props: [], view: 'auto', pose: 'stand', avatar: '', gender: '', pos: {} };
     var avatarPicker = null;
     var currentTheme = 'rose';
@@ -1483,7 +1491,7 @@
         VIEW_SUBLABEL[view] + '. ' +
         (attic.avatar ? '캐릭터는 ' + POSE_LABEL[pose] + ' 자세로 있어요. ' : '') +
         (propNames.length ? '소품: ' + propNames.join(', ') + '.' : '아직 놓은 소품이 없어요.') +
-        (isOwner ? ' 소품은 끌어서 자리를 옮길 수 있어요.' : ''));
+        (canCustomize ? ' 소품은 끌어서 자리를 옮길 수 있어요.' : ''));
 
       paintPropPositions();
 
@@ -1607,7 +1615,7 @@
     }
 
     function startPropDrag(event) {
-      if (!studio || !isOwner || propDrag) return;
+      if (!studio || !canCustomize || propDrag) return;
       if (event.button != null && event.button !== 0) return;
       var node = event.target && event.target.closest ? event.target.closest('.droom__prop') : null;
       if (!node || !studio.contains(node) || !node.classList.contains('is-on')) return;
@@ -1920,7 +1928,7 @@
       if (avatarRoot) {
         avatarRoot.innerHTML = avatarPickerHTML('avatar-picker--studio');
         avatarPicker = createAvatarPicker(avatarRoot.querySelector('[data-avatar-picker]'), function (key) {
-          if (!isOwner) return;
+          if (!canCustomize) return;
           attic.avatar = key;
           paintCharacter(target);
           var entry = avatarEntry(key);
@@ -1936,11 +1944,12 @@
 
         swatches.addEventListener('click', async function (event) {
           var dot = event.target.closest ? event.target.closest('[data-theme]') : null;
-          if (!dot || !isOwner) return;
+          if (!dot || !canCustomize) return;
           var theme = dot.getAttribute('data-theme');
           if (!THEME_LABEL[theme] || currentTheme === theme) return;
           applyTheme(theme);
           paintStudio();
+          if (!isOwner) return;
           try {
             await Store.updateProfile({ attic_theme: theme });
             toast(THEME_LABEL[theme] + ' 벽지로 바꿨어요.');
@@ -1961,7 +1970,7 @@
 
         moodPicker.addEventListener('click', function (event) {
           var chip = event.target.closest ? event.target.closest('[data-mood]') : null;
-          if (!chip || !isOwner) return;
+          if (!chip || !canCustomize) return;
           var mood = chip.getAttribute('data-mood');
           if (!MOOD_LABEL[mood] || attic.mood === mood) return;
           attic.mood = mood;
@@ -1982,7 +1991,7 @@
 
         viewPicker.addEventListener('click', function (event) {
           var chip = event.target.closest ? event.target.closest('[data-view]') : null;
-          if (!chip || !isOwner) return;
+          if (!chip || !canCustomize) return;
           var view = chip.getAttribute('data-view');
           if (!VIEW_LABEL[view] || attic.view === view) return;
           attic.view = view;
@@ -2003,7 +2012,7 @@
 
         posePicker.addEventListener('click', function (event) {
           var chip = event.target.closest ? event.target.closest('[data-pose]') : null;
-          if (!chip || !isOwner) return;
+          if (!chip || !canCustomize) return;
           var pose = chip.getAttribute('data-pose');
           if (!POSE_LABEL[pose] || attic.pose === pose) return;
           attic.pose = pose;
@@ -2026,7 +2035,7 @@
 
         propPicker.addEventListener('click', function (event) {
           var chip = event.target.closest ? event.target.closest('[data-prop]') : null;
-          if (!chip || !isOwner) return;
+          if (!chip || !canCustomize) return;
           var key = chip.getAttribute('data-prop');
           if (!PROP_LABEL[key]) return;
           var index = attic.props.indexOf(key);
@@ -2041,7 +2050,7 @@
       /* 소품 자리 되돌리기 — 끌어 옮긴 자리를 모두 기본 자리로 돌립니다. */
       if (propsReset) {
         propsReset.addEventListener('click', function () {
-          if (!isOwner) return;
+          if (!canCustomize) return;
           if (!Object.keys(attic.pos || {}).length) {
             toast('소품이 모두 처음 자리에 있어요.');
             return;
@@ -2160,13 +2169,13 @@
       document.title = myRoom ? '내 다락방 · 아트다락방' : name + '님의 다락방 · 아트다락방';
     }
 
-    function setupTools(owner, me) {
+    function setupTools(owner, me, editable) {
       if (editBtn) editBtn.hidden = !owner;
       if (logoutBtn) logoutBtn.hidden = !owner;
-      if (studio) studio.classList.toggle('droom--moveable', owner);
+      if (studio) studio.classList.toggle('droom--moveable', editable);
       if (visitOwn) visitOwn.hidden = owner || !me;
-      if (visitJoin) visitJoin.hidden = owner || !!me;
-      if (editor) editor.hidden = !owner;
+      if (visitJoin) visitJoin.hidden = editable || !!me;
+      if (editor) editor.hidden = !editable;
       if (invite) invite.hidden = !owner;
       if (receivedHead) receivedHead.hidden = !owner;
       if (commentList) commentList.hidden = !owner;
@@ -2281,14 +2290,16 @@
       if (!guestbookList || !target) return;
       var me = Store.profile();
       var entries = [];
-      try { entries = await Store.listGuestbook(target.id); } catch (err) { entries = []; }
+      if (!draftMode) {
+        try { entries = await Store.listGuestbook(target.id); } catch (err) { entries = []; }
+      }
       var missing = !!(Store.guestbookStatus && Store.guestbookStatus() === 'missing');
 
       if (guestbookTitle) {
-        guestbookTitle.textContent = isOwner ? '다락방 방명록' : target.pen_name + '님의 다락방 방명록';
+        guestbookTitle.textContent = (isOwner || draftMode) ? '다락방 방명록' : target.pen_name + '님의 다락방 방명록';
       }
       if (guestbookDesc) {
-        guestbookDesc.textContent = isOwner
+        guestbookDesc.textContent = (isOwner || draftMode)
           ? '찾아온 사람들이 남긴 인사가 여기에 쌓입니다. 내 방에도 한 줄 남겨 볼 수 있어요.'
           : target.pen_name + '님의 다락방에 짧은 인사를 남겨 보세요. 남긴 사람과 다락방 주인은 그 인사를 지울 수 있어요.';
       }
@@ -2301,7 +2312,7 @@
       if (guestbookForm) guestbookForm.hidden = missing || !me;
       if (guestbookGate) guestbookGate.hidden = missing || !!me;
 
-      guestbookHintBase = isOwner
+      guestbookHintBase = (isOwner || draftMode)
         ? '찾아온 사람이 남긴 인사를 여기서 볼 수 있어요. 내 방에도 한 줄 남겨 볼 수 있어요.'
         : '짧은 인사 한 줄이면 충분해요.';
       if (guestbookHint) {
@@ -2315,7 +2326,7 @@
 
       if (guestbookEmpty) guestbookEmpty.classList.toggle('is-visible', !missing && entries.length === 0);
       if (guestbookEmptyText) {
-        guestbookEmptyText.innerHTML = isOwner
+        guestbookEmptyText.innerHTML = (isOwner || draftMode)
           ? '<b>아직 방명록이 비어 있어요.</b><br>찾아온 사람이 한 줄 남기면 여기에 쌓여요.'
           : '<b>아직 방명록이 비어 있어요.</b><br>첫 한 줄을 남겨 보세요.';
       }
@@ -2324,15 +2335,36 @@
     async function render() {
       var me = Store.profile();
       target = null;
+      draftMode = !penParam && !me;
 
       if (penParam && !(me && samePen(me.pen_name, penParam))) {
         target = await Store.profileByPen(penParam);
       } else {
         target = me;
       }
+      if (draftMode) {
+        target = { id: '__darak_preview__', pen_name: '나의 다락방', bio: '', fields: [],
+          attic_theme: 'rose', attic_note: '', attic_props: {}, created_at: new Date().toISOString() };
+      }
       isOwner = !!(me && target && target.id === me.id);
-
-      setupTools(isOwner, me);
+      canCustomize = draftMode || isOwner;
+      setupTools(isOwner, me, canCustomize);
+      if (draftMode) {
+        var accountText = document.querySelector('[data-account-text]');
+        var accountButton = document.querySelector('[data-account]');
+        if (accountText) accountText.textContent = '저장하기';
+        if (accountButton) accountButton.setAttribute('aria-label', '꾸민 다락방 저장하기');
+        darakSaveRequest = function () {
+          pendingDarakDraft = {
+            attic_theme: currentTheme,
+            attic_props: { mood: attic.mood, props: attic.props.slice(), view: attic.view,
+              pose: attic.pose, avatar: attic.avatar, gender: attic.gender, pos: Object.assign({}, attic.pos) }
+          };
+          openAuth('signup');
+        };
+      } else {
+        darakSaveRequest = null;
+      }
 
       if (guest) guest.hidden = !!(target || penParam);
       if (missing) missing.hidden = !(penParam && !target);
@@ -2349,7 +2381,7 @@
         return;
       }
 
-      updateHead(target, isOwner);
+      updateHead(target, isOwner || draftMode);
       applyTheme(target.attic_theme || 'rose');
       attic = readAttic(target);
       paintStudio();
@@ -2373,12 +2405,12 @@
         if (attic.gender && GENDER_LABEL[attic.gender]) {
           chips.push('<span class="tag tag--gender">' + GENDER_LABEL[attic.gender] + '</span>');
         }
-        chips.push('<span class="tag">' + dateLabel(target.created_at) + '부터</span>');
+        if (!draftMode) chips.push('<span class="tag">' + dateLabel(target.created_at) + '부터</span>');
         tags.innerHTML = chips.join('');
       }
 
-      var works = await Store.listArtworks({ userId: target.id });
-      var received = await Store.commentsForAuthor(target.id);
+      var works = draftMode ? [] : await Store.listArtworks({ userId: target.id });
+      var received = draftMode ? [] : await Store.commentsForAuthor(target.id);
 
       setText('[data-stat-works]', nf(works.length));
       setText('[data-stat-comments]', nf(received.length));
