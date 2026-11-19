@@ -1797,7 +1797,7 @@
     var roomCharFrame = 0;
 
     function parseCharSpot(value) {
-      var m = /translate\\(\\s*(-?[\\d.]+)\\s*[ ,]\\s*(-?[\\d.]+)\\s*\\)\\s*scale\\(\\s*(-?[\\d.]+)(?:\\s*[, ]\\s*(-?[\\d.]+))?\\s*\\)/.exec(String(value || ''));
+      var m = /translate\(\s*(-?[\d.]+)\s*[ ,]\s*(-?[\d.]+)\s*\)\s*scale\(\s*(-?[\d.]+)(?:\s*[, ]\s*(-?[\d.]+))?\s*\)/.exec(String(value || ''));
       if (!m) return null;
       return { x: parseFloat(m[1]), y: parseFloat(m[2]), s: Math.abs(parseFloat(m[3])), facing: parseFloat(m[3]) < 0 ? -1 : 1 };
     }
