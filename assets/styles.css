@@ -3525,3 +3525,6 @@ body { word-break: keep-all; overflow-wrap: break-word; }
 .droom-sound input[type="range"]{width:74px;accent-color:#C77F9B}
 .droom-return{display:flex;justify-content:center;margin:.15rem 0 .55rem}
 @media(max-width:520px){.droom-sound{gap:.35rem;font-size:.69rem}.droom-sound input[type="range"]{width:58px}}
+
+.droom__prop.is-playing .droom__steam--coffee{animation:droomCoffeeSteam 1.7s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
+@keyframes droomCoffeeSteam{0%{opacity:.15;transform:translateY(5px)}45%{opacity:.9}100%{opacity:.1;transform:translateY(-9px)}}
