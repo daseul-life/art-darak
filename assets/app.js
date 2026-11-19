@@ -1734,9 +1734,9 @@
         var on = !!key && node.getAttribute('data-char') === key;
         node.classList.toggle('is-on', on);
         node.setAttribute('aria-hidden', String(!on));
+        if (!node.hasAttribute('data-base-transform')) node.setAttribute('data-base-transform', node.getAttribute('transform') || '');
         if (on) {
           shown = true;
-          if (!node.getAttribute('data-base-transform')) node.setAttribute('data-base-transform', node.getAttribute('transform') || '');
           if (activityProp) {
             var propNode = studio.querySelector('[data-prop="' + activityProp + '"]');
             var propBox = propBBox(propNode);
