@@ -1741,7 +1741,9 @@
             var propNode = studio.querySelector('[data-prop="' + activityProp + '"]');
             var propBox = propBBox(propNode);
             if (propBox) {
-              var dx = Math.max(-220, Math.min(220, propBox.x + propBox.width / 2 - 470));
+              var propCenter = propBox.x + propBox.width / 2;
+              var targetX = propCenter < 470 ? propBox.x + propBox.width + 16 : propBox.x - 166;
+              var dx = Math.max(-380, Math.min(250, targetX - 401));
               var dy = Math.max(-65, Math.min(35, propBox.y + propBox.height - 487));
               node.setAttribute('transform', 'translate(' + (401 + dx).toFixed(1) + ',' + (249.2 + dy).toFixed(1) + ') scale(0.92)');
             }
@@ -2056,6 +2058,7 @@
     }
     function activatePropInteraction(key) {
       if (activityProp === key) { restoreRoomActivity(); showRoomSay('원래 자리와 자세로 돌아왔어요.'); return; }
+      if (studio) studio.querySelectorAll('.droom__prop.is-playing').forEach(function (node) { node.classList.remove('is-playing'); });
       var actions = {
         desk:['work','노트북으로 작업 중...'], easel:['work','캔버스에 그림 그리는 중...'],
         coffee:['stand','따뜻한 커피 내리는 중...'], beanbag:['sit','소파에 편히 기대어 쉬는 중...'],
@@ -2066,7 +2069,7 @@
       activityProp = key; activityPoseOverride = actions[key][0];
       paintRoomCharacter(); studio.setAttribute('data-char-pose', activityPoseOverride);
       showRoomSay(actions[key][1]);
-      if (key === 'piano') { var piano=studio.querySelector('[data-prop="piano"]'); if(piano)piano.classList.add('is-playing'); }
+      if (key === 'piano' || key === 'coffee') { var activeProp=studio.querySelector('[data-prop="' + key + '"]'); if(activeProp)activeProp.classList.add('is-playing'); }
       if (key === 'desk') playSound('typing');
     }
     function ensureAudio() {
