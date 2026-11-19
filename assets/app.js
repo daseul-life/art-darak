@@ -2275,9 +2275,12 @@
 
     function restoreRoomActivity() {
       activityProp = ''; activityPoseOverride = '';
-      if (studio) studio.querySelectorAll('.droom__prop.is-playing').forEach(function (node) { node.classList.remove('is-playing'); });
+      if (studio) {
+        studio.querySelectorAll('.droom__prop.is-playing').forEach(function (node) { node.classList.remove('is-playing'); });
+        studio.removeAttribute('data-char-seat');
+        studio.removeAttribute('data-char-activity');
+      }
       stopAmbientAudio();
-      if (studio) studio.removeAttribute('data-char-seat');
       paintRoomCharacter();
     }
     function activatePropInteraction(key) {
@@ -2294,9 +2297,20 @@
       if (!say[key] || !spot || !roomChar) return;
       if (!attic.avatar) { showRoomSay('방에 세울 캐릭터를 먼저 골라 주세요.'); return; }
       activityProp = key; activityPoseOverride = spot.pose;
-      paintRoomCharacter(); studio.setAttribute('data-char-pose', activityPoseOverride);
+      paintRoomCharacter();
+      studio.setAttribute('data-char-pose', activityPoseOverride);
+      studio.setAttribute('data-char-activity', key);
+      /* 앉아서 사용하는 소품은 앉기 전용 호흡 애니메이션을 적용합니다. */
+      if (key === 'beanbag' || key === 'piano' || key === 'desk') {
+        studio.setAttribute('data-char-seat', 'true');
+      } else {
+        studio.removeAttribute('data-char-seat');
+      }
       showRoomSay(say[key]);
-      if (key === 'piano' || key === 'coffee') { var activeProp=studio.querySelector('[data-prop="' + key + '"]'); if(activeProp)activeProp.classList.add('is-playing'); }
+      if (key === 'piano' || key === 'coffee') {
+        var activeProp=studio.querySelector('[data-prop="' + key + '"]');
+        if(activeProp)activeProp.classList.add('is-playing');
+      }
       if (key === 'desk') playSound('typing');
     }
     function ensureAudio() {
