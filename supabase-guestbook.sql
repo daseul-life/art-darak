@@ -14,6 +14,9 @@
 --    기존 칸(content 등)과 기존 줄은 그대로 둡니다.
 -- ============================================================
 
+-- 0. uuid 기본값을 만드는 확장 (이미 있으면 그대로)
+create extension if not exists pgcrypto;
+
 -- 1. 표
 create table if not exists public.guestbook (
   id         uuid primary key default gen_random_uuid(),
