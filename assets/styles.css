@@ -3341,6 +3341,7 @@ body { word-break: keep-all; overflow-wrap: break-word; }
   box-shadow: var(--shadow-s);
   font-size: .73rem; font-weight: 800; color: var(--plum-2);
   white-space: nowrap;
+  margin-left: auto;
 }
 .neighbor-count[hidden], .dgb-count[hidden] { display: none; }
 

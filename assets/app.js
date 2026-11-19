@@ -1403,7 +1403,7 @@
     var guestbookHint = document.querySelector('[data-guestbook-hint]');
     var guestbookSubmit = document.querySelector('[data-guestbook-submit]');
     var guestbookBusy = false;
-    var guestbookHintBase = '짧은 인사 한 줄이면 충분해요.';
+    var guestbookHintBase = '짧은 인사 한 줄이면 충분해요. 200자까지 쓸 수 있어요.';
     var neighborMap = {};
     var NEIGHBOR_LIMIT = 12;
 
@@ -2206,8 +2206,8 @@
       if (guestbookGate) guestbookGate.hidden = missing || !!me;
 
       guestbookHintBase = isOwner
-        ? '찾아온 사람이 남긴 인사를 여기서 볼 수 있어요. 내 방에도 한 줄 남겨 볼 수 있어요.'
-        : '짧은 인사 한 줄이면 충분해요.';
+        ? '내 방명록에 남겨도 괜찮아요. 200자까지 쓸 수 있어요.'
+        : '짧은 인사 한 줄이면 충분해요. 200자까지 쓸 수 있어요.';
       if (guestbookHint) {
         guestbookHint.textContent = guestbookBody && guestbookBody.value.trim()
           ? guestbookBody.value.trim().length + '/200자'
