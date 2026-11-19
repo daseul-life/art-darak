@@ -3321,3 +3321,194 @@ body { word-break: keep-all; overflow-wrap: break-word; }
 @media (prefers-reduced-motion: reduce) {
   .calm-flame { animation: none; }
 }
+
+/* ============================================================
+   27. 이웃 다락방 · 다락방 방명록
+   ------------------------------------------------------------
+   · 이웃 다락방: 입주자 카드(아바타·필명·소개·분야·벽지)
+   · 방명록: 짧은 인사 한 줄 목록 + 남기기/지우기
+   로즈밀크 파스텔 톤과 둥근 모서리만 씁니다.
+   ============================================================ */
+.neighbor-block { margin-top: clamp(2.2rem, 4vw, 3rem); }
+
+.neighbor-count,
+.dgb-count {
+  align-self: center;
+  padding: .28rem .7rem;
+  border-radius: 999px;
+  border: 1px solid rgba(180, 132, 157, .28);
+  background: rgba(255, 250, 251, .85);
+  box-shadow: var(--shadow-s);
+  font-size: .73rem; font-weight: 800; color: var(--plum-2);
+  white-space: nowrap;
+}
+.neighbor-count[hidden], .dgb-count[hidden] { display: none; }
+
+/* --- 이웃 카드 --- */
+.neighbor-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(238px, 1fr));
+  gap: .7rem;
+}
+.neighbor-grid[hidden] { display: none; }
+
+.neighbor-card {
+  position: relative;
+  display: flex; gap: .75rem; align-items: flex-start;
+  padding: .9rem .95rem 1rem;
+  border-radius: 19px;
+  border: 1px solid var(--line-2);
+  background: var(--paper);
+  box-shadow: var(--shadow-s);
+  text-decoration: none; color: inherit;
+  overflow: hidden;
+  transition: transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease),
+              border-color var(--dur) var(--ease);
+}
+/* 카드 위쪽에 그 방의 벽지 색을 한 줄로 */
+.neighbor-card::before {
+  content: "";
+  position: absolute; left: 0; right: 0; top: 0; height: 3px;
+  background: linear-gradient(90deg, var(--attic-a, #F0D2D3), var(--attic-b, #E7D9EC), var(--attic-a, #F0D2D3));
+}
+.neighbor-card:hover,
+.neighbor-card:focus-visible {
+  transform: translateY(-2px);
+  border-color: rgba(180, 132, 157, .45);
+  box-shadow: 0 18px 30px -26px rgba(140, 92, 106, .95);
+}
+.neighbor-card:focus-visible { outline: 3px solid rgba(200, 139, 150, .35); outline-offset: 2px; }
+
+.neighbor-card__avatar {
+  flex: none;
+  width: 46px; height: 46px;
+  border-radius: 15px;
+  display: grid; place-items: center;
+  font-size: .95rem; font-weight: 800; color: #5C444B;
+  background: linear-gradient(140deg, var(--attic-a, #FCDCE5), var(--attic-b, #F4D8E5));
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .85);
+}
+.neighbor-card__avatar.has-photo { padding: 0; overflow: hidden; }
+
+.neighbor-card__main { display: flex; flex-direction: column; gap: .18rem; min-width: 0; flex: 1; }
+.neighbor-card__top { display: flex; align-items: center; gap: .35rem; flex-wrap: wrap; }
+.neighbor-card__pen { font-size: .93rem; font-weight: 800; color: var(--plum); }
+.neighbor-card__flag {
+  padding: .1rem .46rem;
+  border-radius: 999px;
+  font-size: .64rem; font-weight: 800;
+  background: linear-gradient(135deg, #FCE7EE, #F2DCE8);
+  color: #6A4C61;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .7);
+}
+.neighbor-card__flag--mine { background: linear-gradient(135deg, #FBF0D8, #F3E3C2); color: #7A6238; }
+.neighbor-card__bio {
+  font-size: .79rem; color: var(--plum-2); line-height: 1.6;
+  overflow: hidden; display: -webkit-box;
+  -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+}
+.neighbor-card__meta { display: flex; align-items: center; gap: .28rem; flex-wrap: wrap; margin-top: .18rem; }
+.neighbor-card__theme {
+  padding: .12rem .5rem; border-radius: 999px;
+  font-size: .66rem; font-weight: 800; color: #5C444B;
+  background: linear-gradient(135deg, var(--attic-a, #FBEDE9), var(--attic-b, #F0D2D3));
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .7);
+}
+.neighbor-card__field {
+  padding: .12rem .5rem; border-radius: 999px;
+  font-size: .66rem; font-weight: 800;
+  background: var(--accent-soft, var(--ivory));
+  color: var(--accent-ink, var(--plum-2));
+}
+.neighbor-more { margin-top: .7rem; font-size: .79rem; font-weight: 600; color: var(--plum-3); }
+.neighbor-more[hidden] { display: none; }
+
+/* --- 방명록 --- */
+.darak-guestbook { margin-top: clamp(2.2rem, 4vw, 3rem); }
+
+.dgb-form {
+  padding: clamp(1rem, 2.4vw, 1.3rem);
+  border-radius: var(--radius);
+  background: var(--paper);
+  border: 1px solid var(--line-2);
+  box-shadow: var(--shadow-s);
+}
+.dgb-form[hidden] { display: none; }
+.dgb-form textarea {
+  width: 100%;
+  min-height: 78px;
+  padding: .72rem .9rem;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: #FFFAFB;
+  font: inherit; font-size: .89rem; color: var(--plum);
+  resize: vertical;
+}
+.dgb-form textarea::placeholder { color: var(--plum-3); }
+.dgb-form textarea:focus {
+  outline: none;
+  border-color: rgba(180, 132, 157, .6);
+  box-shadow: 0 0 0 4px rgba(243, 214, 224, .45);
+}
+.dgb-form__foot { display: flex; align-items: center; justify-content: space-between; gap: .6rem; margin-top: .6rem; flex-wrap: wrap; }
+.dgb-form__hint { font-size: .75rem; font-weight: 700; color: var(--plum-3); }
+
+.dgb-gate {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 1rem; flex-wrap: wrap;
+  padding: .95rem 1.1rem;
+  border-radius: 16px;
+  border: 1px dashed rgba(180, 132, 157, .42);
+  background: rgba(255, 250, 251, .8);
+}
+.dgb-gate[hidden] { display: none; }
+.dgb-gate p { font-size: .86rem; color: var(--plum-2); }
+
+.dgb-setup {
+  display: flex; align-items: center; gap: .8rem;
+  padding: 1.05rem 1.15rem;
+  border-radius: 16px;
+  border: 1px dashed rgba(180, 132, 157, .42);
+  background: linear-gradient(135deg, #FDF3F5, #FBF0F4);
+}
+.dgb-setup[hidden] { display: none; }
+.dgb-setup__ico { font-size: 1.35rem; }
+.dgb-setup p { font-size: .86rem; color: var(--plum-2); line-height: 1.65; }
+
+.dgb-list { display: grid; gap: .55rem; margin-top: .9rem; }
+.dgb-list[hidden] { display: none; }
+.dgb-item {
+  display: flex; gap: .7rem;
+  padding: .85rem 1rem;
+  border-radius: 16px;
+  background: rgba(255, 250, 251, .82);
+  border: 1px solid var(--line-2);
+}
+.dgb-item__avatar {
+  flex: none;
+  width: 36px; height: 36px; border-radius: 12px;
+  display: grid; place-items: center;
+  font-size: .86rem; font-weight: 800; color: #5C444B;
+  background: linear-gradient(140deg, #FCDCE5, #F4D8E5);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .85);
+}
+.dgb-item__avatar.has-photo { padding: 0; overflow: hidden; }
+.dgb-item__main { min-width: 0; flex: 1; }
+.dgb-item__head { display: flex; align-items: center; gap: .45rem; flex-wrap: wrap; }
+.dgb-item__name { font-size: .85rem; font-weight: 800; }
+.dgb-item__host {
+  padding: .08rem .42rem; border-radius: 999px;
+  font-size: .62rem; font-weight: 800;
+  background: linear-gradient(135deg, #FBF0D8, #F3E3C2); color: #7A6238;
+}
+.dgb-item__body { margin-top: .12rem; font-size: .88rem; color: var(--plum-2); white-space: pre-wrap; line-height: 1.7; }
+
+@media (max-width: 640px) {
+  .neighbor-grid { grid-template-columns: 1fr; gap: .55rem; }
+  .neighbor-card { padding: .8rem .85rem .9rem; }
+  .neighbor-card__avatar { width: 42px; height: 42px; border-radius: 14px; }
+  .neighbor-card__pen { font-size: .9rem; }
+  .dgb-item { padding: .75rem .8rem; }
+  .dgb-form__foot { justify-content: flex-end; }
+  .dgb-form__hint { width: 100%; }
+}

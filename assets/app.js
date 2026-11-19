@@ -1385,6 +1385,28 @@
     var roomSayTimer = null;
     var roomSparkTimer = null;
 
+    /* 이웃 다락방 · 방명록 */
+    var neighborGrid = document.getElementById('neighbor-grid');
+    var neighborEmpty = document.getElementById('neighbors-empty');
+    var neighborCount = document.querySelector('[data-neighbors-count]');
+    var neighborMore = document.getElementById('neighbors-more');
+    var guestbookTitle = document.querySelector('[data-guestbook-title]');
+    var guestbookDesc = document.querySelector('[data-guestbook-desc]');
+    var guestbookCount = document.querySelector('[data-guestbook-count]');
+    var guestbookForm = document.querySelector('[data-guestbook-form]');
+    var guestbookGate = document.querySelector('[data-guestbook-gate]');
+    var guestbookSetup = document.querySelector('[data-guestbook-setup]');
+    var guestbookList = document.getElementById('guestbook-list');
+    var guestbookEmpty = document.getElementById('guestbook-empty');
+    var guestbookEmptyText = document.querySelector('[data-guestbook-empty-text]');
+    var guestbookBody = document.getElementById('guestbook-body');
+    var guestbookHint = document.querySelector('[data-guestbook-hint]');
+    var guestbookSubmit = document.querySelector('[data-guestbook-submit]');
+    var guestbookBusy = false;
+    var guestbookHintBase = '짧은 인사 한 줄이면 충분해요.';
+    var neighborMap = {};
+    var NEIGHBOR_LIMIT = 12;
+
     /* ?pen=필명 으로 다른 사람의 다락방을 구경할 수 있습니다. */
     var penParam = (new URLSearchParams(window.location.search).get('pen') || '').trim();
     var target = null;
@@ -2066,6 +2088,143 @@
         '</div>';
     }
 
+    /* -------------------------------------------------- 이웃 다락방 */
+    /* 카드 한 장 — 아바타(성별·캐릭터 반영) · 필명 · 한 줄 소개 · 분야 · 벽지 배지.
+       캐릭터의 사람 이름은 쓰지 않고, 고른 사진 또는 필명 첫 글자만 보여 줍니다. */
+    function neighborCardHTML(profile, me, current) {
+      var theme = THEME_LABEL[profile.attic_theme] ? profile.attic_theme : 'rose';
+      var entry = avatarEntry((profile.attic_props || {}).avatar);
+      var fields = (profile.fields || []).slice(0, 2);
+      var bio = String(profile.bio || '').trim();
+      if (!bio) bio = fields.length ? fields.join(' · ') + ' 창작자' : '아직 소개가 없어요.';
+
+      var flag = '';
+      if (current) flag = '<span class="neighbor-card__flag">지금 보는 다락방</span>';
+      else if (me && profile.id === me.id) flag = '<span class="neighbor-card__flag neighbor-card__flag--mine">내 다락방</span>';
+
+      return '<a class="neighbor-card attic-theme--' + theme + '" ' +
+        'href="darakbang.html?pen=' + encodeURIComponent(profile.pen_name) + '">' +
+        '<span class="neighbor-card__avatar' + (entry ? ' has-photo' : '') + '" aria-hidden="true">' +
+          (entry ? avatarImgHTML(entry.photo, 'avatar-img') : esc(initial(profile.pen_name))) +
+        '</span>' +
+        '<span class="neighbor-card__main">' +
+          '<span class="neighbor-card__top"><b class="neighbor-card__pen">' + esc(profile.pen_name) + '</b>' + flag + '</span>' +
+          '<span class="neighbor-card__bio">' + esc(bio) + '</span>' +
+          '<span class="neighbor-card__meta">' +
+            '<span class="neighbor-card__theme">' + esc(THEME_LABEL[theme]) + '</span>' +
+            fields.map(function (field) {
+              return '<span class="neighbor-card__field" data-field="' + esc(field) + '">' + esc(field) + '</span>';
+            }).join('') +
+          '</span>' +
+        '</span></a>';
+    }
+
+    async function renderNeighbors() {
+      if (!neighborGrid) return;
+      var me = Store.profile();
+      var list = [];
+      try { list = await Store.listNeighbors(); } catch (err) { list = []; }
+
+      neighborMap = {};
+      list.forEach(function (person) {
+        neighborMap[String(person.pen_name || '').trim().toLowerCase()] = person;
+      });
+
+      if (neighborCount) {
+        neighborCount.hidden = list.length === 0;
+        neighborCount.textContent = list.length ? '이웃 ' + nf(list.length) + '곳' : '';
+      }
+
+      /* 지금 보고 있는 다락방을 맨 앞에 두고, 나머지는 새로 문을 연 순서입니다. */
+      var current = null;
+      var rest = [];
+      list.forEach(function (person) {
+        if (target && person.id === target.id) current = person;
+        else rest.push(person);
+      });
+      var ordered = current ? [current].concat(rest) : rest;
+      var shown = ordered.slice(0, NEIGHBOR_LIMIT);
+
+      neighborGrid.hidden = shown.length === 0;
+      neighborGrid.innerHTML = shown.map(function (person) {
+        return neighborCardHTML(person, me, !!(target && person.id === target.id));
+      }).join('');
+
+      if (neighborEmpty) neighborEmpty.classList.toggle('is-visible', list.length === 0);
+      if (neighborMore) {
+        neighborMore.hidden = list.length <= NEIGHBOR_LIMIT;
+        neighborMore.textContent = '이웃 ' + nf(list.length) + '곳 가운데 ' + NEIGHBOR_LIMIT +
+          '곳을 먼저 보여 드려요. 더 찾아보려면 갤러리를 둘러보세요.';
+      }
+    }
+
+    /* -------------------------------------------------- 다락방 방명록 */
+    function guestbookEntryHTML(entry) {
+      var me = Store.profile();
+      var author = neighborMap[String(entry.author_pen || '').trim().toLowerCase()];
+      var entryAvatar = author ? avatarEntry((author.attic_props || {}).avatar) : null;
+      var canDelete = !!(me && target && (me.id === entry.author_id || me.id === target.id));
+      var isHost = !!(target && entry.author_id && entry.author_id === target.id);
+
+      return '<li class="dgb-item" data-guestbook-id="' + esc(entry.id) + '">' +
+        '<span class="dgb-item__avatar' + (entryAvatar ? ' has-photo' : '') + '" aria-hidden="true">' +
+          (entryAvatar ? avatarImgHTML(entryAvatar.photo, 'avatar-img') : esc(initial(entry.author_pen))) +
+        '</span>' +
+        '<div class="dgb-item__main">' +
+          '<div class="dgb-item__head">' +
+            '<span class="dgb-item__name">' + esc(entry.author_pen) + '</span>' +
+            (isHost ? '<span class="dgb-item__host">다락방 주인</span>' : '') +
+            '<span class="comment__time">' + timeAgo(entry.created_at) + '</span>' +
+            (canDelete ? '<button class="comment__del" type="button" data-guestbook-del="' + esc(entry.id) + '">지우기</button>' : '') +
+          '</div>' +
+          '<p class="dgb-item__body">' + esc(entry.body) + '</p>' +
+        '</div></li>';
+    }
+
+    async function renderGuestbook() {
+      if (!guestbookList || !target) return;
+      var me = Store.profile();
+      var entries = [];
+      try { entries = await Store.listGuestbook(target.id); } catch (err) { entries = []; }
+      var missing = !!(Store.guestbookStatus && Store.guestbookStatus() === 'missing');
+
+      if (guestbookTitle) {
+        guestbookTitle.textContent = isOwner ? '다락방 방명록' : target.pen_name + '님의 다락방 방명록';
+      }
+      if (guestbookDesc) {
+        guestbookDesc.textContent = isOwner
+          ? '찾아온 사람들이 남긴 인사가 여기에 쌓입니다. 내 방에도 한 줄 남겨 볼 수 있어요.'
+          : target.pen_name + '님의 다락방에 짧은 인사를 남겨 보세요. 남긴 사람과 다락방 주인은 그 인사를 지울 수 있어요.';
+      }
+      if (guestbookCount) {
+        guestbookCount.hidden = missing || entries.length === 0;
+        guestbookCount.textContent = entries.length ? nf(entries.length) + '줄' : '';
+      }
+
+      if (guestbookSetup) guestbookSetup.hidden = !missing;
+      if (guestbookForm) guestbookForm.hidden = missing || !me;
+      if (guestbookGate) guestbookGate.hidden = missing || !!me;
+
+      guestbookHintBase = isOwner
+        ? '찾아온 사람이 남긴 인사를 여기서 볼 수 있어요. 내 방에도 한 줄 남겨 볼 수 있어요.'
+        : '짧은 인사 한 줄이면 충분해요.';
+      if (guestbookHint) {
+        guestbookHint.textContent = guestbookBody && guestbookBody.value.trim()
+          ? guestbookBody.value.trim().length + '/200자'
+          : guestbookHintBase;
+      }
+
+      guestbookList.hidden = missing;
+      guestbookList.innerHTML = missing ? '' : entries.map(guestbookEntryHTML).join('');
+
+      if (guestbookEmpty) guestbookEmpty.classList.toggle('is-visible', !missing && entries.length === 0);
+      if (guestbookEmptyText) {
+        guestbookEmptyText.innerHTML = isOwner
+          ? '<b>아직 방명록이 비어 있어요.</b><br>찾아온 사람이 한 줄 남기면 여기에 쌓여요.'
+          : '<b>아직 방명록이 비어 있어요.</b><br>첫 한 줄을 남겨 보세요.';
+      }
+    }
+
     async function render() {
       var me = Store.profile();
       target = null;
@@ -2173,6 +2332,10 @@
       }
       if (commentEmpty) commentEmpty.classList.toggle('is-visible', isOwner && received.length === 0);
 
+      /* 이웃 다락방 · 방명록 (주인·방문자 모두) */
+      await renderNeighbors();
+      await renderGuestbook();
+
       lastSignature = profileSignature(target);
     }
 
@@ -2181,6 +2344,75 @@
     setupRoomCharacter();
     setupPropDrag();
     ensureProfileModal();
+
+    /* 방명록 — 짧은 인사 남기기 */
+    if (guestbookBody) {
+      guestbookBody.addEventListener('input', function () {
+        var length = guestbookBody.value.trim().length;
+        if (guestbookHint) guestbookHint.textContent = length ? length + '/200자' : guestbookHintBase;
+      });
+    }
+
+    if (guestbookForm) {
+      guestbookForm.addEventListener('submit', async function (event) {
+        event.preventDefault();
+        if (guestbookBusy || !target) return;
+        var text = guestbookBody ? guestbookBody.value.trim() : '';
+        if (!text) {
+          toast('한 줄 적어 주시면 남길 수 있어요.');
+          if (guestbookBody) guestbookBody.focus();
+          return;
+        }
+        if (text.length > 200) {
+          toast('방명록은 200자까지 남길 수 있어요.');
+          return;
+        }
+
+        guestbookBusy = true;
+        if (guestbookSubmit) {
+          guestbookSubmit.disabled = true;
+          guestbookSubmit.textContent = '남기는 중…';
+        }
+        try {
+          await Store.addGuestbook(target.id, text);
+          if (guestbookBody) guestbookBody.value = '';
+          await renderGuestbook();
+          toast(isOwner ? '내 방명록에 한 줄 남겼어요.' : target.pen_name + '님의 방명록에 인사를 남겼어요.');
+        } catch (err) {
+          toast((err && err.message) || '방명록을 남기지 못했어요.');
+          if (Store.guestbookStatus && Store.guestbookStatus() === 'missing') await renderGuestbook();
+        } finally {
+          guestbookBusy = false;
+          if (guestbookSubmit) {
+            guestbookSubmit.disabled = false;
+            guestbookSubmit.textContent = '한 줄 남기기';
+          }
+        }
+      });
+    }
+
+    if (guestbookList) {
+      guestbookList.addEventListener('click', async function (event) {
+        var button = event.target.closest ? event.target.closest('[data-guestbook-del]') : null;
+        if (!button || guestbookBusy) return;
+        var id = button.getAttribute('data-guestbook-del');
+        if (!id) return;
+        if (!window.confirm('이 방명록 인사를 지울까요?')) return;
+
+        guestbookBusy = true;
+        button.disabled = true;
+        try {
+          await Store.deleteGuestbook(id);
+          await renderGuestbook();
+          toast('방명록 인사를 지웠어요.');
+        } catch (err) {
+          toast((err && err.message) || '방명록을 지우지 못했어요.');
+          button.disabled = false;
+        } finally {
+          guestbookBusy = false;
+        }
+      });
+    }
 
     if (editBtn) {
       editBtn.addEventListener('click', function () {

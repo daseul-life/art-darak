@@ -89,6 +89,24 @@ create index if not exists comments_artwork_idx on public.comments (artwork_id, 
 create index if not exists comments_user_idx    on public.comments (user_id, created_at desc);
 
 -- ------------------------------------------------------------
+-- 3-b. 다락방 방명록 (다락방 주인에게 남기는 짧은 인사)
+-- ------------------------------------------------------------
+--   owner_id  : 인사를 받는 다락방 주인
+--   author_id : 인사를 남긴 사람 (지우기도 이 사람과 주인만)
+--   author_pen: 남길 때의 필명 (필명을 바꿔도 당시 이름이 남도록 함께 적습니다)
+create table if not exists public.guestbook (
+  id         uuid primary key default gen_random_uuid(),
+  owner_id   uuid not null references public.profiles (id) on delete cascade,
+  author_id  uuid not null references public.profiles (id) on delete cascade,
+  author_pen text not null default '',
+  body       text not null check (char_length(body) between 1 and 200),
+  created_at timestamptz not null default now()
+);
+
+create index if not exists guestbook_owner_idx on public.guestbook (owner_id, created_at desc);
+create index if not exists guestbook_author_idx on public.guestbook (author_id, created_at desc);
+
+-- ------------------------------------------------------------
 -- 4. 공지사항 (홈 맨 위 띠)
 -- ------------------------------------------------------------
 create table if not exists public.notices (
@@ -199,6 +217,35 @@ drop trigger if exists comments_stamp_author on public.comments;
 create trigger comments_stamp_author before insert on public.comments
   for each row execute function public.stamp_author();
 
+-- 방명록도 작성자(author_id)·필명(author_pen)을 서버에서 정합니다.
+create or replace function public.stamp_guestbook_author()
+returns trigger
+language plpgsql security definer
+set search_path = public
+as $$
+declare
+  me uuid := auth.uid();
+  author public.profiles;
+begin
+  if me is null then
+    return new;
+  end if;
+
+  select * into author from public.profiles where id = me;
+  if author.id is null then
+    return new;
+  end if;
+
+  new.author_id  := me;
+  new.author_pen := author.pen_name;
+  return new;
+end;
+$$;
+
+drop trigger if exists guestbook_stamp_author on public.guestbook;
+create trigger guestbook_stamp_author before insert on public.guestbook
+  for each row execute function public.stamp_guestbook_author();
+
 -- 회원이 스스로 관리자/차단 상태를 바꾸지 못하게 막습니다.
 create or replace function public.protect_profile_flags()
 returns trigger
@@ -248,6 +295,7 @@ alter table public.profiles enable row level security;
 alter table public.artworks enable row level security;
 alter table public.comments enable row level security;
 alter table public.notices  enable row level security;
+alter table public.guestbook enable row level security;
 
 -- 프로필: 필명·소개는 누구나 읽고, 고치기는 자기 것만
 drop policy if exists profiles_read on public.profiles;
@@ -326,6 +374,21 @@ create policy comments_delete on public.comments
   for delete to authenticated
   using (auth.uid() = user_id or public.is_admin());
 
+-- 방명록: 누구나 읽기 / 남기기는 자기 이름으로만 / 지우기는 남긴 사람 또는 다락방 주인(관리자도)
+drop policy if exists guestbook_read on public.guestbook;
+create policy guestbook_read on public.guestbook
+  for select using (true);
+
+drop policy if exists guestbook_insert on public.guestbook;
+create policy guestbook_insert on public.guestbook
+  for insert to authenticated
+  with check (auth.uid() = author_id);
+
+drop policy if exists guestbook_delete on public.guestbook;
+create policy guestbook_delete on public.guestbook
+  for delete to authenticated
+  using (auth.uid() = author_id or auth.uid() = owner_id or public.is_admin());
+
 -- 공지: 공개된 것만 읽기, 쓰기는 관리자만
 drop policy if exists notices_read on public.notices;
 create policy notices_read on public.notices
@@ -381,10 +444,11 @@ create policy artworks_storage_delete on storage.objects
 -- ------------------------------------------------------------
 -- 8. 권한 (RLS 와 함께 동작합니다)
 -- ------------------------------------------------------------
-grant select on public.profiles, public.artworks, public.comments, public.notices
+grant select on public.profiles, public.artworks, public.comments, public.notices, public.guestbook
   to anon, authenticated;
 grant insert, update, delete on public.profiles, public.artworks, public.comments, public.notices
   to authenticated;
+grant insert, delete on public.guestbook to authenticated;
 
 -- ------------------------------------------------------------
 -- 9. 처음 보여 줄 예시 작품 (지우고 싶으면 맨 아래 안내 참고)

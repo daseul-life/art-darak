@@ -248,6 +248,7 @@
       profiles: [],
       artworks: [],
       comments: [],
+      guestbook: [],
       session: null,
       seededAt: nowIso()
     };
@@ -883,6 +884,146 @@
     });
   }
 
+  /* -------------------------------------------------- 다락방 방명록 */
+  /* 다락방 주인에게 남기는 짧은 인사 한 줄입니다. (supabase-schema.sql 의 public.guestbook)
+     · SELECT 누구나 / INSERT 남긴 사람만 / DELETE 남긴 사람 또는 다락방 주인
+     아직 Supabase 에 guestbook 표를 만들지 않았을 때(PGRST205·42P01·404)에는
+     붉은 오류 대신 '준비 중' 상태로 넘어가 화면이 그대로 쓰이도록 합니다. */
+  var GUESTBOOK_STATUS = 'unknown';   /* 'ok' | 'missing' | 'error' */
+
+  function isGuestbookMissing(error) {
+    if (!error) return false;
+    var code = String(error.code || '');
+    var message = String(error.message || error.details || error || '').toLowerCase();
+    return code === 'PGRST205' || code === '42P01' || code === '404' ||
+      Number(error.status) === 404 ||
+      message.indexOf('could not find the table') !== -1 ||
+      message.indexOf('does not exist') !== -1 ||
+      message.indexOf('schema cache') !== -1 ||
+      message.indexOf('relation "public.guestbook"') !== -1;
+  }
+
+  function guestbookStatus() {
+    return GUESTBOOK_STATUS;
+  }
+
+  function mapGuestbook(row) {
+    return {
+      id: row.id,
+      owner_id: row.owner_id,
+      author_id: row.author_id || null,
+      author_pen: row.author_pen || '',
+      body: row.body || '',
+      created_at: row.created_at
+    };
+  }
+
+  async function listGuestbook(ownerId) {
+    if (!ownerId) return [];
+
+    if (state.mode === 'local') {
+      var data = bootstrapLocal();
+      var blocked = {};
+      (data.profiles || []).forEach(function (p) { if (p.is_blocked) blocked[p.id] = 1; });
+      GUESTBOOK_STATUS = 'ok';
+      return (data.guestbook || [])
+        .filter(function (g) {
+          if (g.owner_id !== ownerId) return false;
+          if (g.author_id && blocked[g.author_id]) return false;
+          return true;
+        })
+        .map(mapGuestbook)
+        .sort(function (a, b) {
+          return String(b.created_at).localeCompare(String(a.created_at));
+        });
+    }
+
+    var res = await state.client
+      .from('guestbook')
+      .select('*')
+      .eq('owner_id', ownerId)
+      .order('created_at', { ascending: false });
+    if (res.error) {
+      GUESTBOOK_STATUS = isGuestbookMissing(res.error) ? 'missing' : 'error';
+      console.warn('[아트다락방] 방명록을 읽지 못했어요.', res.error.message || res.error);
+      return [];
+    }
+    GUESTBOOK_STATUS = 'ok';
+    return (res.data || []).map(mapGuestbook);
+  }
+
+  async function addGuestbook(ownerId, body) {
+    var me = state.profile;
+    assert(me, '먼저 필명으로 시작해 주세요.');
+    assert(ownerId, '다락방을 찾지 못했어요.');
+
+    var text = String(body || '').trim();
+    assert(text.length > 0, '한 줄 적어 주시면 남길 수 있어요.');
+    assert(text.length <= 200, '방명록은 200자까지 남길 수 있어요.');
+
+    if (state.mode === 'local') {
+      var data = bootstrapLocal();
+      var owner = (data.profiles || []).filter(function (p) { return p.id === ownerId; })[0];
+      assert(owner, '다락방을 찾지 못했어요.');
+
+      var row = {
+        id: uid('g'),
+        owner_id: ownerId,
+        author_id: me.id,
+        author_pen: me.pen_name,
+        body: text,
+        created_at: nowIso()
+      };
+      data.guestbook = data.guestbook || [];
+      data.guestbook.push(row);
+      writeLocal(data);
+      GUESTBOOK_STATUS = 'ok';
+      return mapGuestbook(row);
+    }
+
+    var res = await state.client
+      .from('guestbook')
+      .insert({ owner_id: ownerId, author_id: me.id, author_pen: me.pen_name, body: text })
+      .select('*')
+      .single();
+    if (res.error) {
+      if (isGuestbookMissing(res.error)) {
+        GUESTBOOK_STATUS = 'missing';
+        throw new Error('방명록 방이 아직 준비 중이에요. 잠시 뒤에 다시 남겨 주세요.');
+      }
+      throw new Error('방명록을 남기지 못했어요. ' + (res.error.message || '잠시 뒤에 다시 시도해 주세요.'));
+    }
+    GUESTBOOK_STATUS = 'ok';
+    return mapGuestbook(res.data);
+  }
+
+  async function deleteGuestbook(id) {
+    var me = state.profile;
+    assert(me, '먼저 필명으로 시작해 주세요.');
+    if (!id) return false;
+
+    if (state.mode === 'local') {
+      var data = bootstrapLocal();
+      var row = (data.guestbook || []).filter(function (g) { return g.id === id; })[0];
+      if (!row) return false;
+      assert(row.author_id === me.id || row.owner_id === me.id,
+        '내가 남긴 인사나 내 다락방의 인사만 지울 수 있어요.');
+      data.guestbook = (data.guestbook || []).filter(function (g) { return g.id !== id; });
+      writeLocal(data);
+      return true;
+    }
+
+    var res = await state.client.from('guestbook').delete().eq('id', id);
+    if (res.error) {
+      if (isGuestbookMissing(res.error)) {
+        GUESTBOOK_STATUS = 'missing';
+        return false;
+      }
+      throw new Error('방명록을 지우지 못했어요. ' + (res.error.message || '잠시 뒤에 다시 시도해 주세요.'));
+    }
+    return true;
+  }
+
   /* -------------------------------------------------- 마음(좋아요) */
   /* 지금은 기기(브라우저)에만 기억합니다. 다음 단계에서 DB에 저장할 예정이에요. */
   function readLikes() {
@@ -1143,6 +1284,38 @@
     return (res.data || []).map(publicProfile);
   }
 
+  /* -------------------------------------------------- 이웃 다락방 */
+  /* 문을 연(잠기지 않은) 입주자 목록 — '이웃 다락방 놀러가기' 카드에 씁니다.
+     카드에 아바타·필명·소개·분야·벽지를 함께 보여 주려고 공개 칸만 골라 읽고,
+     읽지 못해도 화면이 멈추지 않도록 빈 목록으로 조용히 넘어갑니다. */
+  async function listNeighbors() {
+    if (state.mode === 'local') {
+      var data = bootstrapLocal();
+      return (data.profiles || [])
+        .filter(function (p) { return !p.is_blocked; })
+        .map(function (p) {
+          return Object.assign(publicProfile(p), { created_at: p.created_at });
+        })
+        .sort(function (a, b) {
+          return String(b.created_at).localeCompare(String(a.created_at));
+        });
+    }
+
+    var res = await state.client
+      .from('profiles')
+      .select('id, pen_name, bio, fields, attic_theme, attic_props, created_at')
+      .eq('is_blocked', false)
+      .order('created_at', { ascending: false });
+    if (res.error) {
+      state.lastError = res.error.message;
+      console.warn('[아트다락방] 이웃 다락방을 읽지 못했어요.', res.error);
+      return [];
+    }
+    return (res.data || []).map(function (row) {
+      return Object.assign(publicProfile(row), { created_at: row.created_at });
+    });
+  }
+
   /* 다른 사람의 다락방 구경(?pen=필명) — 공개할 수 있는 프로필만 돌려줍니다. */
   async function profileByPen(pen) {
     var name = normalizePen(pen);
@@ -1246,6 +1419,12 @@
     onAuth: function (fn) { state.listeners.push(fn); },
     profile: function () { return state.profile; },
     profileByPen: profileByPen,
+    listNeighbors: listNeighbors,
+    listGuestbook: listGuestbook,
+    addGuestbook: addGuestbook,
+    deleteGuestbook: deleteGuestbook,
+    guestbookStatus: guestbookStatus,
+    isGuestbookMissing: isGuestbookMissing,
     signUp: signUp,
     signIn: signIn,
     signOut: signOut,
