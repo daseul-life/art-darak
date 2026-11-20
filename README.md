@@ -184,7 +184,6 @@ art-darak/v1/
 ├─ register.html         작품 등록 (사진 자동 축소)
 ├─ darakbang.html        내 다락방 (다락방 사무실 · 벽지/분위기/소품)
 ├─ admin.html            관리자 화면
-├─ soon.html             2단계 예고 (창작자·커뮤니티)
 ├─ manifest.json         PWA 설정 (theme_color·background_color = #FDF2F3)
 ├─ sw.js                 서비스 워커 (오프라인)
 ├─ notify-apps-script.gs 새 필명 가입 알림 메일 (Google Apps Script — 3번)
