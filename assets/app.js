@@ -1824,7 +1824,7 @@
     var PROP_INTERACTIONS = {
       /* 소파 — 쿠션 위에 엉덩이를 내려앉히고 앞면 레이어로 다리를 감쌉니다. */
       beanbag: {
-        x: 63.8, y: 100, dy: -30, scale: 0.76, facing: 1, pose: 'sit', seat: true,
+        x: 63.8, y: 100, dy: 0, scale: 0.76, facing: 1, pose: 'sit', seat: true,
         fx: 'breathe', playing: false, foreground: true,
         say: '소파에 편히 기대어 쉬는 중...'
       },
@@ -1848,7 +1848,7 @@
       },
       /* 커피머신 — 탁자 위가 아니라 탁자 옆 바닥에 서서 머신을 봅니다. */
       coffee: {
-        x: 100, y: 100, dx: 14, dy: 154, scale: 0.82, facing: 1, pose: 'stand', seat: false,
+        x: 0, y: 100, dx: -22, dy: 154, scale: 0.82, facing: -1, pose: 'stand', seat: false,
         fx: 'steam', playing: true, foreground: false,
         say: '따뜻한 커피 내리는 중...'
       },
