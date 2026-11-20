@@ -3719,55 +3719,55 @@ body { word-break: keep-all; overflow-wrap: break-word; }
 .droom__prop.is-playing .droom__steam--coffee{animation:droomCoffeeSteam 1.7s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
 @keyframes droomCoffeeSteam{0%{opacity:.15;transform:translateY(5px)}45%{opacity:.9}100%{opacity:.1;transform:translateY(-9px)}}
 
-
-/* 소품별 활동 상태: 같은 기본 자세라도 소품을 사용하는 느낌이 나도록 미세하게 움직입니다. */
-.droom[data-char-activity="beanbag"] .droom__char-3d:not(.is-greet) .droom__char-3d-body,
-.droom[data-char-activity="piano"] .droom__char-3d:not(.is-greet) .droom__char-3d-body {
-  transform-origin: 50% 100%;
-  animation: droomActivityBreathe 5.8s ease-in-out infinite;
-}
+/* ---------------------------------------------------------------- 소품 활동
+   바깥 <g>(캐릭터 figure)는 위치 · 크기 · 좌우 반전만 JS 가 transform 속성으로 정합니다.
+   미세한 호흡 · 타이핑 · 연주 움직임은 이 안쪽 몸통(.droom__char-3d-body)에서만 돌아서
+   위치 지정과 모션이 서로의 transform 을 덮어쓰지 않습니다.
+   앉아서 쓰는 소파(beanbag) · 피아노(piano)는 위쪽 좌석 호흡([data-char-seat])이 맡고,
+   책상(desk)은 앉은 자세라도 좌석 호흡을 쓰지 않고 전용 타이핑 모션만 씁니다. */
 .droom[data-char-activity="desk"] .droom__char-3d:not(.is-greet) .droom__char-3d-body {
-  transform-origin: 50% 90%;
-  animation: droomActivityType 2.8s ease-in-out infinite;
-}
-.droom[data-char-activity="coffee"] .droom__char-3d:not(.is-greet) .droom__char-3d-body {
-  transform-origin: 58% 82%;
-  animation: droomActivityReach 3.2s ease-in-out infinite;
+  transform-origin: 50% 96%;
+  animation: droomActivityType 2.6s ease-in-out infinite;
 }
 .droom[data-char-activity="easel"] .droom__char-3d:not(.is-greet) .droom__char-3d-body {
-  transform-origin: 58% 86%;
+  transform-origin: 58% 88%;
   animation: droomActivityPaint 4.4s ease-in-out infinite;
 }
-.droom[data-char-activity="guitar"] .droom__char-3d:not(.is-greet) .droom__char-3d-body {
-  transform-origin: 52% 88%;
-  animation: droomActivityStrum 1.9s ease-in-out infinite;
+.droom[data-char-activity="coffee"] .droom__char-3d:not(.is-greet) .droom__char-3d-body {
+  transform-origin: 50% 100%;
+  animation: droomActivityPour 3.4s ease-in-out infinite;
 }
-@keyframes droomActivityBreathe {
-  0%, 100% { transform: translateY(0) scale(1, 1); }
-  50% { transform: translateY(-.7px) scale(1.003, 1.002); }
+.droom[data-char-activity="guitar"] .droom__char-3d:not(.is-greet) .droom__char-3d-body {
+  transform-origin: 50% 98%;
+  animation: droomActivityStrum 1.9s ease-in-out infinite;
 }
 @keyframes droomActivityType {
   0%, 100% { transform: translateY(0) rotate(0); }
-  35% { transform: translateY(-.6px) rotate(-.25deg); }
-  70% { transform: translateY(.2px) rotate(.15deg); }
-}
-@keyframes droomActivityReach {
-  0%, 100% { transform: rotate(0) translateY(0); }
-  38% { transform: rotate(-1.1deg) translateY(-.4px); }
-  72% { transform: rotate(-.45deg) translateY(0); }
+  30% { transform: translateY(-.7px) rotate(-.22deg); }
+  64% { transform: translateY(.2px) rotate(.16deg); }
 }
 @keyframes droomActivityPaint {
   0%, 100% { transform: rotate(0) translateY(0); }
-  32% { transform: rotate(.55deg) translateY(-.4px); }
-  68% { transform: rotate(-.45deg) translateY(0); }
+  32% { transform: rotate(.5deg) translateY(-.4px); }
+  68% { transform: rotate(-.42deg) translateY(0); }
+}
+@keyframes droomActivityPour {
+  0%, 100% { transform: rotate(0) translateY(0); }
+  38% { transform: rotate(-.9deg) translateY(-.35px); }
+  74% { transform: rotate(-.3deg) translateY(0); }
 }
 @keyframes droomActivityStrum {
   0%, 100% { transform: rotate(0); }
-  30% { transform: rotate(-.65deg); }
-  65% { transform: rotate(.55deg); }
+  30% { transform: rotate(-.6deg); }
+  65% { transform: rotate(.5deg); }
 }
 @media (prefers-reduced-motion: reduce) {
   .droom[data-char-activity] .droom__char-3d:not(.is-greet) .droom__char-3d-body {
     animation: none !important;
   }
 }
+
+/* 가구 앞면 레이어 — 문서에서 캐릭터 다음에 그려지므로(z-index 아님) 캐릭터 앞을 가립니다.
+   소품을 끌어 옮기면 JS 가 원본 소품과 같은 이동량을 이 레이어에도 겁니다. */
+.droom__prop-front { display: none; pointer-events: none; }
+.droom__prop-front.is-on { display: inline; }

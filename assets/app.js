@@ -1549,6 +1549,24 @@
       return Array.prototype.slice.call(studio.querySelectorAll('[data-prop="' + key + '"]'));
     }
 
+    /* 캐릭터보다 앞에 그리는 가구 앞면 레이어(소파 앞면·책상 상판·건반·기타 몸통).
+       원본 소품과 같은 이동량을 받으므로 소품을 끌어 옮기면 함께 따라갑니다. */
+    function propFrontGroups(key) {
+      if (!studio) return [];
+      return Array.prototype.slice.call(studio.querySelectorAll('[data-prop-front="' + key + '"]'));
+    }
+
+    /* 한 소품의 원본과 앞면 레이어에 같은 자리 이동을 겁니다. */
+    function setPropFamilyOffset(key, dx, dy) {
+      propGroups(key).forEach(function (node) {
+        if (!node.classList.contains('is-on')) return;
+        setPropOffset(node, dx, dy);
+      });
+      propFrontGroups(key).forEach(function (front) {
+        setPropOffset(front, dx, dy);
+      });
+    }
+
     function propBBox(node) {
       if (!node) return null;
       try {
@@ -1591,15 +1609,23 @@
       node.style.transform = 'translate(' + dx.toFixed(2) + 'px, ' + dy.toFixed(2) + 'px)';
     }
 
-    /* 저장된 자리를 방 안 소품에 하나하나 적용합니다. */
+    /* 저장된 자리를 방 안 소품에 하나하나 적용합니다.
+       소품과 그 앞면 레이어는 언제나 같은 이동량을 씁니다. */
     function paintPropPositions() {
       Store.ATTIC_PROPS.forEach(function (key) {
-        propGroups(key).forEach(function (node) {
-          if (!node.classList.contains('is-on')) {
-            node.style.transform = '';
-            return;
-          }
-          var offset = propOffset(propBBox(node), attic.pos[key]);
+        var nodes = propGroups(key);
+        var shown = nodes.filter(function (node) { return node.classList.contains('is-on'); });
+        nodes.forEach(function (node) {
+          if (!node.classList.contains('is-on')) node.style.transform = '';
+        });
+        var source = shown[0] || nodes[0];
+        var offset = source ? propOffset(propBBox(source), attic.pos[key]) : { dx: 0, dy: 0 };
+        var fronts = propFrontGroups(key);
+        fronts.forEach(function (front) {
+          front.classList.toggle('is-on', shown.length > 0);
+          setPropOffset(front, offset.dx, offset.dy);
+        });
+        shown.forEach(function (node) {
           setPropOffset(node, offset.dx, offset.dy);
         });
       });
@@ -1667,7 +1693,7 @@
         propDrag.baseDy + (point.y - propDrag.startY));
       propDrag.dx = moved.dx;
       propDrag.dy = moved.dy;
-      setPropOffset(propDrag.node, moved.dx, moved.dy);
+      setPropFamilyOffset(propDrag.key, moved.dx, moved.dy);
       event.preventDefault();
     }
 
@@ -1685,7 +1711,7 @@
           예전처럼 click 만 기다리면 소품이 눌리지 않았습니다.) */
       if (!drag.moved) {
         var back = propOffset(drag.box, attic.pos[drag.key]);
-        setPropOffset(drag.node, back.dx, back.dy);
+        setPropFamilyOffset(drag.key, back.dx, back.dy);
         tapProp(drag.node);
         return;
       }
@@ -1700,7 +1726,7 @@
       };
       /* 저장값(소수 한 자리)과 화면을 똑같이 맞춥니다. */
       var settled = propOffset(drag.box, attic.pos[drag.key]);
-      setPropOffset(drag.node, settled.dx, settled.dy);
+      setPropFamilyOffset(drag.key, settled.dx, settled.dy);
       /* 소품을 쓰던 중이면 캐릭터도 옮긴 자리를 따라갑니다. */
       paintRoomCharacter();
       persistAttic(PROP_LABEL[drag.key] + ' 소품을 옮겨 두었어요.');
@@ -1713,7 +1739,7 @@
       propDrag = null;
       drag.node.classList.remove('is-dragging');
       var offset = propOffset(drag.box, attic.pos[drag.key]);
-      setPropOffset(drag.node, offset.dx, offset.dy);
+      setPropFamilyOffset(drag.key, offset.dx, offset.dy);
     }
 
     /* 소품을 눌렀을 때 — 고정 여부와 상관없이 이용(앉기·작업)만 켭니다. */
@@ -1770,7 +1796,7 @@
     }
 
     /* -------------------------------------------------- 방 안 캐릭터 */
-    /* 고른 자세의 그림 파일 — 서기는 기본 그림(room-3d/<key>.webp)을 그대로 씁니다. */
+    /* 고른 자세의 그림 파일 — 고른 자세의 그림(room-3d/<key>-<pose>.webp)을 씁니다. */
     function roomPoseSrc(charKey, pose) {
       /* data-char 는 'seoyun:f' 모양이라 파일 이름('seoyun-f')에 맞춰 바꿉니다. */
       var key = String(charKey || '').replace(':', '-');
@@ -1779,16 +1805,121 @@
       return 'images/room-3d/' + key + (p === 'stand' ? '' : '-' + p) + '.webp';
     }
 
-    /* 소품별 캐릭터 앵커 — x/y는 소품 SVG 박스 안의 비율(%).
-       캐릭터 발끝이 앵커에 닿으며 facing -1은 왼쪽을 바라보도록 좌우 반전합니다.
-       beanbag은 화면 표시명 '소파'에 대응하는 실제 저장 키입니다. */
-    var ACTIVITY = {
-      beanbag: { x: 50, y: 58, scale: 0.90, facing: 1, pose: 'sit', fx: 'breathe', fallback: { x: 166, y: 452 } },
-      desk:    { x: 38, y: 70, scale: 0.85, facing: 1, pose: 'work', fx: 'type', fallback: { x: 272, y: 470 } },
-      piano:   { x: 50, y: 74, scale: 0.85, facing: 1, pose: 'sit', fx: 'notes', fallback: { x: 438, y: 470 } },
-      easel:   { x: 30, y: 92, scale: 0.90, facing: 1, pose: 'stand', fx: 'paint', fallback: { x: 246, y: 470 } },
-      coffee:  { x: 50, y: 96, scale: 0.90, facing: -1, pose: 'stand', fx: 'steam', fallback: { x: 104, y: 470 } },
-      guitar:  { x: 60, y: 92, scale: 0.90, facing: -1, pose: 'stand', fx: 'strum', fallback: { x: 512, y: 470 } }
+    /* -------------------------------------------------- 소품 상호작용 설정
+       소품 하나에 대해 누를 때의 자세 · 자리 · 말 · 효과 · 소리 · 앞면 레이어를
+       한 곳에서 관리합니다. 새 소품을 더할 때도 이 표만 고치면 됩니다.
+
+       x, y     : 소품 SVG 박스 안에서 발끝(앉은 자세는 엉덩이 아래)이 놓일 곳의 비율(%)
+       dx, dy   : 박스 비율만으로는 안 맞는 실제 좌석 · 바닥 위치까지의 보정값(SVG 단위)
+       scale    : 캐릭터 크기 (서 있는 그림 240 기준)
+       facing   : 1 그대로, -1 좌우로 뒤집어 소품 쪽을 바라보게
+       pose     : 쓰는 자세 그림 — stand · sit · work · meditate 넷 중에서 고릅니다
+                  (전용 그림이 따로 없는 소품은 가장 가까운 자세를 골라 씁니다)
+       seat     : 앉은 자세에서 좌석 호흡(data-char-seat)을 켤지 — 소파 · 피아노만
+       fx       : 활동별 미세 모션 이름 (CSS 의 [data-char-activity] 가 받습니다)
+       sound    : 누를 때 날 소리 (typing · candle)
+       playing  : 활동 중 소품 자체 효과(건반 음표 · 커피 김)를 켤지
+       foreground: 캐릭터 앞에 다시 그리는 가구 앞면 레이어가 있는지 (darakbang.html)
+       say      : 캐릭터가 건네는 한 마디 */
+    var PROP_INTERACTIONS = {
+      /* 소파 — 쿠션 위에 엉덩이를 내려앉히고 앞면 레이어로 다리를 감쌉니다. */
+      beanbag: {
+        x: 63.8, y: 100, dy: -30, scale: 0.76, facing: 1, pose: 'sit', seat: true,
+        fx: 'breathe', playing: false, foreground: true,
+        say: '소파에 편히 기대어 쉬는 중...'
+      },
+      /* 책상 — 의자에 앉아 상판 너머로 노트북을 마주합니다. */
+      desk: {
+        x: 50, y: 100, dy: -52, scale: 0.80, facing: 1, pose: 'work', seat: false,
+        fx: 'type', sound: 'typing', playing: false, foreground: true,
+        say: '노트북으로 작업 중...'
+      },
+      /* 피아노 — 건반 앞 의자에 앉아 연주합니다. */
+      piano: {
+        x: 80.9, y: 100, dy: -17, scale: 0.78, facing: 1, pose: 'sit', seat: true,
+        fx: 'notes', playing: true, foreground: true,
+        say: '피아노 연주하는 중...'
+      },
+      /* 이젤 — 캔버스 옆에 비켜 서서 그림을 그립니다. */
+      easel: {
+        x: 100, y: 100, dx: 28, dy: 28, scale: 0.86, facing: 1, pose: 'stand', seat: false,
+        fx: 'paint', playing: false, foreground: false,
+        say: '캔버스에 그림 그리는 중...'
+      },
+      /* 커피머신 — 탁자 위가 아니라 탁자 옆 바닥에 서서 머신을 봅니다. */
+      coffee: {
+        x: 100, y: 100, dx: 14, dy: 154, scale: 0.82, facing: 1, pose: 'stand', seat: false,
+        fx: 'steam', playing: true, foreground: false,
+        say: '따뜻한 커피 내리는 중...'
+      },
+      /* 기타 — 바닥에 앉아 기타를 안고 뜯습니다. */
+      guitar: {
+        x: 90, y: 100, dy: 8, scale: 0.78, facing: 1, pose: 'sit', seat: false,
+        fx: 'strum', playing: false, foreground: true,
+        say: '기타 선율 고르는 중...'
+      },
+      /* 캔들 워머 — 자세 없이 소리와 말만 (불꽃은 소품 자체 모션). */
+      candle: {
+        sound: 'candle',
+        say: '촛불이 조용히 타닥이고 있어요.'
+      },
+
+      /* ---- 장식 소품 — 다가가 바라보거나 곁에 앉아 한 마디 건넵니다 ---- */
+      /* 스탠드 조명 — 불빛 옆에 서서 올려다봅니다. */
+      lamp: {
+        x: 50, y: 100, dx: -68, dy: -6, scale: 0.84, facing: -1, pose: 'stand',
+        fx: 'look', say: '스탠드 불빛이 참 포근해요.'
+      },
+      /* 작은 화분 — 화분 옆에 서서 잎을 봅니다. */
+      plant: {
+        x: 50, y: 100, dx: 42, dy: -4, scale: 0.84, facing: 1, pose: 'stand',
+        fx: 'look', say: '잎이 하나 더 자랐어요.'
+      },
+      /* 찻잔 세트 — 탁자 옆에 서서 차를 내립니다. */
+      tea: {
+        x: 50, y: 100, dx: 49, dy: 5, scale: 0.84, facing: 1, pose: 'stand',
+        fx: 'look', say: '따뜻한 차 한 모금, 좋아요.'
+      },
+      /* 전구 가랜드 — 불빛 아래에 서서 올려다봅니다. */
+      garland: {
+        x: 50, y: 100, dy: 334, scale: 0.84, facing: 1, pose: 'stand',
+        fx: 'look', say: '가랜드 불빛이 은은하게 내려와요.'
+      },
+      /* 고양이 방석 — 방석 옆에 앉아 같이 쉽니다. */
+      cat: {
+        x: 50, y: 100, dx: -74, dy: -6, scale: 0.76, facing: -1, pose: 'sit',
+        fx: 'rest', say: '고양이 옆에서 같이 쉬는 중...'
+      },
+      /* 책 더미 — 책 옆에 앉아 한 장 넘깁니다. */
+      books: {
+        x: 50, y: 100, dx: -54, dy: -6, scale: 0.76, facing: -1, pose: 'sit',
+        fx: 'rest', say: '책장 넘기는 소리가 좋아요.'
+      },
+      /* 레코드판 — 벽에 걸린 음반 아래에 서서 올려다봅니다. */
+      vinyl: {
+        x: 50, y: 100, dy: 226, scale: 0.84, facing: 1, pose: 'stand',
+        fx: 'look', say: '이 음반, 몇 번을 들어도 좋아요.'
+      },
+      /* 디저트 트레이 — 창턱 아래에 서서 바라봅니다. */
+      dessert: {
+        x: 50, y: 100, dx: 4, dy: 197, scale: 0.82, facing: 1, pose: 'stand',
+        fx: 'look', say: '디저트가 자꾸 눈에 밟혀요.'
+      },
+      /* 엽서·사진 보드 — 보드 아래에 서서 올려다봅니다. */
+      board: {
+        x: 50, y: 100, dy: 228, scale: 0.84, facing: 1, pose: 'stand',
+        fx: 'look', say: '엽서에 담긴 마음이 따뜻해요.'
+      },
+      /* 강아지 쿠션 — 쿠션 옆에 앉아 기대어 봅니다. */
+      dog: {
+        x: 50, y: 100, dx: 58, dy: -5, scale: 0.76, facing: 1, pose: 'sit',
+        fx: 'rest', say: '강아지 쿠션에 기대어 앉았어요.'
+      },
+      /* 필름 카메라 — 선반 아래에 서서 올려다봅니다. */
+      camera: {
+        x: 50, y: 100, dy: 190, scale: 0.84, facing: 1, pose: 'stand',
+        fx: 'look', say: '필름 카메라로 한 장 찍어 볼까요.'
+      }
     };
     /* 자세 그림에서 머리끝이 차지하는 높이(그림 아래 240 기준) — 말풍선을 머리 위에 놓습니다. */
     var POSE_HEAD = { stand: 234.4, sit: 156.1, work: 166.4, meditate: 178.6 };
@@ -1860,17 +1991,21 @@
     /* 소품 박스 안의 비율로 발끝 위치를 계산합니다.
        소품을 직접 옮겼다면 저장된 이동량도 앵커에 함께 반영합니다. */
     function roomCharSpotFor(key) {
-      var spec = ACTIVITY[key];
-      if (!spec || !studio) return null;
+      var spec = PROP_INTERACTIONS[key];
+      if (!spec || !studio || !spec.pose) return null;
       var propNode = studio.querySelector('[data-prop="' + key + '"]');
       var box = propBBox(propNode);
+      if (!box) return null;
       var offset = propOffset(box, attic.pos[key]);
-      var anchorX = box ? box.x + box.width * spec.x / 100 : spec.fallback.x;
-      var anchorY = box ? box.y + box.height * spec.y / 100 : spec.fallback.y;
+      var xp = spec.x == null ? 50 : spec.x;
+      var yp = spec.y == null ? 100 : spec.y;
+      var anchorX = box.x + box.width * xp / 100 + (spec.dx || 0);
+      var anchorY = box.y + box.height * yp / 100 + (spec.dy || 0);
       return {
         x: Math.max(40, Math.min(ROOM_W - 40, anchorX + offset.dx)),
         y: Math.max(60, Math.min(ROOM_H - 6, anchorY + offset.dy)),
-        s: spec.scale, facing: spec.facing, pose: spec.pose, fx: spec.fx
+        s: spec.scale, facing: spec.facing, pose: spec.pose,
+        fx: spec.fx, seat: spec.seat === true
       };
     }
 
@@ -1931,7 +2066,7 @@
       roomChar.setAttribute('aria-hidden', String(!shown));
       if (studio) {
         studio.setAttribute('data-char-pose', pose);
-        studio.toggleAttribute('data-char-seat', !!(spot && (spot.pose === 'sit')));
+        studio.toggleAttribute('data-char-seat', !!(spot && spot.seat));
       }
 
       if (!shown) {
@@ -2289,35 +2424,37 @@
       paintRoomCharacter();
     }
     function activatePropInteraction(key) {
+      var spec = PROP_INTERACTIONS[key];
+      if (!spec) return;
       if (activityProp === key) { restoreRoomActivity(); showRoomSay('원래 자리와 자세로 돌아왔어요.'); return; }
-      if (studio) studio.querySelectorAll('.droom__prop.is-playing').forEach(function (node) { node.classList.remove('is-playing'); });
-      /* 소품마다 하는 일 — 자세와 앵커는 ACTIVITY 설정이 정합니다. */
-      var say = {
-        desk: '노트북으로 작업 중...', easel: '캔버스에 그림 그리는 중...',
-        coffee: '따뜻한 커피 내리는 중...', beanbag: '소파에 편히 기대어 쉬는 중...',
-        piano: '피아노 연주하는 중...', guitar: '기타 선율 고르는 중...'
-      };
-      if (key === 'candle') { playSound('candle'); showRoomSay('촛불이 조용히 타닥이고 있어요.'); return; }
-      var spot = ACTIVITY[key];
-      if (!say[key] || !spot || !roomChar) return;
+      /* 다른 소품으로 넘어가기 전에 지난 활동의 표시를 먼저 닦아 둡니다. */
+      if (studio) {
+        studio.querySelectorAll('.droom__prop.is-playing').forEach(function (node) { node.classList.remove('is-playing'); });
+        studio.removeAttribute('data-char-activity');
+        studio.removeAttribute('data-char-fx');
+      }
+      /* 자세 없이 소리·말만 있는 소품(캔들) */
+      if (!spec.pose) {
+        paintRoomCharacter();
+        if (spec.sound) playSound(spec.sound);
+        if (spec.say) showRoomSay(spec.say);
+        return;
+      }
+      if (!roomChar) return;
       if (!attic.avatar) { showRoomSay('방에 세울 캐릭터를 먼저 골라 주세요.'); return; }
-      activityProp = key; activityPoseOverride = spot.pose;
+
+      activityProp = key;
+      activityPoseOverride = spec.pose;
+      /* paintRoomCharacter 가 자세(data-char-pose)와 좌석 호흡(data-char-seat)을 함께 맞춥니다. */
       paintRoomCharacter();
-      studio.setAttribute('data-char-pose', activityPoseOverride);
       studio.setAttribute('data-char-activity', key);
-      studio.setAttribute('data-char-fx', spot.fx);
-      /* 앉아서 사용하는 소품은 앉기 전용 호흡 애니메이션을 적용합니다. */
-      if (key === 'beanbag' || key === 'piano' || key === 'desk') {
-        studio.setAttribute('data-char-seat', 'true');
-      } else {
-        studio.removeAttribute('data-char-seat');
+      studio.setAttribute('data-char-fx', spec.fx || '');
+      if (spec.playing) {
+        var activeProp = studio.querySelector('[data-prop="' + key + '"]');
+        if (activeProp) activeProp.classList.add('is-playing');
       }
-      showRoomSay(say[key]);
-      if (key === 'piano' || key === 'coffee') {
-        var activeProp=studio.querySelector('[data-prop="' + key + '"]');
-        if(activeProp)activeProp.classList.add('is-playing');
-      }
-      if (key === 'desk') playSound('typing');
+      if (spec.sound) playSound(spec.sound);
+      showRoomSay(spec.say);
     }
     function ensureAudio() {
       if (audioContext) return audioContext;
