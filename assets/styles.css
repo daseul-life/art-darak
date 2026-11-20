@@ -2561,7 +2561,8 @@ body { word-break: keep-all; overflow-wrap: break-word; }
    인사(is-greet) 중에는 그 자세의 움직임을 잠시 멈춥니다. */
 .droom[data-char-pose="sit"] .droom__char-bob,
 .droom[data-char-pose="work"] .droom__char-bob,
-.droom[data-char-pose="meditate"] .droom__char-bob { animation: none; }
+.droom[data-char-pose="meditate"] .droom__char-bob,
+.droom[data-char-pose="sofa"] .droom__char-bob { animation: none; }
 
 .droom[data-char-pose="sit"] .droom__char-3d:not(.is-greet) .droom__char-3d-body {
   transform-origin: 50% 96%;
@@ -2579,6 +2580,11 @@ body { word-break: keep-all; overflow-wrap: break-word; }
 .droom[data-char-pose="meditate"] .droom__char-3d:not(.is-greet) .droom__char-3d-body {
   transform-origin: 50% 100%;
   animation: droomPoseBreathe 7.6s ease-in-out infinite;
+}
+/* 소파에 기대어 다리를 뻗은 자세 — 소파가 흔들리지 않게 잔잔한 숨쉬기만 */
+.droom[data-char-pose="sofa"] .droom__char-3d:not(.is-greet) .droom__char-3d-body {
+  transform-origin: 50% 100%;
+  animation: droomPoseBreathe 9.2s ease-in-out infinite;
 }
 
 @keyframes droomPoseSway {
@@ -2601,6 +2607,7 @@ body { word-break: keep-all; overflow-wrap: break-word; }
 .droom[data-char-pose="sit"] .droom__char-shadow,
 .droom[data-char-pose="work"] .droom__char-shadow,
 .droom[data-char-pose="meditate"] .droom__char-shadow { rx: 33px; ry: 7px; }
+.droom[data-char-pose="sofa"] .droom__char-shadow { rx: 46px; ry: 5px; opacity: .14; }
 
 /* --- 명상할 때만 보이는 빛무리와 떠오르는 빛알갱이 --- */
 .droom__char-aura { display: none; }

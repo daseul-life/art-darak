@@ -1796,13 +1796,32 @@
     }
 
     /* -------------------------------------------------- 방 안 캐릭터 */
-    /* 고른 자세의 그림 파일 — 고른 자세의 그림(room-3d/<key>-<pose>.webp)을 씁니다. */
+    /* 자세 그림 파일 이름 — 고른 자세의 그림(room-3d/<key>-<pose>.webp)을 씁니다.
+       'sofa' 는 소파 전용 자세라 고르는 자세(POSE_LABEL)에는 없지만 그림은 따로 있습니다. */
+    var POSE_IMG = { stand: 1, sit: 1, work: 1, meditate: 1, sofa: 1 };
+    var roomPoseProbe = {};
     function roomPoseSrc(charKey, pose) {
       /* data-char 는 'seoyun:f' 모양이라 파일 이름('seoyun-f')에 맞춰 바꿉니다. */
       var key = String(charKey || '').replace(':', '-');
       if (!key) return '';
-      var p = POSE_LABEL[pose] ? pose : 'stand';
+      var p = POSE_IMG[pose] ? pose : 'stand';
+      /* 전용 그림이 없는 캐릭터는 소파에 앉은 그림으로 대신합니다. */
+      if (p === 'sofa' && roomPoseProbe[key + '-sofa'] === 'miss') p = 'sit';
       return 'images/room-3d/' + key + (p === 'stand' ? '' : '-' + p) + '.webp';
+    }
+
+    /* 전용 자세 그림이 있는지 미리 한 번 확인합니다 — 없으면 roomPoseSrc 가 -sit 로 폴백합니다. */
+    function probeRoomPose(charKey, pose) {
+      var key = String(charKey || '').replace(':', '-');
+      var id = key + '-' + pose;
+      if (!key || roomPoseProbe[id]) return;
+      roomPoseProbe[id] = 'ok';
+      var probe = new Image();
+      probe.onerror = function () {
+        roomPoseProbe[id] = 'miss';
+        if (roomChar && activityPoseOverride === pose) paintRoomCharacter();
+      };
+      probe.src = 'images/room-3d/' + id + '.webp';
     }
 
     /* -------------------------------------------------- 소품 상호작용 설정
@@ -1822,9 +1841,10 @@
        foreground: 캐릭터 앞에 다시 그리는 가구 앞면 레이어가 있는지 (darakbang.html)
        say      : 캐릭터가 건네는 한 마디 */
     var PROP_INTERACTIONS = {
-      /* 소파 — 쿠션 위에 엉덩이를 내려앉히고 앞면 레이어로 다리를 감쌉니다. */
+      /* 소파 — 쿠션 위에 기대어 다리를 소파 위로 길게 뻗고 책을 읽습니다.
+         전용 그림(-sofa)의 아래 가운데가 엉덩이라, 그 점을 쿠션 윗면(385+93×100% = 478 에서 50 올린 428)에 맞춥니다. */
       beanbag: {
-        x: 63.8, y: 100, dy: 0, scale: 0.76, facing: 1, pose: 'sit', seat: true,
+        x: 63.8, y: 100, dy: -44, scale: 0.76, facing: 1, pose: 'sofa', seat: true,
         fx: 'breathe', playing: false, foreground: true,
         say: '소파에 편히 기대어 쉬는 중...'
       },
@@ -1922,7 +1942,7 @@
       }
     };
     /* 자세 그림에서 머리끝이 차지하는 높이(그림 아래 240 기준) — 말풍선을 머리 위에 놓습니다. */
-    var POSE_HEAD = { stand: 234.4, sit: 156.1, work: 166.4, meditate: 178.6 };
+    var POSE_HEAD = { stand: 234.4, sit: 156.1, work: 166.4, meditate: 178.6, sofa: 72.7 };
     var CHAR_IMG_W = 150, CHAR_IMG_H = 240, CHAR_ANCHOR_X = 75;
     var roomCharNow = null;
     var roomCharFrame = 0;
@@ -2031,6 +2051,7 @@
       sizeRoomOverlay();
       var key = attic.avatar || '';
       var pose = activityPoseOverride || (POSE_LABEL[attic.pose] ? attic.pose : 'stand');
+      if (activityPoseOverride) probeRoomPose(attic.avatar, activityPoseOverride);
       var shown = false;
       var spot = null;
       Array.prototype.forEach.call(roomChar.querySelectorAll('[data-char]'), function (node) {
