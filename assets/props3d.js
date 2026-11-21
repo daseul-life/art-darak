@@ -388,6 +388,10 @@
 
   if (roomStudio) {
     var downAt = null;
+    var wasActive = null;   // 누르기 전에 '이용 중'이던 소품 — app.js 가 켜기/끄기를 가려내는 데 씁니다
+    document.addEventListener('click', function () {
+      wasActive = roomStudio.getAttribute('data-char-activity');
+    }, true);
     roomStudio.addEventListener('pointerdown', function (e) {
       downAt = { x: e.clientX, y: e.clientY };
     }, true);
@@ -403,7 +407,12 @@
       var name = g.getAttribute('data-prop');
       if (!name) return;
       if (cur && cur.name === name) { endUse(); return; }   // 같은 소품을 다시 누르면 원래대로
-      var key = keyOf(name);
+      /* app.js 는 이 소품을 켰을 때만 data-char-activity 를 남깁니다.
+         이미 다른 캐릭터가 쓰던 소품을 누르면 오히려 '끄기'가 되니, 그때는 컷을 띄우지 않아요. */
+      if (wasActive === name && roomStudio.getAttribute('data-char-activity') !== name) {
+        if (cur) endUse();
+        return;
+      }
       if (start(name, roomCharKey())) keepLayers(true);
       else if (cur) endUse();
     });
