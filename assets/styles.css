@@ -3778,3 +3778,128 @@ body { word-break: keep-all; overflow-wrap: break-word; }
    소품을 끌어 옮기면 JS 가 원본 소품과 같은 이동량을 이 레이어에도 겁니다. */
 .droom__prop-front { display: none; pointer-events: none; }
 .droom__prop-front.is-on { display: inline; }
+
+/* ============================================================
+   창작 일지 · 협업·피드백 (journal.html / cowork.html)
+   ------------------------------------------------------------
+   기존 토큰(로즈밀크 팔레트 · Gowun 글꼴 · radius · shadow)만 씁니다.
+   ============================================================ */
+.feed-notice {
+  display: flex; align-items: center; gap: .55rem;
+  margin: 0 0 1.1rem; padding: .85rem 1rem;
+  border: 1px dashed var(--pink); border-radius: var(--radius);
+  background: var(--paper); color: var(--plum-2);
+  font-size: .87rem; line-height: 1.6;
+}
+.feed-notice[hidden] { display: none; }
+
+.feed-gate {
+  display: grid; justify-items: center; gap: .55rem;
+  padding: clamp(1.6rem, 4vw, 2.4rem) 1.2rem; margin-bottom: 1.2rem;
+  border: 1px solid var(--line); border-radius: var(--radius-lg);
+  background: var(--paper); box-shadow: var(--shadow-m); text-align: center;
+}
+.feed-gate[hidden] { display: none; }
+.feed-gate__emoji { font-size: 1.7rem; }
+.feed-gate h2 { font-family: var(--font-title, 'Gowun Batang', serif); font-size: clamp(1.1rem, 2.4vw, 1.35rem); color: var(--plum); }
+.feed-gate p { max-width: 46ch; font-size: .88rem; line-height: 1.7; color: var(--plum-2); }
+
+.feed-form {
+  display: grid; gap: 1rem;
+  padding: clamp(1.1rem, 3vw, 1.6rem); margin-bottom: 1.6rem;
+  border: 1px solid var(--line); border-radius: var(--radius-lg);
+  background: var(--paper); box-shadow: var(--shadow-s);
+}
+.feed-form[hidden] { display: none; }
+.feed-form__author {
+  display: inline-flex; align-items: center; gap: .4rem;
+  padding: .45rem .85rem; justify-self: start;
+  border-radius: 999px; background: var(--cream);
+  font-size: .82rem; font-weight: 700; color: var(--plum-2);
+}
+.feed-form__author b { color: var(--pink-2); }
+.feed-form__buttons { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
+.feed-form .form-foot { display: flex; align-items: center; justify-content: space-between; gap: .8rem; flex-wrap: wrap; }
+
+.feed-head {
+  display: flex; align-items: center; gap: .9rem; flex-wrap: wrap;
+  margin: 1.4rem 0 1rem;
+}
+.feed-head .kicker { margin: 0; }
+.feed-head__count { font-size: .8rem; font-weight: 700; color: var(--plum-3); }
+.feed-head__count b { color: var(--pink-2); }
+.feed-filters { display: flex; gap: .4rem; flex-wrap: wrap; margin-left: auto; }
+.feed-filters .chip { font-size: .78rem; min-height: 34px; }
+
+.feed { display: grid; gap: .9rem; }
+
+.feed-card {
+  --accent: var(--c-literature); --accent-soft: var(--c-literature-soft); --accent-ink: var(--c-literature-ink);
+  display: grid; gap: .55rem;
+  padding: 1.1rem 1.15rem 1rem;
+  border: 1px solid var(--line); border-left: 4px solid var(--accent);
+  border-radius: var(--radius); background: var(--paper);
+  box-shadow: var(--shadow-s);
+}
+.feed-card.is-closed { opacity: .82; }
+.feed-card__head { display: flex; align-items: center; gap: .45rem; flex-wrap: wrap; }
+.feed-card__who { font-size: .88rem; font-weight: 800; color: var(--plum); text-decoration: none; }
+.feed-card__who:hover { color: var(--pink-2); }
+.feed-card__tag {
+  padding: .14rem .55rem; border-radius: 999px;
+  background: var(--accent-soft); color: var(--accent-ink);
+  font-size: .72rem; font-weight: 800;
+}
+.feed-card__tag--quiet { background: var(--ivory); color: var(--plum-3); }
+.feed-card__kind {
+  padding: .14rem .55rem; border-radius: 999px;
+  background: #FCE7EE; color: var(--plum); font-size: .72rem; font-weight: 800;
+}
+.feed-card__status {
+  padding: .14rem .55rem; border-radius: 999px;
+  border: 1px solid var(--pink); color: var(--pink-2);
+  font-size: .72rem; font-weight: 800;
+}
+.feed-card__status.is-closed { border-color: var(--line); color: var(--plum-3); }
+.feed-card__time { margin-left: auto; font-size: .73rem; color: var(--plum-3); }
+.feed-card__title { font-family: var(--font-title, 'Gowun Batang', serif); font-size: 1.02rem; color: var(--plum); }
+.feed-card__body { font-size: .9rem; line-height: 1.75; color: var(--plum-2); }
+.feed-card__link a { font-size: .8rem; font-weight: 700; color: var(--pink-2); }
+.feed-card__foot { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
+.feed-card__foot .feed-card__who { margin-right: auto; }
+.feed-card__own { display: inline-flex; gap: .35rem; }
+
+.cheer {
+  display: inline-flex; align-items: center; gap: .3rem;
+  padding: .32rem .7rem; border: 1px solid var(--pink); border-radius: 999px;
+  background: #FFFCFD; color: var(--plum-2);
+  font: inherit; font-size: .78rem; font-weight: 700; cursor: pointer;
+  transition: background .18s ease, color .18s ease, border-color .18s ease;
+}
+.cheer span { color: var(--pink-2); font-size: .95rem; line-height: 1; }
+.cheer b { font-weight: 800; }
+.cheer.is-on { background: #FCE7EE; border-color: #E5B5C5; color: var(--plum); }
+.cheer.is-on span { color: #C0607F; }
+.cheer:disabled { opacity: .6; cursor: default; }
+
+.replies { display: grid; gap: .6rem; margin-top: .3rem; padding-top: .75rem; border-top: 1px dashed var(--line); }
+.replies[hidden] { display: none; }
+.replies__list { list-style: none; margin: 0; padding: 0; display: grid; gap: .5rem; }
+.reply {
+  padding: .6rem .75rem; border-radius: 14px; background: var(--cream);
+  display: grid; gap: .1rem;
+}
+.reply__who { font-size: .8rem; font-weight: 800; color: var(--plum); }
+.reply__time { font-size: .7rem; color: var(--plum-3); }
+.reply__body { font-size: .85rem; line-height: 1.65; color: var(--plum-2); }
+.reply--empty { color: var(--plum-3); font-size: .82rem; }
+.reply-form { display: grid; gap: .45rem; }
+.reply-form .textarea { min-height: 62px; }
+.reply-form .btn { justify-self: end; }
+.reply-note { font-size: .78rem; color: var(--plum-3); }
+
+@media (max-width: 640px) {
+  .feed-card { padding: .95rem .9rem .85rem; }
+  .feed-card__time { margin-left: 0; width: 100%; }
+  .feed-head__count { margin-left: auto; }
+}

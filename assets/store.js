@@ -241,9 +241,26 @@
     }
   }
 
+  /* 예시 작품(is_sample)은 체험 모드 저장소에서도 걷어 냅니다.
+     사이트 어디에도 사람이 올리지 않은 예시 작품이 보이지 않게 하기 위함입니다. */
+  function purgeSampleArtworks(data) {
+    if (!data || !Array.isArray(data.artworks)) return data;
+    var removed = {};
+    var before = data.artworks.length;
+    data.artworks = data.artworks.filter(function (w) {
+      if (w && w.is_sample) { removed[w.id] = 1; return false; }
+      return true;
+    });
+    if (data.artworks.length !== before) {
+      data.comments = (data.comments || []).filter(function (c) { return !removed[c.artwork_id]; });
+      writeLocal(data);
+    }
+    return data;
+  }
+
   function bootstrapLocal() {
     var data = readLocal();
-    if (data && data.version === 2) return syncSampleLikes(data);
+    if (data && data.version === 2) return syncSampleLikes(purgeSampleArtworks(data));
 
     data = {
       version: 2,
@@ -657,6 +674,9 @@
       });
     }
 
+    /* 사람이 올린 작품만 — 예시 작품(is_sample)은 목록·집계·화면에서 모두 뺍니다. */
+    works = works.filter(function (w) { return !w.is_sample; });
+
     works.sort(function (a, b) {
       return String(b.created_at).localeCompare(String(a.created_at));
     });
@@ -683,7 +703,7 @@
       console.warn('[아트다락방] 작품을 읽지 못했어요.', res.error);
       return null;
     }
-    if (!res.data) return null;
+    if (!res.data || res.data.is_sample) return null;
     var count2 = res.data.comments && res.data.comments[0] ? res.data.comments[0].count : 0;
     return mapArtwork(res.data, count2);
   }
