@@ -1398,6 +1398,7 @@
     var lastPropDragAt = 0;
     var lastPropTapAt = 0;
     var audioContext = null, audioMaster = null, audioEnabled = false, audioTimer = null;
+    var keyboardNoise = null;
 
     /* 이웃 다락방 · 방명록 */
     var neighborGrid = document.getElementById('neighbor-grid');
@@ -2490,10 +2491,19 @@
         g.gain.setValueAtTime(.0001,now);g.gain.exponentialRampToValueAtTime(.075/(i+1),now+.04);g.gain.exponentialRampToValueAtTime(.0001,now+4.8+i*.3);
         o.connect(g);g.connect(audioMaster);o.start(now);o.stop(now+5.2+i*.3);
       });
-      else if(type==='typing') for(var i=0;i<6;i++){
-        var ot=ctx.createOscillator(),gt=ctx.createGain(),at=now+i*.075;ot.type='triangle';ot.frequency.value=680+(i%3)*130;
-        gt.gain.setValueAtTime(.0001,at);gt.gain.exponentialRampToValueAtTime(.035,at+.004);gt.gain.exponentialRampToValueAtTime(.0001,at+.04);
-        ot.connect(gt);gt.connect(audioMaster);ot.start(at);ot.stop(at+.045);
+      else if(type==='typing') {
+        /* 책상(노트북)을 누르면 — 날카로운 삐 소리 대신, 사람 손이 도각도각 치는 소리.
+           6~8타를 0.11~0.21초씩 불규칙하게 놓고, 한 타는 스페이스바처럼 더 묵직하게 칩니다. */
+        var taps = 6 + Math.floor(Math.random() * 3);
+        var space = Math.random() < .55 ? taps - 1 : Math.floor(taps / 2);
+        var at = now + .04;
+        for (var i = 0; i < taps; i += 1) {
+          keyboardTap(ctx, at, i === space);
+          var gap = .11 + Math.random() * .10;
+          /* 단어 사이에 잠깐 쉬는 숨 — 기계적으로 들리지 않게 한 번만 넣습니다. */
+          if (i === 1 && Math.random() < .6) gap += .06 + Math.random() * .06;
+          at += gap;
+        }
       } else if(type==='candle') {
         /* 촛불은 긴 백색소음 대신 짧고 불규칙한 장작 심지의 타닥임으로 만듭니다. */
         for(var i=0;i<9;i++){
@@ -2523,10 +2533,59 @@
         src.connect(filter);filter.connect(gn);gn.connect(audioMaster);src.start(now);src.stop(now+.66);
       }
     }
+    /* 타건음 한 번을 만듭니다.
+       낮은 몸통 울림(살짝 떨어지는 사인파) + 나무 통 2배음 + 아주 짧은 접점 잡음이
+       겹쳐 '도각' 하는 묵직한 결이 됩니다. low=true 는 스페이스바 소리. */
+    function keyboardNoiseBuffer(ctx) {
+      if (keyboardNoise && keyboardNoise.sampleRate === ctx.sampleRate) return keyboardNoise;
+      var len = Math.floor(ctx.sampleRate * .4);
+      keyboardNoise = ctx.createBuffer(1, len, ctx.sampleRate);
+      var data = keyboardNoise.getChannelData(0);
+      for (var n = 0; n < len; n += 1) data[n] = (Math.random() * 2 - 1) * (1 - n / len);
+      return keyboardNoise;
+    }
+    function keyboardTap(ctx, at, low) {
+      var base = (low ? 118 : 190) * (.94 + Math.random() * .12);
+      var level = (low ? 1.1 : 1) * (.8 + Math.random() * .25);
+
+      /* 몸통 — 낮은 사인파가 살짝 떨어지며 묵직한 thock 을 만듭니다. */
+      var body = ctx.createOscillator(), bodyGain = ctx.createGain();
+      body.type = 'sine';
+      body.frequency.setValueAtTime(base * 1.7, at);
+      body.frequency.exponentialRampToValueAtTime(base, at + .04);
+      bodyGain.gain.setValueAtTime(.0001, at);
+      bodyGain.gain.exponentialRampToValueAtTime(.10 * level, at + .006);
+      bodyGain.gain.exponentialRampToValueAtTime(.0001, at + (low ? .26 : .16));
+      body.connect(bodyGain); bodyGain.connect(audioMaster);
+      body.start(at); body.stop(at + (low ? .28 : .18));
+
+      /* 나무 통 울림 — 2배음이 짧게 남아 '도각'의 또렷한 결을 얹습니다. */
+      var ring = ctx.createOscillator(), ringGain = ctx.createGain();
+      ring.type = 'triangle';
+      ring.frequency.setValueAtTime(base * 2.4, at);
+      ringGain.gain.setValueAtTime(.0001, at);
+      ringGain.gain.exponentialRampToValueAtTime(.035 * level, at + .005);
+      ringGain.gain.exponentialRampToValueAtTime(.0001, at + .085);
+      ring.connect(ringGain); ringGain.connect(audioMaster);
+      ring.start(at); ring.stop(at + .1);
+
+      /* 접점 — 아주 짧은 잡음을 밴드패스로 걸러, 부드러운 타건 어택만 남깁니다. */
+      var src = ctx.createBufferSource(), band = ctx.createBiquadFilter(), noiseGain = ctx.createGain();
+      src.buffer = keyboardNoiseBuffer(ctx);
+      band.type = 'bandpass';
+      band.frequency.value = (low ? 520 : 820) * (.9 + Math.random() * .25);
+      band.Q.value = 1.1;
+      noiseGain.gain.setValueAtTime(.0001, at);
+      noiseGain.gain.linearRampToValueAtTime(.065 * level, at + .003);
+      noiseGain.gain.exponentialRampToValueAtTime(.0001, at + (low ? .09 : .05));
+      src.connect(band); band.connect(noiseGain); noiseGain.connect(audioMaster);
+      src.start(at, Math.random() * .2, .12); src.stop(at + .12);
+    }
     function stopAmbientAudio(){if(audioTimer)window.clearInterval(audioTimer);audioTimer=null;}
     function startAmbientAudio(){
       stopAmbientAudio();if(!audioEnabled)return;var sel=document.querySelector('[data-sound-type]'),type=sel?sel.value:'bowl';playSound(type);
-      audioTimer=window.setInterval(function(){if(audioEnabled)playSound(type);},type==='bowl'?6500:type==='typing'?950:1900);
+      /* 타건음은 한 번에 1.2초 남짓이라, 두 번이 겹치지 않게 간격을 넉넉히 둡니다. */
+      audioTimer=window.setInterval(function(){if(audioEnabled)playSound(type);},type==='bowl'?6500:type==='typing'?1500:1900);
     }
     function setupRoomAudio(){
       var toggle=document.querySelector('[data-sound-toggle]'),sel=document.querySelector('[data-sound-type]'),vol=document.querySelector('[data-sound-volume]'),bowl=document.querySelector('[data-sound-bowl]');
