@@ -13,7 +13,8 @@
   var BASE = 'images/room-3d/';
 
   // 사이트의 data-prop 이름이 아래와 다르면 여기에 직접 적어 주세요. 예: { '내소파': 'sofa' }
-  var CUSTOM = {};
+  // 다락방의 'beanbag' 은 화면에서 '2인용 소파'라서 sofa 그림을 씁니다.
+  var CUSTOM = { beanbag: 'sofa' };
 
   // data-prop 이름(소문자·영문만 비교) → 파일 이름
   var ALIAS = {
@@ -88,6 +89,8 @@
   /* ── CSS (이 파일이 스스로 넣어요) ───────────────────── */
   var css = [
     '.has-3d>.p3d-old{opacity:0}',
+    '[data-room-char].p3d-away{display:none}',
+    '[data-prop-front].p3d-away{display:none!important}',
     '.has-3d.p3d-using>.prop3d{display:none}',
     '.p3d-scene{transform-box:fill-box;transform-origin:50% 100%}',
     '.p3d-f-breathe{animation:p3d-breathe 4.6s ease-in-out infinite alternate}',
@@ -243,6 +246,7 @@
     if (cur.fx.parentNode) cur.fx.parentNode.removeChild(cur.fx);
     cur.g.classList.remove('p3d-using');           // 빈 소품이 다시 보여요
     cur = null;
+    keepLayers(false, null);                        // 방 캐릭터·가구 앞면을 다시 보이게
   }
   // propName: data-prop 값, charKey: 예) 'seoyun:f'.  true 를 돌려주면 3D 컷이 나온 거예요(기존 자세는 건너뛰기)
   function start(propName, charKey) {
@@ -284,6 +288,7 @@
   /* ── 시작: 소품 찾기 ─────────────────────────────────── */
   function scan() {
     document.querySelectorAll('g[data-prop]').forEach(setup);
+    syncUse();
     if (panel) panel.refresh();
   }
   var timer = null;
@@ -347,6 +352,69 @@
       }
     };
     panel.refresh();
+  }
+
+  /* ── 4) 다락방 소품 누름과 잇기 ─────────────────────────
+     다락방 화면(app.js)은 소품을 눌렀을 때 말풍선·소리·자세만 바꾸고
+     이 파일을 부르지는 않아요. 그래서 여기서 '소품 누름'을 직접 듣고
+     사용 컷을 켜고 끕니다. (다른 파일은 건드리지 않아요)
+     사용 컷에는 소품과 캐릭터가 함께 그려져 있어서, 컷이 떠 있는 동안만
+     방 캐릭터와 그 소품의 가구 앞면(2D)을 잠시 감춥니다. */
+  var roomStudio = document.getElementById('darak-studio');
+
+  // 컷이 떠 있는 동안 감출 것: 방 캐릭터, 그 소품의 앞면 레이어
+  function keepLayers(on, propName) {
+    var rc = document.querySelector('[data-room-char]');
+    if (rc) rc.classList.toggle('p3d-away', !!on);
+    var fronts = document.querySelectorAll('[data-prop-front]');
+    Array.prototype.forEach.call(fronts, function (fr) {
+      if (!on) fr.classList.remove('p3d-away');
+      else if (fr.getAttribute('data-prop-front') === propName) fr.classList.add('p3d-away');
+    });
+  }
+
+  function roomCharKey() {
+    var on = document.querySelector('[data-room-char] [data-char].is-on') || document.querySelector('[data-char].is-on');
+    return on ? on.getAttribute('data-char') : '';
+  }
+
+  // 손가락·마우스가 찍은 자리에 깔린 소품 (다른 소품이 겹쳐 있어도 찾아냅니다)
+  function propAt(x, y) {
+    var list = document.elementsFromPoint ? (document.elementsFromPoint(x, y) || []) : [];
+    for (var i = 0; i < list.length; i += 1) {
+      var g = list[i] && list[i].closest ? list[i].closest('g[data-prop]') : null;
+      if (g && g.classList.contains('is-on') && (!roomStudio || roomStudio.contains(g))) return g;
+    }
+    return null;
+  }
+
+  if (roomStudio) {
+    var downAt = null;
+    roomStudio.addEventListener('pointerdown', function (e) {
+      downAt = { x: e.clientX, y: e.clientY };
+    }, true);
+    roomStudio.addEventListener('click', function (e) {
+      // 끌어서 자리를 옮긴 경우는 누름으로 보지 않아요
+      if (downAt && (Math.abs(e.clientX - downAt.x) > 6 || Math.abs(e.clientY - downAt.y) > 6)) return;
+      var g = propAt(e.clientX, e.clientY);
+      if (!g) {
+        var t = e.target && e.target.closest ? e.target.closest('g[data-prop]') : null;
+        if (t && t.classList.contains('is-on')) g = t;
+      }
+      if (!g) return;
+      var name = g.getAttribute('data-prop');
+      if (!name) return;
+      if (cur && cur.name === name) { endUse(); return; }   // 같은 소품을 다시 누르면 원래대로
+      var key = keyOf(name);
+      if (start(name, roomCharKey())) keepLayers(true, name);
+      else if (cur) endUse();
+    });
+  }
+
+  // 캐릭터를 바꾸거나 소품을 치우면 떠 있던 컷도 함께 정리합니다.
+  function syncUse() {
+    if (!cur) return;
+    if (roomCharKey() !== cur.char || !cur.g.classList.contains('is-on') || !cur.g.isConnected) endUse();
   }
 
   window.Props3D = { start: start, end: endUse, fit: FIT };
