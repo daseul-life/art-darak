@@ -388,34 +388,36 @@
 
   if (roomStudio) {
     var downAt = null;
-    var wasActive = null;   // 누르기 전에 '이용 중'이던 소품 — app.js 가 켜기/끄기를 가려내는 데 씁니다
-    document.addEventListener('click', function () {
-      wasActive = roomStudio.getAttribute('data-char-activity');
-    }, true);
-    roomStudio.addEventListener('pointerdown', function (e) {
+    document.addEventListener('pointerdown', function (e) {
       downAt = { x: e.clientX, y: e.clientY };
     }, true);
-    roomStudio.addEventListener('click', function (e) {
+    /* app.js 는 이 소품을 켰을 때만 data-char-activity 를 남깁니다.
+       이미 다른 캐릭터가 쓰던 소품을 누르면 오히려 '끄기'가 되니, 그때는 컷을 띄우지 않아요.
+       app.js 가 켜고 끈 결과를 보고 판단하도록, 결정은 클릭 처리가 끝난 뒤로 미룹니다. */
+    document.addEventListener('click', function (e) {
+      if (!e.target || !roomStudio.contains(e.target)) return;
       // 끌어서 자리를 옮긴 경우는 누름으로 보지 않아요
       if (downAt && (Math.abs(e.clientX - downAt.x) > 6 || Math.abs(e.clientY - downAt.y) > 6)) return;
+      var name = null;
       var g = propAt(e.clientX, e.clientY);
       if (!g) {
-        var t = e.target && e.target.closest ? e.target.closest('g[data-prop]') : null;
+        var t = e.target.closest ? e.target.closest('g[data-prop]') : null;
         if (t && t.classList.contains('is-on')) g = t;
       }
       if (!g) return;
-      var name = g.getAttribute('data-prop');
+      name = g.getAttribute('data-prop');
       if (!name) return;
-      if (cur && cur.name === name) { endUse(); return; }   // 같은 소품을 다시 누르면 원래대로
-      /* app.js 는 이 소품을 켰을 때만 data-char-activity 를 남깁니다.
-         이미 다른 캐릭터가 쓰던 소품을 누르면 오히려 '끄기'가 되니, 그때는 컷을 띄우지 않아요. */
-      if (wasActive === name && roomStudio.getAttribute('data-char-activity') !== name) {
-        if (cur) endUse();
-        return;
-      }
-      if (start(name, roomCharKey())) keepLayers(true);
-      else if (cur) endUse();
-    });
+      var before = roomStudio.getAttribute('data-char-activity');
+      setTimeout(function () {
+        var on = !!(g.isConnected && g.classList.contains('is-on'));
+        var after = roomStudio.getAttribute('data-char-activity');
+        if (before === name && after !== name) { if (cur) endUse(); return; }  // app.js 가 이용을 끔
+        if (!on) { if (cur) endUse(); return; }
+        if (cur && cur.name === name) { endUse(); return; }                    // 같은 소품을 다시 누르면 원래대로
+        if (start(name, roomCharKey())) keepLayers(true);
+        else if (cur) endUse();
+      }, 0);
+    }, true);
   }
 
   // 캐릭터를 바꾸거나 소품을 치우면 떠 있던 컷도 함께 정리합니다.
