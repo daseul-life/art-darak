@@ -180,6 +180,9 @@
       g.insertBefore(img, g.firstChild);
       g.classList.add('has-3d');
       g.__p3d = { key: key, img: img, rect: { x: x, y: y, w: w, h: h }, nw: im.naturalWidth };
+      // 3D 그림에는 가구 앞면이 함께 그려져 있어요. 예전 2D 앞면(건반·기타 몸통 등)은 감춥니다.
+      var fronts = document.querySelectorAll('[data-prop-front="' + g.getAttribute('data-prop') + '"]');
+      Array.prototype.forEach.call(fronts, function (fr) { fr.classList.add('p3d-away'); });
       preloadScenes(key);
     });
   }
@@ -246,7 +249,7 @@
     if (cur.fx.parentNode) cur.fx.parentNode.removeChild(cur.fx);
     cur.g.classList.remove('p3d-using');           // 빈 소품이 다시 보여요
     cur = null;
-    keepLayers(false, null);                        // 방 캐릭터·가구 앞면을 다시 보이게
+    keepLayers(false);                              // 방 캐릭터를 다시 보이게
   }
   // propName: data-prop 값, charKey: 예) 'seoyun:f'.  true 를 돌려주면 3D 컷이 나온 거예요(기존 자세는 건너뛰기)
   function start(propName, charKey) {
@@ -362,15 +365,10 @@
      방 캐릭터와 그 소품의 가구 앞면(2D)을 잠시 감춥니다. */
   var roomStudio = document.getElementById('darak-studio');
 
-  // 컷이 떠 있는 동안 감출 것: 방 캐릭터, 그 소품의 앞면 레이어
-  function keepLayers(on, propName) {
+  // 사용 컷이 떠 있는 동안 감출 것: 방 캐릭터 (컷에 캐릭터가 함께 그려져 있어요)
+  function keepLayers(on) {
     var rc = document.querySelector('[data-room-char]');
     if (rc) rc.classList.toggle('p3d-away', !!on);
-    var fronts = document.querySelectorAll('[data-prop-front]');
-    Array.prototype.forEach.call(fronts, function (fr) {
-      if (!on) fr.classList.remove('p3d-away');
-      else if (fr.getAttribute('data-prop-front') === propName) fr.classList.add('p3d-away');
-    });
   }
 
   function roomCharKey() {
@@ -406,7 +404,7 @@
       if (!name) return;
       if (cur && cur.name === name) { endUse(); return; }   // 같은 소품을 다시 누르면 원래대로
       var key = keyOf(name);
-      if (start(name, roomCharKey())) keepLayers(true, name);
+      if (start(name, roomCharKey())) keepLayers(true);
       else if (cur) endUse();
     });
   }
