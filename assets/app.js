@@ -1399,6 +1399,7 @@
     var lastPropTapAt = 0;
     var audioContext = null, audioMaster = null, audioEnabled = false, audioTimer = null;
     var keyboardNoise = null;
+    var roomEcho = null;
 
     /* 이웃 다락방 · 방명록 */
     var neighborGrid = document.getElementById('neighbor-grid');
@@ -1837,7 +1838,7 @@
                   (전용 그림이 따로 없는 소품은 가장 가까운 자세를 골라 씁니다)
        seat     : 앉은 자세에서 좌석 호흡(data-char-seat)을 켤지 — 소파 · 피아노만
        fx       : 활동별 미세 모션 이름 (CSS 의 [data-char-activity] 가 받습니다)
-       sound    : 누를 때 날 소리 (typing · candle)
+       sound    : 누를 때 날 소리 (typing · candle · piano · guitar)
        playing  : 활동 중 소품 자체 효과(건반 음표 · 커피 김)를 켤지
        foreground: 캐릭터 앞에 다시 그리는 가구 앞면 레이어가 있는지 (darakbang.html)
        say      : 캐릭터가 건네는 한 마디 */
@@ -1858,7 +1859,7 @@
       /* 피아노 — 건반 앞 의자에 앉아 연주합니다. */
       piano: {
         x: 80.9, y: 100, dy: -17, scale: 0.78, facing: 1, pose: 'sit', seat: true,
-        fx: 'notes', playing: true, foreground: true,
+        fx: 'notes', sound: 'piano', playing: true, foreground: true,
         say: '피아노 연주하는 중...'
       },
       /* 이젤 — 캔버스 옆에 비켜 서서 그림을 그립니다. */
@@ -1876,7 +1877,7 @@
       /* 기타 — 바닥에 앉아 기타를 안고 뜯습니다. */
       guitar: {
         x: 90, y: 100, dy: 8, scale: 0.78, facing: 1, pose: 'sit', seat: false,
-        fx: 'strum', playing: false, foreground: true,
+        fx: 'strum', sound: 'guitar', playing: false, foreground: true,
         say: '기타 선율 고르는 중...'
       },
       /* 캔들 워머 — 자세 없이 소리와 말만 (불꽃은 소품 자체 모션). */
@@ -2525,6 +2526,34 @@
           src.connect(high);high.connect(low);low.connect(gn);gn.connect(audioMaster);
           src.start(at);src.stop(at+duration+.005);
         }
+      } else if(type==='piano') {
+        /* 피아노 — 낮은 으뜸음을 먼저 울리고, 그 위로 세 음이 살짝 늦게 따라 올라오는
+           아르페지오가 2초 남짓 따뜻하게 번집니다.
+           누를 때마다 화음을 바꿔, 여러 번 눌러도 같은 소리가 기계적으로 반복되지 않습니다. */
+        var pianoChords=[
+          [130.81,261.63,329.63,392.00,493.88],   /* Cmaj7 — C E G B */
+          [174.61,220.00,261.63,349.23,440.00],   /* F — F A C F A */
+          [220.00,261.63,329.63,392.00,493.88]    /* Am9 — A C E G B */
+        ];
+        var chord=pianoChords[Math.floor(Math.random()*pianoChords.length)];
+        var pianoAt=now+.03;
+        for(var p=0;p<chord.length;p++){
+          pianoNote(ctx,chord[p],pianoAt+p*.105+(p?Math.random()*.014:0),.115*(1-p*.06),2.0-p*.09);
+        }
+      } else if(type==='guitar') {
+        /* 기타 — 낮은 줄부터 줄마다 40ms 안팎씩 늦게 튕기는 부드러운 스트럼.
+           줄마다 배음이 빠르게 줄어들어 손끝이 줄을 스치는 결이 남습니다. */
+        var guitarShapes=[
+          [130.81,164.81,196.00,261.63,329.63],   /* C — C E G C E */
+          [98.00,123.47,146.83,196.00,246.94],    /* G — G B D G B */
+          [110.00,164.81,220.00,261.63,329.63]    /* Am — A E A C E */
+        ];
+        var shape=guitarShapes[Math.floor(Math.random()*guitarShapes.length)];
+        var strumAt=now+.03;
+        for(var s=0;s<shape.length;s++){
+          guitarPluck(ctx,shape[s],strumAt,.1*(1-s*.05),1.8-s*.05);
+          strumAt+=(.038+Math.random()*.012)*(.94+Math.random()*.12);
+        }
       } else {
         var len=Math.floor(ctx.sampleRate*.65),buf=ctx.createBuffer(1,len,ctx.sampleRate),d=buf.getChannelData(0);
         for(var n=0;n<len;n++)d[n]=(Math.random()*2-1)*.17;
@@ -2580,6 +2609,100 @@
       noiseGain.gain.exponentialRampToValueAtTime(.0001, at + (low ? .09 : .05));
       src.connect(band); band.connect(noiseGain); noiseGain.connect(audioMaster);
       src.start(at, Math.random() * .2, .12); src.stop(at + .12);
+    }
+    /* ---- 피아노·기타 — 따뜻한 악기 소리 ---- */
+    /* 소리가 좁은 전자음이 아니라 방 안에서 번지는 느낌이 나도록,
+       짧은 초기 반사 세 갈래를 한 번만 만들어 두고 두 악기가 함께 씁니다. */
+    function roomReflection(ctx) {
+      if (roomEcho && roomEcho.ctx === ctx) return roomEcho.input;
+      var input = ctx.createGain();
+      input.gain.value = .9;
+      [[.11, .22], [.23, .13], [.41, .07]].forEach(function (tap) {
+        var delay = ctx.createDelay(1), soften = ctx.createBiquadFilter(), level = ctx.createGain();
+        delay.delayTime.value = tap[0];
+        soften.type = 'lowpass'; soften.frequency.value = 2000; soften.Q.value = .3;
+        level.gain.value = tap[1];
+        input.connect(delay); delay.connect(soften); soften.connect(level); level.connect(audioMaster);
+      });
+      roomEcho = { ctx: ctx, input: input };
+      return input;
+    }
+    /* 피아노 한 음 — 아주 부드러운 어택 위로 위쪽 배음부터 차례로 사라지고,
+       같은 음을 살짝 어긋나게 겹친 두 줄의 맥놀이가 남아 나무 건반의 여운을 만듭니다. */
+    function pianoNote(ctx, freq, at, level, dur) {
+      var tone = ctx.createBiquadFilter();
+      tone.type = 'lowpass'; tone.Q.value = .35;
+      tone.frequency.setValueAtTime(Math.min(6000, freq * 9), at);
+      tone.frequency.exponentialRampToValueAtTime(Math.max(700, freq * 3.2), at + dur * .75);
+      tone.connect(audioMaster);
+      tone.connect(roomReflection(ctx));
+      /* 배음마다 세기와 수명을 달리해, 시간이 갈수록 둥글고 어두워지게 합니다. */
+      var amps = [1, .38, .19, .10, .055, .03];
+      var lives = [1, .72, .54, .41, .31, .24];
+      for (var i = 0; i < amps.length; i++) {
+        var h = i + 1;
+        /* 실제 피아노 줄처럼 위 배음일수록 조금씩 높게 어긋나 자리 잡습니다. */
+        pianoPartial(ctx, freq * h * (1 + .0004 * h * h), at, level * amps[i], dur * lives[i], tone);
+      }
+      /* 두 줄의 맥놀이 — 으뜸음만 아주 살짝 어긋난 한 겹을 더 얹습니다. */
+      pianoPartial(ctx, freq * 1.0025, at, level * .32, dur * 1.02, tone);
+    }
+    function pianoPartial(ctx, freq, at, amp, life, out) {
+      var o = ctx.createOscillator(), g = ctx.createGain();
+      o.type = 'sine';
+      o.frequency.setValueAtTime(freq, at);
+      g.gain.setValueAtTime(.0001, at);
+      g.gain.linearRampToValueAtTime(amp, at + .012);          /* 살짝 두는 손가락의 부드러운 어택 */
+      /* 처음에는 천천히, 뒤로 갈수록 길게 남는 두 단계 감쇠 — 건반을 놓은 뒤의 여운입니다. */
+      g.gain.exponentialRampToValueAtTime(amp * .5, at + life * .45);
+      g.gain.exponentialRampToValueAtTime(.0001, at + life);
+      o.connect(g); g.connect(out);
+      o.start(at); o.stop(at + life + .02);
+    }
+    /* 기타 한 줄 — 손끝이 줄을 스치는 아주 짧은 픽 소음 위로, 튕긴 직후 살짝 높았다가
+       제자리로 내려앉는 줄의 울림을 얹습니다. 낮은 공명 두 곳으로 나무 몸통의 따뜻함을 더합니다. */
+    function guitarPluck(ctx, freq, at, level, dur) {
+      var bodyLow = ctx.createBiquadFilter();
+      bodyLow.type = 'peaking'; bodyLow.frequency.value = 108; bodyLow.Q.value = 1.1; bodyLow.gain.value = 5;
+      var bodyHigh = ctx.createBiquadFilter();
+      bodyHigh.type = 'peaking'; bodyHigh.frequency.value = 205; bodyHigh.Q.value = 1.5; bodyHigh.gain.value = 3.5;
+      var soften = ctx.createBiquadFilter();
+      soften.type = 'lowpass'; soften.Q.value = .4;
+      soften.frequency.setValueAtTime(Math.min(5200, freq * 12), at);
+      soften.frequency.exponentialRampToValueAtTime(Math.max(900, freq * 4), at + dur * .6);
+      var bus = ctx.createGain(); bus.gain.value = 1;
+      bus.connect(bodyLow); bodyLow.connect(bodyHigh); bodyHigh.connect(soften);
+      soften.connect(audioMaster);
+      soften.connect(roomReflection(ctx));
+      var amps = [1, .52, .28, .16, .09, .05];
+      var lives = [1, .6, .4, .27, .19, .13];
+      for (var i = 0; i < amps.length; i++) {
+        guitarPartial(ctx, freq * (i + 1), at, level * amps[i], dur * lives[i], bus);
+      }
+      /* 픽 — 줄을 튕긴 첫 순간의 결을 아주 짧은 대역 잡음으로 남깁니다. */
+      var pick = ctx.createBufferSource(), pickBand = ctx.createBiquadFilter(), pickGain = ctx.createGain();
+      pick.buffer = keyboardNoiseBuffer(ctx);
+      pickBand.type = 'bandpass';
+      pickBand.frequency.value = 1400 + Math.random() * 900;
+      pickBand.Q.value = .8;
+      pickGain.gain.setValueAtTime(.0001, at);
+      pickGain.gain.linearRampToValueAtTime(level * 1.1, at + .003);
+      pickGain.gain.exponentialRampToValueAtTime(.0001, at + .045);
+      pick.connect(pickBand); pickBand.connect(pickGain); pickGain.connect(soften);
+      pick.start(at, Math.random() * .2, .06); pick.stop(at + .07);
+    }
+    function guitarPartial(ctx, freq, at, amp, life, out) {
+      var o = ctx.createOscillator(), g = ctx.createGain();
+      o.type = 'sine';
+      o.frequency.setValueAtTime(freq * 1.008, at);
+      o.frequency.exponentialRampToValueAtTime(freq, at + .045);  /* 튕긴 직후 살짝 높은 음이 내려앉습니다 */
+      g.gain.setValueAtTime(.0001, at);
+      g.gain.linearRampToValueAtTime(amp, at + .005);
+      /* 줄은 튕긴 직후 빠르게 식고, 남은 울림이 길게 이어집니다. */
+      g.gain.exponentialRampToValueAtTime(amp * .3, at + life * .3);
+      g.gain.exponentialRampToValueAtTime(.0001, at + life);
+      o.connect(g); g.connect(out);
+      o.start(at); o.stop(at + life + .02);
     }
     function stopAmbientAudio(){if(audioTimer)window.clearInterval(audioTimer);audioTimer=null;}
     function startAmbientAudio(){
