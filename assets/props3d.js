@@ -364,6 +364,8 @@
      사용 컷에는 소품과 캐릭터가 함께 그려져 있어서, 컷이 떠 있는 동안만
      방 캐릭터와 그 소품의 가구 앞면(2D)을 잠시 감춥니다. */
   var roomStudio = document.getElementById('darak-studio');
+  // 다락방 화면이 '이용 중' 표시(data-char-activity)를 남기지 않는 소품 — 캔들
+  var MARKLESS = { candle: true };
 
   // 사용 컷이 떠 있는 동안 감출 것: 방 캐릭터 (컷에 캐릭터가 함께 그려져 있어요)
   function keepLayers(on) {
@@ -407,13 +409,15 @@
       if (!g) return;
       name = g.getAttribute('data-prop');
       if (!name) return;
-      var before = roomStudio.getAttribute('data-char-activity');
       setTimeout(function () {
         var on = !!(g.isConnected && g.classList.contains('is-on'));
         var after = roomStudio.getAttribute('data-char-activity');
-        if (before === name && after !== name) { if (cur) endUse(); return; }  // app.js 가 이용을 끔
         if (!on) { if (cur) endUse(); return; }
         if (cur && cur.name === name) { endUse(); return; }                    // 같은 소품을 다시 누르면 원래대로
+        /* 다락방 화면은 소품을 '이용 중'으로 켰을 때만 data-char-activity 에 그 소품을 적어 둡니다.
+           적혀 있지 않으면 켜진 게 아니니(예전 캐릭터의 이용을 끈 경우) 컷을 띄우지 않아요.
+           캔들은 자세 없이 소리·말만 있어서 이 표시를 남기지 않으므로 따로 봅니다. */
+        if (!MARKLESS[name] && after !== name) { if (cur) endUse(); return; }
         if (start(name, roomCharKey())) keepLayers(true);
         else if (cur) endUse();
       }, 0);
