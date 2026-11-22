@@ -1753,8 +1753,13 @@
       activatePropInteraction(key);
     }
 
-    /* 손가락·마우스가 찍은 자리에 깔린 소품 — 캐릭터가 앞을 가려도 소품을 찾아냅니다. */
+    /* 손가락·마우스가 찍은 자리에 깔린 소품 — 캐릭터가 앞을 가려도 소품을 찾아냅니다.
+       겹친 소품은 3D 그림의 투명한 여백을 빼고 실제 그림이 있는 쪽을 고릅니다(props3d.js propAt). */
     function propUnderPoint(x, y) {
+      if (window.Props3D && Props3D.propAt) {
+        var picked = Props3D.propAt(x, y);
+        if (picked && (!studio || studio.contains(picked))) return picked;
+      }
       if (!studio || !document.elementsFromPoint) return null;
       var list = document.elementsFromPoint(x, y) || [];
       for (var i = 0; i < list.length; i += 1) {
@@ -1779,6 +1784,11 @@
       });
       studio.addEventListener('click', function (event) {
         var prop = event.target && event.target.closest ? event.target.closest('.droom__prop.is-on') : null;
+        /* 앞 소품의 투명한 여백이 눌린 경우, 그 자리에 실제로 그려진 소품을 다시 찾습니다. */
+        if (window.Props3D && Props3D.propAt) {
+          var better = Props3D.propAt(event.clientX, event.clientY);
+          if (better) prop = better;
+        }
         if (!prop || !studio.contains(prop)) return;
         /* 이미 pointerup 에서 켰으면 click 으로 또 켜지 않게 합니다. */
         if (Date.now() - lastPropTapAt < 450) return;
@@ -1852,13 +1862,13 @@
       },
       /* 책상 — 의자에 앉아 상판 너머로 노트북을 마주합니다. */
       desk: {
-        x: 50, y: 100, dy: -52, scale: 0.80, facing: 1, pose: 'work', seat: false,
+        x: 68.5, y: 100, dy: -81, scale: 0.80, facing: 1, pose: 'work', seat: false,
         fx: 'type', sound: 'typing', playing: false, foreground: true,
         say: '노트북으로 작업 중...'
       },
       /* 피아노 — 건반 앞 의자에 앉아 연주합니다. */
       piano: {
-        x: 80.9, y: 100, dy: -17, scale: 0.78, facing: 1, pose: 'sit', seat: true,
+        x: 80.6, y: 100, dy: -87, scale: 0.78, facing: 1, pose: 'sit', seat: true,
         fx: 'notes', sound: 'piano', playing: true, foreground: true,
         say: '피아노 연주하는 중...'
       },
@@ -1876,7 +1886,7 @@
       },
       /* 기타 — 바닥에 앉아 기타를 안고 뜯습니다. */
       guitar: {
-        x: 90, y: 100, dy: 8, scale: 0.78, facing: 1, pose: 'sit', seat: false,
+        x: 78.8, y: 100, dy: -69, scale: 0.78, facing: 1, pose: 'sit', seat: false,
         fx: 'strum', sound: 'guitar', playing: false, foreground: true,
         say: '기타 선율 고르는 중...'
       },
@@ -2363,7 +2373,14 @@
           var chip = event.target.closest ? event.target.closest('[data-pose]') : null;
           if (!chip || !canCustomize) return;
           var pose = chip.getAttribute('data-pose');
-          if (!POSE_LABEL[pose] || attic.pose === pose) return;
+          if (!POSE_LABEL[pose]) return;
+          /* 소품을 이용하는 중에는 그 소품 자세가 화면을 잡고 있어 자세 버튼이 먹지 않았어요.
+             자세를 고르면 소품 이용을 먼저 끝내고 고른 자세로 돌아갑니다. */
+          if (activityProp) {
+            restoreRoomActivity();
+            if (attic.pose === pose) { persistAttic('소품 이용을 마치고 ' + POSE_LABEL[pose] + ' 자세로 돌아왔어요.'); return; }
+          }
+          if (attic.pose === pose) return;
           attic.pose = pose;
           if (pose === 'meditate') playSound('bowl');
           paintStudio();

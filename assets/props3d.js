@@ -43,22 +43,36 @@
     'momo:f': 'momo-f', 'momo:m': 'momo-m', 'doyun:f': 'doyun-f', 'doyun:m': 'doyun-m',
     'haemil:f': 'haemil-f', 'haemil:m': 'haemil-m', 'haon:f': 'haon-f', 'haon:m': 'haon-m' };
 
-  // 사용 컷 맞춤값  r: 소품 크기 비율, ax: 소품 가로 중심(그림 너비 중 몇 %), ay: 소품 바닥(그림 높이 중 몇 %)
-  // ※ 어림값이에요. ?props3d=tune 패널로 맞춰서 숫자를 알려 주세요.
-  var DEF = { r: 0.78, ax: 0.5, ay: 0.97 };
+  // 사용 컷 맞춤값  r: 소품 크기 비율, ax: 소품 가로 중심(그림 너비 중 몇 %),
+  // d0: 그림 아래 끝을 소품 바닥선에 맞춘 뒤 더 내릴 양(기준 컷 픽셀)
+  // w0/h0: 기준 컷(seoyun:f)의 원본 픽셀 크기 — 12명 모두 이 기준 틀에 맞춰 놓습니다.
+  //   (예전에는 ay 를 '그 컷 높이의 몇 %'로 썼는데, 컷마다 잘린 높이가 달라 12명의 발/좌석 높이가
+  //    제각각이었어요. 이제는 '컷 아래 끝 = 소품 바닥선'으로 모든 캐릭터를 같은 선에 세웁니다.)
+  var DEF = { r: 0.78, ax: 0.5, d0: 7 };
   var FIT = {
-    sofa: { r: 0.78, ax: 0.5, ay: 0.96 }, desk: { r: 0.69, ax: 0.5, ay: 0.97 },
-    piano: { r: 0.88, ax: 0.5, ay: 0.97 }, easel: { r: 0.74, ax: 0.24, ay: 0.97 },
-    coffee: { r: 0.6, ax: 0.3, ay: 0.97 }, guitar: { r: 0.7, ax: 0.3, ay: 0.96 },
-    candle: { r: 0.6, ax: 0.27, ay: 0.97 }, lamp: { r: 0.85, ax: 0.15, ay: 0.97 },
-    plant: { r: 0.7, ax: 0.12, ay: 0.95 }, lights: { r: 0.78, ax: 0.5, ay: 0.24 },
-    cat: { r: 0.75, ax: 0.75, ay: 0.93 }, books: { r: 0.75, ax: 0.22, ay: 0.95 },
-    record: { r: 0.8, ax: 0.27, ay: 0.97 }, dessert: { r: 0.75, ax: 0.18, ay: 0.97 },
-    board: { r: 0.8, ax: 0.3, ay: 0.88 }, dog: { r: 0.75, ax: 0.3, ay: 0.93 },
-    tea: { r: 0.7, ax: 0.5, ay: 0.96 }, camera: { r: 0.7, ax: 0.5, ay: 0.96 }
+    sofa: { r: 0.78, ax: 0.5, d0: 9, w0: 270, h0: 223 },
+    desk: { r: 0.69, ax: 0.5, d0: 7, w0: 191, h0: 239 },
+    piano: { r: 0.88, ax: 0.5, d0: 7, w0: 206, h0: 233 },
+    easel: { r: 0.74, ax: 0.24, d0: 8, w0: 243, h0: 256 },
+    coffee: { r: 0.6, ax: 0.3, d0: 8, w0: 178, h0: 254 },
+    guitar: { r: 0.7, ax: 0.3, d0: 10, w0: 190, h0: 249 },
+    candle: { r: 0.6, ax: 0.27, d0: 7, w0: 183, h0: 238 },
+    lamp: { r: 0.85, ax: 0.15, d0: 7, w0: 169, h0: 237 },
+    plant: { r: 0.7, ax: 0.12, d0: 9, w0: 178, h0: 179 },
+    lights: { r: 0.78, ax: 0.5, d0: 146, w0: 188, h0: 192 },
+    cat: { r: 0.75, ax: 0.75, d0: 11, w0: 189, h0: 163 },
+    books: { r: 0.75, ax: 0.22, d0: 9, w0: 207, h0: 185 },
+    record: { r: 0.8, ax: 0.27, d0: 7, w0: 170, h0: 222 },
+    dessert: { r: 0.75, ax: 0.18, d0: 7, w0: 153, h0: 227 },
+    board: { r: 0.8, ax: 0.3, d0: 27, w0: 188, h0: 227 },
+    dog: { r: 0.75, ax: 0.3, d0: 12, w0: 211, h0: 172 },
+    tea: { r: 0.7, ax: 0.5, d0: 10, w0: 91, h0: 238 },
+    camera: { r: 0.7, ax: 0.5, d0: 9, w0: 103, h0: 228 }
   };
 
-  // 움직임: f=몸 움직임, p=[효과, x%, y%, 개수, 간격(초), 가로퍼짐%, {추가값}]  (x·y는 사용 컷 그림 기준)
+  // 움직임: f=몸 움직임, p=[효과, x%, y%, 개수, 간격(초), 가로퍼짐%, {추가값}]
+  //   x·y 는 '기준 컷(seoyun:f)' 그림 안의 위치(%)예요. 12명 모두 이 기준 틀로 효과를 띄워서,
+  //   캐릭터가 바뀌어도 음표·반짝임이 같은 자리에서 나옵니다.
   var FX = {
     sofa: { f: 'breathe', p: [['spark', 56, 20, 2, 0.9, 14]] },
     desk: { f: 'typing', p: [['key', 44, 56, 3, 0.16, 9]] },
@@ -140,7 +154,7 @@
     pending[url] = new Promise(function (res) {
       var im = new Image();
       im.onload = function () { loaded[url] = im; res(im); };
-      im.onerror = function () { res(null); };         // 실패하면 예전 그림 그대로
+      im.onerror = function () { delete pending[url]; res(null); };   // 다음에 다시 시도할 수 있게
       im.src = url;
     });
     return pending[url];
@@ -188,10 +202,11 @@
       preloadScenes(key);
     });
   }
+  /* 화면에 선 캐릭터의 컷만 미리 받아 둡니다. 예전에는 18소품 × 12명 = 216장을 한꺼번에 받아서
+     느린 폰에서는 첫 누름에 컷이 늦게 뜨거나 안 뜨는 일이 있었어요. 캐릭터를 바꾸면 그 캐릭터 것만 받습니다. */
   function preloadScenes(key) {
-    Object.keys(SCENE_CHARS).forEach(function (c) {
-      load(BASE + 'scenes/' + SCENE_CHARS[c] + '-' + key + '.webp');
-    });
+    var c = SCENE_CHARS[roomCharKey()];
+    if (c) load(BASE + 'scenes/' + c + '-' + key + '.webp');
   }
 
   /* ── 2) 사용 컷 바꿔 끼우기 ──────────────────────────── */
@@ -288,23 +303,43 @@
     var sc = SCENE_CHARS[charKey];
     if (!g || !g.__p3d || !g.__p3d.img || !sc) return false;
     var key = g.__p3d.key;
-    var im = loaded[BASE + 'scenes/' + sc + '-' + key + '.webp'];
-    if (!im) return false;
+    var url = BASE + 'scenes/' + sc + '-' + key + '.webp';
+    var im = loaded[url];
+    if (!im) {
+      /* 그림을 아직 못 받았으면, 받은 뒤에 한 번 더 시도합니다.
+         (예전에는 이 순간 그냥 false 라서 '눌렀는데 자세가 안 바뀌는' 것처럼 보였어요.) */
+      load(url).then(function (got) {
+        if (!got || cur) return;
+        if (roomCharKey() !== charKey || !g.classList.contains('is-on')) return;
+        if (roomStudio && roomStudio.getAttribute('data-char-activity') !== propName) return;
+        if (start(propName, charKey)) keepLayers(true);
+      });
+      return false;
+    }
     endUse();
     var R = g.__p3d.rect, f = FIT[key] || DEF;
     var k = (R.w / g.__p3d.nw) / f.r;
-    var w = im.naturalWidth * k, h = im.naturalHeight * k;
-    var x = R.x + R.w / 2 - f.ax * w, y = R.y + R.h - f.ay * h;
+    /* 캐릭터마다 컷이 잘린 크기가 달라서, 기준 컷(seoyun:f)과 같은 크기로 그립니다.
+       (예전에는 컷 원본 크기를 그대로 썼기 때문에 누구는 크고 누구는 작게 보였어요.) */
+    var sc = (f.h0 || im.naturalHeight) / im.naturalHeight;
+    var w = im.naturalWidth * k * sc, h = im.naturalHeight * k * sc;
+    var x = R.x + R.w / 2 - f.ax * w;
+    /* 세로는 '그 컷의 몇 %'가 아니라 '컷 아래 끝 = 소품 바닥선'으로 맞춥니다.
+       컷마다 잘린 높이가 달라도 12명 모두 같은 바닥선에 서고 앉습니다. */
+    var y = R.y + R.h - h + (f.d0 || 0) * k;
+    /* 효과(음표·반짝임·김)는 각 컷이 아니라 기준 컷 자리에 띄워서 12명이 똑같이 보이게 합니다. */
+    var wb = (f.w0 || im.naturalWidth) * k, hb = (f.h0 || im.naturalHeight) * k;
+    var xb = R.x + R.w / 2 - f.ax * wb, yb = R.y + R.h - hb + (f.d0 || 0) * k;
     var fxd = FX[key] || { f: 'breathe', p: [] };
     var img = svgImage(im.src, x, y, w, h, 'p3d-scene p3d-f-' + fxd.f);
     var fx = document.createElementNS(NS, 'g');
     fx.setAttribute('aria-hidden', 'true');
-    var u = w / 100;
+    var u = wb / 100;
     defs(g.ownerSVGElement);
     fxd.p.forEach(function (s) {
       for (var i = 0; i < s[3]; i++) {
-        var px = x + (s[1] + (i - (s[3] - 1) / 2) * s[5]) / 100 * w;
-        var py = y + s[2] / 100 * h;
+        var px = xb + (s[1] + (i - (s[3] - 1) / 2) * s[5]) / 100 * wb;
+        var py = yb + s[2] / 100 * hb;
         var e = particle(s[0], i, px, py, u, s[6] || {});
         e.style.setProperty('--gap', s[4] + 's');
         fx.appendChild(e);
@@ -323,8 +358,20 @@
   /* ── 시작: 소품 찾기 ─────────────────────────────────── */
   function scan() {
     document.querySelectorAll('g[data-prop]').forEach(setup);
+    /* 캐릭터가 바뀌면 그 캐릭터의, 방에 놓인 소품 컷만 미리 받아 둡니다. */
+    if (roomCharKey() !== warmedChar) { warmedChar = roomCharKey(); warmScenes(); }
     syncUse();
     if (panel) panel.refresh();
+  }
+  var warmedChar = null;
+  function warmScenes() {
+    var c = SCENE_CHARS[roomCharKey()];
+    if (!c) return;
+    document.querySelectorAll('g[data-prop]').forEach(function (g) {
+      if (g.__p3d && g.__p3d.img && g.classList.contains('is-on')) {
+        load(BASE + 'scenes/' + c + '-' + g.__p3d.key + '.webp');
+      }
+    });
   }
   var timer = null;
   function later() { clearTimeout(timer); timer = setTimeout(scan, 150); }
@@ -342,22 +389,22 @@
       '<select id="p3d-sel" style="width:100%;min-height:44px;font-size:16px"></select>' +
       '<label style="display:block">크기 <b id="p3d-rv"></b><input id="p3d-r" type="range" min="0.3" max="1.3" step="0.01" style="width:100%"></label>' +
       '<label style="display:block">가로 위치 <b id="p3d-axv"></b><input id="p3d-ax" type="range" min="-0.2" max="1.2" step="0.01" style="width:100%"></label>' +
-      '<label style="display:block">세로 위치 <b id="p3d-ayv"></b><input id="p3d-ay" type="range" min="0.1" max="1.3" step="0.01" style="width:100%"></label>' +
+      '<label style="display:block">세로 내림 <b id="p3d-ayv"></b><input id="p3d-ay" type="range" min="-20" max="80" step="1" style="width:100%"></label>' +
       '<div style="display:flex;gap:6px;margin-top:6px"><button id="p3d-go" style="flex:1;min-height:44px">사용 컷 보기</button>' +
       '<button id="p3d-stop" style="flex:1;min-height:44px">끝내기</button>' +
       '<button id="p3d-copy" style="flex:1;min-height:44px">숫자 복사</button></div>';
     document.body.appendChild(box);
     var $ = function (id) { return box.querySelector('#p3d-' + id); };
     var sel = $('sel');
-    function cfg() { var k = sel.value; return (FIT[k] = FIT[k] || { r: DEF.r, ax: DEF.ax, ay: DEF.ay }); }
+    function cfg() { var k = sel.value; var c = (FIT[k] = FIT[k] || { r: DEF.r, ax: DEF.ax, d0: DEF.d0 }); if (c.d0 == null) c.d0 = DEF.d0; return c; }
     function show() {
       var c = cfg();
-      $('r').value = c.r; $('ax').value = c.ax; $('ay').value = c.ay;
-      $('rv').textContent = c.r; $('axv').textContent = c.ax; $('ayv').textContent = c.ay;
+      $('r').value = c.r; $('ax').value = c.ax; $('ay').value = c.d0;
+      $('rv').textContent = c.r; $('axv').textContent = c.ax; $('ayv').textContent = c.d0;
     }
     function redo() {
       var c = cfg();
-      c.r = +$('r').value; c.ax = +$('ax').value; c.ay = +$('ay').value;
+      c.r = +$('r').value; c.ax = +$('ax').value; c.d0 = +$('ay').value;
       show();
       var name = sel.options[sel.selectedIndex].getAttribute('data-name');
       if (cur) start(name, 'seoyun:f');
@@ -409,13 +456,53 @@
   }
 
   // 손가락·마우스가 찍은 자리에 깔린 소품 (다른 소품이 겹쳐 있어도 찾아냅니다)
+  /* 소품 3D 그림은 투명한 여백까지 눌림 영역이에요. 그래서 뒤에 있는 소품(예: 책상)을 누를 때
+     앞 소품(피아노)의 투명한 부분이 먼저 잡히는 일이 있었습니다. 그림의 투명도를 24×24로
+     미리 읽어 두고, 실제로 그림이 있는 소품을 고릅니다. */
+  var GRID = 24, grids = {};
+  function gridFor(g) {
+    var p = g && g.__p3d;
+    if (!p || !p.img) return null;
+    var url = p.img.getAttribute('href');
+    if (url in grids) return grids[url];
+    var im = loaded[url];
+    if (!im) return null;
+    try {
+      var c = document.createElement('canvas');
+      c.width = GRID; c.height = GRID;
+      var cx = c.getContext('2d');
+      cx.drawImage(im, 0, 0, GRID, GRID);
+      var d = cx.getImageData(0, 0, GRID, GRID).data, out = new Uint8Array(GRID * GRID);
+      for (var i = 0; i < out.length; i += 1) out[i] = d[i * 4 + 3];
+      grids[url] = out;
+      return out;
+    } catch (e) { grids[url] = null; return null; }
+  }
+  function alphaHit(g, x, y) {
+    var p = g && g.__p3d;
+    if (!p || !p.img) return true;                 // 정보가 없으면 예전처럼 통과
+    var gd = gridFor(g);
+    if (!gd) return true;
+    var img = p.img, svg = img.ownerSVGElement;
+    var m = img.getScreenCTM && img.getScreenCTM();
+    if (!svg || !m) return true;
+    var pt = svg.createSVGPoint(); pt.x = x; pt.y = y;
+    var u = pt.matrixTransform(m.inverse());
+    var nw = img.width.baseVal.value || 1, nh = img.height.baseVal.value || 1;
+    var gx = Math.floor((u.x / nw) * GRID), gy = Math.floor((u.y / nh) * GRID);
+    if (gx < 0 || gy < 0 || gx >= GRID || gy >= GRID) return false;
+    return gd[gy * GRID + gx] > 60;
+  }
   function propAt(x, y) {
     var list = document.elementsFromPoint ? (document.elementsFromPoint(x, y) || []) : [];
+    var fallback = null;
     for (var i = 0; i < list.length; i += 1) {
       var g = list[i] && list[i].closest ? list[i].closest('g[data-prop]') : null;
-      if (g && g.classList.contains('is-on') && (!roomStudio || roomStudio.contains(g))) return g;
+      if (!g || !g.classList.contains('is-on') || (roomStudio && !roomStudio.contains(g))) continue;
+      if (!fallback) fallback = g;
+      if (alphaHit(g, x, y)) return g;             // 그 자리에 실제로 그림이 있는 소품
     }
-    return null;
+    return fallback;
   }
 
   if (roomStudio) {
@@ -453,11 +540,13 @@
     }, true);
   }
 
-  // 캐릭터를 바꾸거나 소품을 치우면 떠 있던 컷도 함께 정리합니다.
+  // 캐릭터를 바꾸거나, 소품 이용이 끝나거나(자세 버튼 등), 소품을 치우면 떠 있던 컷도 함께 정리합니다.
   function syncUse() {
     if (!cur) return;
+    var act = roomStudio ? roomStudio.getAttribute('data-char-activity') : null;
+    if (act !== cur.name) { endUse(); return; }        // 소품 이용이 끝났으면 컷도 내립니다
     if (roomCharKey() !== cur.char || !cur.g.classList.contains('is-on') || !cur.g.isConnected) endUse();
   }
 
-  window.Props3D = { start: start, end: endUse, fit: FIT };
+  window.Props3D = { start: start, end: endUse, fit: FIT, propAt: propAt };
 })();
