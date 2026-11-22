@@ -441,6 +441,14 @@ button { font: inherit; color: inherit; }
   align-items: center;
 }
 
+.hero__welcome {
+  margin: 0 0 .55rem;
+  font-size: clamp(.95rem, 2.2vw, 1.06rem);
+  font-weight: 700;
+  letter-spacing: .01em;
+  color: var(--plum);
+}
+
 .hero__fields {
   display: inline-flex; flex-wrap: wrap; align-items: center; gap: .45rem;
   margin-bottom: 1.1rem;
