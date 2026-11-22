@@ -550,10 +550,10 @@
       '<input class="input" name="pen" type="text" maxlength="12" autocomplete="username" placeholder="예: 달빛우물" required>' +
       '</label>' +
       '<label class="form-field"><span>비밀번호</span>' +
-      '<input class="input" name="password" type="password" maxlength="72" autocomplete="current-password" placeholder="6자 이상" required>' +
+      '<div class="password-field"><input class="input" name="password" type="password" maxlength="72" autocomplete="current-password" placeholder="6자 이상" required><button class="password-toggle" type="button" data-toggle-password aria-label="비밀번호 보기" aria-pressed="false">보기</button></div>' +
       '</label>' +
       '<label class="form-field" data-signup-only><span>비밀번호 확인</span>' +
-      '<input class="input" name="password2" type="password" maxlength="72" autocomplete="new-password" placeholder="한 번 더 적어 주세요">' +
+      '<div class="password-field"><input class="input" name="password2" type="password" maxlength="72" autocomplete="new-password" placeholder="한 번 더 적어 주세요"><button class="password-toggle" type="button" data-toggle-password aria-label="비밀번호 보기" aria-pressed="false">보기</button></div>' +
       '</label>' +
       '<div class="form-field" data-signup-only><span>성별 <em>(선택)</em></span>' +
       '<div class="opt-chips" data-auth-genders>' + genderChipsHTML() + '</div>' +
@@ -588,6 +588,17 @@
 
     auth.modal.addEventListener('click', function (event) {
       if (event.target.hasAttribute('data-auth-close')) closeAuth();
+      var toggle = event.target.closest ? event.target.closest('[data-toggle-password]') : null;
+      if (toggle) {
+        var input = toggle.parentNode.querySelector('input');
+        if (input) {
+          var visible = input.type === 'password';
+          input.type = visible ? 'text' : 'password';
+          toggle.textContent = visible ? '숨기기' : '보기';
+          toggle.setAttribute('aria-label', visible ? '비밀번호 숨기기' : '비밀번호 보기');
+          toggle.setAttribute('aria-pressed', String(visible));
+        }
+      }
     });
 
     auth.modal.querySelectorAll('[data-auth-tab]').forEach(function (tab) {
@@ -760,6 +771,8 @@
 
   function bindGlobalClicks() {
     document.addEventListener('click', function (event) {
+      var changePassword = event.target.closest ? event.target.closest('#change-password-open') : null;
+      if (changePassword) { event.preventDefault(); openPasswordModal(); return; }
       var account = event.target.closest ? event.target.closest('[data-account]') : null;
       if (account) {
         event.preventDefault();
@@ -2781,6 +2794,8 @@
     function setupTools(owner, me, editable) {
       if (editBtn) editBtn.hidden = !owner;
       if (logoutBtn) logoutBtn.hidden = !owner;
+      var passwordBtn = document.getElementById('change-password-open');
+      if (passwordBtn) passwordBtn.hidden = !owner;
       if (studio) studio.classList.toggle('droom--moveable', editable);
       if (visitOwn) visitOwn.hidden = owner || !me;
       if (visitJoin) visitJoin.hidden = editable || !!me;
@@ -3178,6 +3193,63 @@
     });
 
     await render();
+  }
+
+  function ensurePasswordModal() {
+    if (document.getElementById('change-password-modal')) return;
+    var html = '<div class="modal" id="change-password-modal" hidden>' +
+      '<div class="modal__backdrop" data-password-close></div>' +
+      '<div class="modal__card" role="dialog" aria-modal="true" aria-labelledby="change-password-title">' +
+      '<button class="modal__close" type="button" data-password-close aria-label="닫기">✕</button>' +
+      '<p class="kicker">계정 보안</p><h2 id="change-password-title">비밀번호 변경</h2>' +
+      '<p class="modal__desc">현재 비밀번호를 확인한 뒤 새 비밀번호를 설정해 주세요.</p>' +
+      '<form id="change-password-form" novalidate>' +
+      '<label class="form-field"><span>현재 비밀번호</span><div class="password-field"><input class="input" name="current" type="password" autocomplete="current-password" required><button class="password-toggle" type="button" data-toggle-password>보기</button></div></label>' +
+      '<label class="form-field"><span>새 비밀번호</span><div class="password-field"><input class="input" name="next" type="password" minlength="6" maxlength="72" autocomplete="new-password" placeholder="6자 이상" required><button class="password-toggle" type="button" data-toggle-password>보기</button></div></label>' +
+      '<label class="form-field"><span>새 비밀번호 확인</span><div class="password-field"><input class="input" name="confirm" type="password" maxlength="72" autocomplete="new-password" required><button class="password-toggle" type="button" data-toggle-password>보기</button></div></label>' +
+      '<p class="form-error" data-password-error role="alert" hidden></p>' +
+      '<button class="btn btn--primary auth-submit" type="submit">비밀번호 변경하기</button></form></div></div>';
+    document.body.insertAdjacentHTML('beforeend', html);
+    var modal = document.getElementById('change-password-modal');
+    var form = document.getElementById('change-password-form');
+    modal.addEventListener('click', function (event) {
+      if (event.target.hasAttribute('data-password-close')) modal.hidden = true;
+      var toggle = event.target.closest ? event.target.closest('[data-toggle-password]') : null;
+      if (toggle) {
+        var input = toggle.parentNode.querySelector('input');
+        if (input) { var visible = input.type === 'password'; input.type = visible ? 'text' : 'password'; toggle.textContent = visible ? '숨기기' : '보기'; toggle.setAttribute('aria-pressed', String(visible)); }
+      }
+    });
+    form.addEventListener('submit', async function (event) {
+      event.preventDefault();
+      var error = modal.querySelector('[data-password-error]');
+      var button = form.querySelector('[type="submit"]');
+      var data = new FormData(form);
+      var current = String(data.get('current') || '');
+      var next = String(data.get('next') || '');
+      var confirm = String(data.get('confirm') || '');
+      error.hidden = true; error.textContent = '';
+      if (!current) { error.textContent = '현재 비밀번호를 입력해 주세요.'; error.hidden = false; return; }
+      if (next.length < 6) { error.textContent = '새 비밀번호는 6자 이상이어야 해요.'; error.hidden = false; return; }
+      if (next !== confirm) { error.textContent = '새 비밀번호가 서로 달라요.'; error.hidden = false; return; }
+      if (current === next) { error.textContent = '현재 비밀번호와 다른 비밀번호를 입력해 주세요.'; error.hidden = false; return; }
+      button.disabled = true; button.textContent = '변경 중…';
+      try {
+        await Store.changePassword(current, next);
+        form.reset(); modal.hidden = true;
+        toast('비밀번호가 변경됐어요.');
+      } catch (err) {
+        error.textContent = err && err.message ? err.message : '비밀번호를 변경하지 못했어요.';
+        error.hidden = false;
+      } finally { button.disabled = false; button.textContent = '비밀번호 변경하기'; }
+    });
+  }
+
+  function openPasswordModal() {
+    ensurePasswordModal();
+    var modal = document.getElementById('change-password-modal');
+    modal.hidden = false;
+    document.body.classList.add('is-locked');
   }
 
   function ensureProfileModal() {
