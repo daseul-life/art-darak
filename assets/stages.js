@@ -1,5 +1,5 @@
 /* ============================================================
-   아트다락방 — 창작 일지(journal.html) · 협업·피드백(cowork.html)
+   아트다락방 — 창작 일지(journal.html) · 공동 작업실(cowork.html)
    ------------------------------------------------------------
    · 필명 가입·작품 등록 뒤에 이어지는 3~4단계 화면입니다.
    · Supabase 표(public.journals / cowork_posts / cowork_replies)가
@@ -372,7 +372,7 @@
   }
 
   /* ============================================================
-     2) 협업 · 피드백
+     2) 공동 작업실
      ============================================================ */
   var Cowork = {
     list: async function () {
@@ -497,7 +497,7 @@
     await whenReady();
 
     if (Store.mode !== 'cloud' || !db()) {
-      showNotice(setup, '협업 게시판은 Supabase를 연결하면 열려요. 지금은 체험 모드예요.');
+      showNotice(setup, '공동 작업실은 Supabase를 연결하면 열려요. 지금은 체험 모드예요.');
       hide(gate); hide(form); hide(empty);
       return;
     }
