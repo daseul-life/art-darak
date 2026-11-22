@@ -559,6 +559,30 @@
     return state.profile;
   }
 
+  async function changePassword(currentPassword, newPassword) {
+    assert(state.profile, '로그인한 뒤 이용해 주세요.');
+    assert(String(newPassword || '').length >= 6, '새 비밀번호는 6자 이상으로 정해 주세요.');
+    if (state.mode === 'local') {
+      var data = bootstrapLocal();
+      var row = (data.profiles || []).filter(function (p) { return p.id === state.profile.id; })[0];
+      if (!row || !verifyPassword(String(currentPassword || ''), row.hash)) {
+        throw new Error('현재 비밀번호가 맞지 않아요.');
+      }
+      var salt = makeSalt();
+      row.hash = hashPassword(String(newPassword), salt);
+      writeLocal(data);
+      return true;
+    }
+    var email = penToEmail(state.profile.pen_name);
+    var verified = await state.client.auth.signInWithPassword({
+      email: email, password: String(currentPassword || '')
+    });
+    if (verified.error) throw new Error('현재 비밀번호가 맞지 않아요.');
+    var updated = await state.client.auth.updateUser({ password: String(newPassword) });
+    if (updated.error) throw new Error(authErrorMessage(updated.error));
+    return true;
+  }
+
   async function signOut() {
     if (state.mode === 'cloud' && state.client) {
       await state.client.auth.signOut();
@@ -1449,6 +1473,7 @@
     isGuestbookMissing: isGuestbookMissing,
     signUp: signUp,
     signIn: signIn,
+    changePassword: changePassword,
     signOut: signOut,
     updateProfile: updateProfile,
     listArtworks: listArtworks,
