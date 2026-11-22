@@ -243,11 +243,40 @@
     if (extra.fall) e.style.setProperty('--fall', extra.fall);
     return e;
   }
+  /* 사용 컷은 소품 <g> 안에 그려지는데, SVG 는 DOM 차례대로 그려서 뒤에 있는 소품
+     (예: 소파)이 컷 위를 덮어 캐릭터 머리가 잘렸어요. 컷이 떠 있는 동안만 그 <g>를
+     방의 맨 앞(빛줄기·먼지 바로 아래)으로 옮기고, 끝나면 원래 다음 형제 앞으로
+     되돌립니다. 소품 차례·끌기·고정 표시는 원래대로 남습니다. */
+  function liftProp(g) {
+    if (g.__p3dHome) return;
+    var svg = g.ownerSVGElement;
+    if (!svg || !svg.children) return;
+    var home = { parent: g.parentNode, next: g.nextSibling };
+    var sky = svg.querySelector('.droom__beam, .droom__dust');   // 분위기 레이어는 소품 위에 그대로
+    if (sky && sky.parentNode === home.parent) home.parent.insertBefore(g, sky);
+    else home.parent.appendChild(g);
+    g.__p3dHome = home;
+    settleAnim(g);
+  }
+  function dropProp(g) {
+    var home = g.__p3dHome;
+    if (!home) return;
+    g.__p3dHome = null;
+    if (!g.isConnected || !home.parent || !home.parent.isConnected) return;
+    if (home.next && home.next.parentNode === home.parent) home.parent.insertBefore(g, home.next);
+    else home.parent.appendChild(g);
+    settleAnim(g);
+  }
+  /* 자리를 옮기면 소품에 걸린 등장 효과(droomPop)가 처음부터 다시 돌아 깜빡여요. 방금 끝난 상태로 붙잡아 둡니다. */
+  function settleAnim(g) {
+    try { if (g.getAnimations) g.getAnimations().forEach(function (a) { a.finish(); }); } catch (e) { /* 효과가 없어도 괜찮아요 */ }
+  }
   function endUse() {
     if (!cur) return;
     if (cur.img.parentNode) cur.img.parentNode.removeChild(cur.img);
     if (cur.fx.parentNode) cur.fx.parentNode.removeChild(cur.fx);
     cur.g.classList.remove('p3d-using');           // 빈 소품이 다시 보여요
+    dropProp(cur.g);                                // 소품을 원래 차례로 되돌려요
     cur = null;
     keepLayers(false);                              // 방 캐릭터를 다시 보이게
   }
@@ -282,6 +311,7 @@
     g.insertBefore(img, g.__p3d.img.nextSibling);
     g.insertBefore(fx, img.nextSibling);
     g.classList.add('p3d-using');
+    liftProp(g);                                   // 다른 소품에 가려지지 않게 맨 앞으로
     cur = { g: g, img: img, fx: fx, name: propName, char: charKey };
     return true;
   }
