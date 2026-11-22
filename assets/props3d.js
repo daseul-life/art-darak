@@ -39,7 +39,7 @@
   };
 
   // 사용 컷을 보여 줄 캐릭터 (여기에 없는 캐릭터는 기존 자세가 그대로 나와요)
-  var SCENE_CHARS = { 'seoyun:f': 'seoyun-f' };
+  var SCENE_CHARS = { 'seoyun:f': 'seoyun-f', 'ian:f': 'ian-f', 'ian:m': 'ian-m' };
 
   // 사용 컷 맞춤값  r: 소품 크기 비율, ax: 소품 가로 중심(그림 너비 중 몇 %), ay: 소품 바닥(그림 높이 중 몇 %)
   // ※ 어림값이에요. ?props3d=tune 패널로 맞춰서 숫자를 알려 주세요.
