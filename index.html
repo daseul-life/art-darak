@@ -65,8 +65,10 @@
 
 <main>
 
-  <!-- ===== 공지 띠 (관리자 화면에서 쓴 공지가 여기에 보입니다) ===== -->
-  <div class="notice-band" data-notice-band hidden>
+  <!-- ===== 공지 띠 (관리자 화면에서 쓴 공지가 여기에 보입니다) =====
+       ※ 2026-11-27 사용자 요청으로 화면에서 숨김 처리했습니다. (공지 내용은 DB에 그대로 있음)
+          다시 보이게 하려면 아래 div의 style="display:none" 한 곳만 지우면 됩니다. -->
+  <div class="notice-band" data-notice-band hidden style="display:none">
     <div class="container notice-band__inner">
       <span class="notice-band__label">📌 공지</span>
       <span class="notice-band__title" data-notice-title></span>
