@@ -701,7 +701,159 @@
     },
     "완성": { en: "Finished", ja: "完成", zh: "完成" },
     "과정 공개": { en: "In Progress", ja: "制作中", zh: "过程公开" },
-    "첫 도전": { en: "First Try", ja: "初挑戦", zh: "首次尝试" }
+    "첫 도전": { en: "First Try", ja: "初挑戦", zh: "首次尝试" },
+    "완성된 작품도, 아직 만들어지는 중인 작품도 같은 벽에 걸립니다. 마음에 드는 분야를 골라 천천히 둘러보세요.": {
+      en: "Finished works and works in progress hang on the same wall. Pick a field you like and take your time.",
+      ja: "完成した作品も、まだ作りかけの作品も同じ壁に掛かります。気になる分野を選んでゆっくり見てまわってください。",
+      zh: "完成的作品和还在创作中的作品都挂在同一面墙上。挑一个喜欢的领域慢慢看看吧。"
+    },
+    "작품 검색": { en: "Search works", ja: "作品を検索", zh: "搜索作品" },
+    "정렬": { en: "Sort", ja: "並び替え", zh: "排序" },
+    "마음 많은 순": { en: "Most Hearts", ja: "ハートが多い順", zh: "心意最多" },
+    "감상 많은 순": { en: "Most Comments", ja: "コメントが多い順", zh: "评论最多" },
+    "가나다순": { en: "A to Z", ja: "あいうえお順", zh: "按笔名排序" },
+    "점의 작품": { en: " works", ja: "点の作品", zh: "件作品" },
+    "카드를 누르면 작품 소개와 감상을 볼 수 있어요.": {
+      en: "Select a card to read about the work and its comments.",
+      ja: "カードを押すと作品紹介とコメントが見られます。",
+      zh: "点击卡片即可查看作品介绍和评论。"
+    },
+    "조건에 맞는 작품이 아직 없어요.": {
+      en: "No works match these filters yet.",
+      ja: "条件に合う作品はまだありません。",
+      zh: "还没有符合条件的作品。"
+    },
+    "다른 분야를 골라 보거나 검색어를 짧게 바꿔 보세요.": {
+      en: "Try another field or a shorter search term.",
+      ja: "別の分野を選ぶか、検索語を短くしてみてください。",
+      zh: "可以换个领域，或把搜索词改短一些。"
+    },
+    "필터 초기화": { en: "Reset filters", ja: "フィルターをリセット", zh: "重置筛选" },
+    "첫 작품 환영": { en: "Your first work is welcome", ja: "最初の作品を歓迎します", zh: "欢迎第一件作品" },
+    "이 벽에 당신의 작품도 걸어 보세요": {
+      en: "Hang your own work on this wall",
+      ja: "この壁にあなたの作品も掛けてみませんか",
+      zh: "把这面墙也挂上你的作品吧"
+    },
+    "완성되지 않아도 괜찮아요. 과정을 함께 보여 주는 것만으로도 이곳에서는 충분한 작품이 됩니다.": {
+      en: "It doesn't have to be finished. Here, sharing the process is a work in itself.",
+      ja: "完成していなくても大丈夫。過程を見せるだけでも、ここでは十分な作品になります。",
+      zh: "没完成也没关系。在这里，展示过程本身就是一件作品。"
+    },
+    "다락방에 작품 걸기": { en: "Hang a Work in Your Attic", ja: "屋根裏に作品を掛ける", zh: "在阁楼挂上作品" },
+    "완성된 작품이 아니어도 괜찮아요. 지금 어느 단계인지 함께 적어 주시면, 그 과정도 하나의 작품이 됩니다.": {
+      en: "It doesn't have to be finished. Note the stage it's at, and the process becomes part of the work.",
+      ja: "完成した作品でなくても大丈夫です。今どの段階かを一緒に書いていただければ、その過程も一つの作品になります。",
+      zh: "不是完成的作品也没关系。写下现在到哪一步，这个过程也会成为作品的一部分。"
+    },
+    "필명으로 시작하면 작품을 걸 수 있어요": {
+      en: "Start with a pen name to hang your work",
+      ja: "ペンネームで始めると作品を掛けられます",
+      zh: "用笔名开始就能挂上作品"
+    },
+    "이메일 없이 필명과 비밀번호만 정하면 됩니다. 실력이나 경력은 묻지 않아요.": {
+      en: "Just a pen name and password, no email. No skill or career questions.",
+      ja: "メールなしで、ペンネームとパスワードだけ決めれば大丈夫です。実力や経歴は問いません。",
+      zh: "不用邮箱，只定笔名和密码就好。不问实力和经历。"
+    },
+    "님으로 겁니다": { en: " is hanging this", ja: "さんとして掛けます", zh: "的身份挂上" },
+    "문학 작품으로 걸립니다.": {
+      en: "It will be posted under Literature.",
+      ja: "文学作品として掛かります。",
+      zh: "将以文学作品挂上。"
+    },
+    "지금 어느 단계인가요?": { en: "What stage is it at?", ja: "今どの段階ですか？", zh: "现在到哪一步了？" },
+    "한 번 마무리한 작품이에요": { en: "A work you have finished once", ja: "一度仕上げた作品です", zh: "已经完成过一次的作品" },
+    "만드는 중인 모습을 함께 보여 줘요": {
+      en: "Show the work as it is being made",
+      ja: "作っている途中の様子も一緒に見せましょう",
+      zh: "把制作中的样子也一起展示出来"
+    },
+    "이 분야에 처음 도전한 작품이에요": {
+      en: "Your first try in this field",
+      ja: "この分野に初めて挑戦した作品です",
+      zh: "在这个领域的首次尝试"
+    },
+    "(선택)": { en: "(optional)", ja: "（任意）", zh: "（可选）" },
+    "사진 고르기": { en: "Choose a Photo", ja: "写真を選ぶ", zh: "选择照片" },
+    "휴대폰에서 고른 사진은 최대 1200px로 자동으로 줄여 올려요.": {
+      en: "Photos chosen on your phone are resized to 1200px before upload.",
+      ja: "スマホで選んだ写真は最大1200pxに自動で縮小してアップロードします。",
+      zh: "手机选的照片会自动缩小到最大 1200px 再上传。"
+    },
+    "빼기": { en: "Remove", ja: "外す", zh: "移除" },
+    "작품 링크": { en: "Work Link", ja: "作品リンク", zh: "作品链接" },
+    "파일을 올리는 대신 링크를 쓰면 저장 공간을 아낄 수 있어요.": {
+      en: "Using a link instead of a file upload saves storage.",
+      ja: "ファイルを上げる代わりにリンクを使うと、保存容量を節約できます。",
+      zh: "用链接代替上传文件，可以节省存储空间。"
+    },
+    "올린 작품은 갤러리와 내 다락방에 바로 걸립니다.": {
+      en: "Your work appears in the gallery and your attic right away.",
+      ja: "上げた作品はギャラリーとわたしの屋根裏にすぐ掛かります。",
+      zh: "上传的作品会马上出现在画廊和你的阁楼里。"
+    },
+    "다락방에 걸기": { en: "Hang It in the Attic", ja: "屋根裏に掛ける", zh: "挂到阁楼" },
+    "완성작 사이에 남는 생각을 짧게 적어 두는 곳이에요. 오늘 손이 머문 자리, 막힌 곳, 내일 해 볼 일을 몇 줄로 남겨 보세요.": {
+      en: "A place for the thoughts between finished works. Leave a few lines about where your hands paused today, what felt stuck, and what you will try tomorrow.",
+      ja: "完成作の間にはさまる考えを短く書き留める場所です。今日手が止まったところ、行き詰まったところ、明日やってみたいことを数行で残してみましょう。",
+      zh: "这里写的是作品之间留下的想法。把今天手停下的地方、卡住的地方、明天想做的事，用几行记下来吧。"
+    },
+    "창작 일지를 준비하고 있어요. 조금 뒤에 다시 열어 주세요.": {
+      en: "The Creative Journal is getting ready. Please check back soon.",
+      ja: "創作日誌を準備しています。しばらくしてからもう一度開いてください。",
+      zh: "创作日志正在准备中，请稍后再来。"
+    },
+    "필명으로 시작하면 일지를 남길 수 있어요": {
+      en: "Start with a pen name to keep a journal",
+      ja: "ペンネームで始めると日誌を残せます",
+      zh: "用笔名开始就能写日志"
+    },
+    "이메일 없이 필명과 비밀번호만 정하면 됩니다. 읽는 것은 가입하지 않아도 언제든 괜찮아요.": {
+      en: "Just a pen name and password, no email. You can read without joining.",
+      ja: "メールなしで、ペンネームとパスワードだけ決めれば大丈夫です。読むだけなら入居しなくてもいつでも構いません。",
+      zh: "不用邮箱，只定笔名和密码就好。只是阅读的话，不入驻也随时可以。"
+    },
+    "님의 오늘": { en: "'s Today", ja: "さんの今日", zh: "的今天" },
+    "오늘의 기록": { en: "Today's Entry", ja: "今日の記録", zh: "今天的记录" },
+    "공개 범위": { en: "Visibility", ja: "公開範囲", zh: "公开范围" },
+    "다른 창작자도 읽고 응원할 수 있어요": {
+      en: "Other creators can read and cheer you on",
+      ja: "ほかのクリエイターも読んで応援できます",
+      zh: "其他创作者也能读到并为你加油"
+    },
+    "나만 보기": { en: "Only Me", ja: "自分のみ", zh: "仅自己可见" },
+    "내 다락방 일지에만 남아요": {
+      en: "Stays only in your attic journal",
+      ja: "わたしの屋根裏の日誌にだけ残ります",
+      zh: "只留在我的阁楼日志里"
+    },
+    "짧아도 괜찮아요. 한 줄이면 충분합니다.": {
+      en: "Short is fine. One line is enough.",
+      ja: "短くても大丈夫。一行で十分です。",
+      zh: "短一点也没关系。一行就够了。"
+    },
+    "일지 남기기": { en: "Write an Entry", ja: "日誌を残す", zh: "写日志" },
+    "다른 다락방의 오늘": { en: "Today in Other Rooms", ja: "ほかの屋根裏の今日", zh: "其他阁楼的今天" },
+    "편의 일지": { en: "'s Journal", ja: "さんの日誌", zh: "的日志" },
+    "아직 남겨진 일지가 없어요.": { en: "No journal entries yet.", ja: "まだ残された日誌はありません。", zh: "还没有留下的日志。" },
+    "첫 일지의 주인이 되어 오늘을 남겨 보세요.": {
+      en: "Be the first to leave today behind.",
+      ja: "最初の日誌の持ち主になって、今日を残してみましょう。",
+      zh: "来成为第一篇日志的主人，把今天留下来吧。"
+    },
+    "함께 만드는 자리": { en: "Making It Together", ja: "一緒に作る場", zh: "一起创作的位子" },
+    "같이 만들 사람을 찾고 있나요?": {
+      en: "Looking for someone to create with?",
+      ja: "一緒に作る人を探していますか？",
+      zh: "在找一起创作的人吗？"
+    },
+    "미완성 작품에 피드백을 청하거나, 함께 작업할 창작자를 모집할 수 있어요.": {
+      en: "Ask for feedback on a work in progress, or look for a creative partner.",
+      ja: "未完成の作品にフィードバックを求めたり、一緒に作るクリエイターを募集できます。",
+      zh: "可以为未完成的作品征集反馈，也可以招募一起创作的伙伴。"
+    },
+    "공동 작업실 보기": { en: "View Collaboration Studio", ja: "共同作業室を見る", zh: "查看共同工作室" }
   };
   Object.keys(EXTRA).forEach((key) => {
     DICT[key] = EXTRA[key].en;
@@ -741,6 +893,7 @@
 
   const originalText = new WeakMap();
   const originalAttributes = new WeakMap();
+  const optionSources = new WeakMap();
   const documentTitleSource = document.title || "";
   const KEYS_BY_LENGTH = Object.keys(DICT).sort((a, b) => b.length - a.length);
   let currentLang = readLanguage();
@@ -862,11 +1015,24 @@
     if (!element || element.nodeType !== Node.ELEMENT_NODE) return;
     if (isUserContent(element)) return;
     processAttributes(element);
-    if (element.matches("input,textarea,select,option,[contenteditable='true'],[contenteditable='']")) return;
+    if (element.matches("select")) {
+      for (const option of element.options) processOption(option);
+      return;
+    }
+    if (element.matches("input,textarea,option,[contenteditable='true'],[contenteditable='']")) return;
     for (const child of element.childNodes) {
       if (child.nodeType === Node.TEXT_NODE) processTextNode(child);
       else if (child.nodeType === Node.ELEMENT_NODE) processElement(child);
     }
+  }
+
+  function processOption(option) {
+    if (!option || option.nodeType !== Node.ELEMENT_NODE) return;
+    if (!option.hasAttribute("value")) return;
+    if (!optionSources.has(option)) optionSources.set(option, option.textContent);
+    const source = optionSources.get(option);
+    const next = currentLang === "ko" ? source : translateString(source, currentLang);
+    if (option.textContent !== next) option.textContent = next;
   }
 
   function processDocumentTitle() {
@@ -874,7 +1040,19 @@
     if (!title) return;
     // textContent를 넣을 때마다 텍스트 노드가 새로 생기므로 제목 원문은 한 번만 붙잡아 둡니다.
     const source = documentTitleSource || title.textContent;
-    title.textContent = currentLang === "ko" ? source : translateString(source, currentLang);
+    title.textContent = translateTitle(source);
+  }
+
+  function translateTitle(source) {
+    if (currentLang === "ko" || !source) return source;
+    // "갤러리 · 아트다락방"처럼 페이지 이름과 브랜드가 붙은 제목을 나누어 옮깁니다.
+    return source
+      .split(" · ")
+      .map((part) => {
+        if (part.trim() === "아트다락방") return part.replace("아트다락방", "ART DARAK");
+        return translateString(part, currentLang);
+      })
+      .join(" · ");
   }
 
   const PICKER_STYLE = `
