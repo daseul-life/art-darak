@@ -853,7 +853,13 @@
       ja: "未完成の作品にフィードバックを求めたり、一緒に作るクリエイターを募集できます。",
       zh: "可以为未完成的作品征集反馈，也可以招募一起创作的伙伴。"
     },
-    "공동 작업실 보기": { en: "View Collaboration Studio", ja: "共同作業室を見る", zh: "查看共同工作室" }
+    "공동 작업실 보기": { en: "View Collaboration Studio", ja: "共同作業室を見る", zh: "查看共同工作室" },
+    "분야 필터": { en: "Category filter", ja: "分野フィルター", zh: "领域筛选" },
+    "작품명이나 필명으로 찾아보세요": {
+      en: "Search by work title or pen name",
+      ja: "作品名やペンネームで探す",
+      zh: "按作品名或笔名查找"
+    }
   };
   Object.keys(EXTRA).forEach((key) => {
     DICT[key] = EXTRA[key].en;
