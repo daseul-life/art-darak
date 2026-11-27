@@ -960,12 +960,13 @@
     for (const key of KEYS_BY_LENGTH) {
       if (result.indexOf(key) === -1) continue;
       // 짧은 낱말(분야·필명 등)이 긴 한글 문장 속에서 치환되면 "여섯 Category가"처럼
-      // 언어가 섞입니다. 짧은 키는 문장 전체가 그 낱말(숫자·기호 포함)일 때만,
-      // 여러 문장을 덮는 긴 키는 그대로 치환합니다.
+      // 언어가 섞입니다. 짧은 키는 문장 전체가 그 낱말(숫자·기호 포함)일 때만 치환합니다.
       if (key.length < 8 && /[\uAC00-\uD7A3]/.test(result.split(key).join(""))) continue;
       const replacement = dict[key] || DICT[key] || key;
       result = result.split(key).join(replacement);
     }
+    // 한 문장 안에서 일부만 번역되어 두 언어가 섞이는 경우는 원문 그대로 둡니다.
+    if (result !== value && /[\uAC00-\uD7A3]/.test(result)) return value;
     if (target === "en") result = polishEnglish(result);
     if (target === "ja" || target === "zh") result = polishCjk(result);
     return result;
