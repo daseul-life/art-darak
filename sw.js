@@ -5,7 +5,7 @@
      인터넷이 없을 때만 저장해 둔 화면을 보여 줍니다.
    · https 또는 localhost 에서만 동작합니다 (file:// 에서는 꺼져 있어요).
    ============================================================ */
-const CACHE = 'artdarak-v13';
+const CACHE = 'artdarak-v14';
 const CORE = [
   './',
   './index.html',
@@ -17,6 +17,7 @@ const CORE = [
   './cowork.html',
   './assets/styles.css',
   './assets/app.js',
+  './assets/i18n.js',
   './assets/store.js',
   './assets/seed.js',
   './assets/stages.js',
