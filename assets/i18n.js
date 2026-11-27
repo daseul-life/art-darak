@@ -645,6 +645,58 @@
     "작품으로 이어지는 작은 다락방": "作品相连的小阁楼",
   };
 
+  /* 첫 화면에 바로 보이는 문구 보충 (기존 키는 그대로 두고 여기서 더합니다) */
+  const EXTRA = {
+    "전시": { en: "Display", ja: "展示", zh: "展示" },
+    "내 작업을 걸어 두는 작은 벽. 완성작도, 아직인 것도 그대로 걸 수 있어요.": {
+      en: "A small wall for your work. Hang finished pieces and works in progress alike.",
+      ja: "自分の作品を掛けておく小さな壁。完成作も、途中のものもそのまま掛けられます。",
+      zh: "挂着自己作品的小墙。完成的作品、还没完成的作品都能挂上来。"
+    },
+    "발견": { en: "Discover", ja: "発見", zh: "发现" },
+    "아직 몰랐던 취향을 만나는 일. 다른 분야의 작업에서 영감을 얻어요.": {
+      en: "Meet a taste you didn't know you had. Find inspiration in other fields.",
+      ja: "まだ知らなかった好みに出会うこと。ほかの分野の作品から刺激をもらえます。",
+      zh: "遇见自己还不知道的喜好。从其他领域的作品里获得灵感。"
+    },
+    "교류": { en: "Connect", ja: "交流", zh: "交流" },
+    "필명으로 나누는 짧은 대화. 실력보다 마음이 먼저 오가는 자리예요.": {
+      en: "Short conversations under pen names. Heart before skill.",
+      ja: "ペンネームで交わす短い会話。実力より気持ちが先に行き交う場所です。",
+      zh: "用笔名进行的简短交流。这里心比技巧先到。"
+    },
+    "서로의 다락방을 오가며 함께 만드는 것. 글과 그림이 만나 한 작품이 돼요.": {
+      en: "Visiting each other's rooms and making things together. Words and images meet and become one work.",
+      ja: "お互いの屋根裏を行き来して一緒に作ること。文章と絵が出会って一つの作品になります。",
+      zh: "在彼此的阁楼间来回，一起创作。文字和画面相遇，成为一件作品。"
+    },
+    "입주 안내": { en: "How to Join", ja: "入居案内", zh: "入驻指南" },
+    "당신의 다락방 문을 열어 보세요": {
+      en: "Open the door to your creative room",
+      ja: "あなたの屋根裏の扉を開けてみましょう",
+      zh: "打开你的阁楼之门吧"
+    },
+    "필명 하나만 정하면 바로 시작할 수 있어요. 실력이나 경력을 묻지 않고, 초기에는 모든 기능을 무료로 열어 둡니다.": {
+      en: "All it takes is a pen name. No skill or career questions, and every feature is free for now.",
+      ja: "ペンネームを決めるだけですぐ始められます。実力や経歴は問わず、最初のうちはすべての機能を無料で開放しています。",
+      zh: "只要起一个笔名就能马上开始。不问实力和经历，初期所有功能都免费开放。"
+    },
+    "휴대폰 크롬에서 오른쪽 위 ⋮ → “홈 화면에 추가”를 누르면 앱처럼 열려요.": {
+      en: "On Chrome for mobile, tap ⋮ at the top right → “Add to Home screen” to open it like an app.",
+      ja: "スマホのChromeで右上の⋮ →「ホーム画面に追加」を押すと、アプリのように開けます。",
+      zh: "在手机 Chrome 里点右上角的 ⋮ →“添加到主屏幕”，就能像 App 一样打开。"
+    },
+    "마음 남기기": { en: "Leave a heart", ja: "ハートを残す", zh: "留下心意" },
+    "완성": { en: "Finished", ja: "完成", zh: "完成" },
+    "과정 공개": { en: "In Progress", ja: "制作中", zh: "过程公开" },
+    "첫 도전": { en: "First Try", ja: "初挑戦", zh: "首次尝试" }
+  };
+  Object.keys(EXTRA).forEach((key) => {
+    DICT[key] = EXTRA[key].en;
+    DICT_JA[key] = EXTRA[key].ja;
+    DICT_ZH[key] = EXTRA[key].zh;
+  });
+
   const STORAGE_KEY = "artdarak_lang";
   const DEFAULT_LANG = "ko";
   const LANGS = ["ko", "en", "ja", "zh"];
@@ -710,6 +762,13 @@
     return false;
   }
 
+  function polishEnglish(text) {
+    return text
+      .replace(/\b1 works\b/g, "1 work")
+      .replace(/\b1 people\b/g, "1 person")
+      .replace(/\b1 posts\b/g, "1 post");
+  }
+
   function translateString(value, lang) {
     if (!value || typeof value !== "string") return value;
     const target = lang || currentLang;
@@ -730,6 +789,7 @@
       const replacement = dict[key] || DICT[key] || key;
       result = result.split(key).join(replacement);
     }
+    if (target === "en") result = polishEnglish(result);
     return result;
   }
 
