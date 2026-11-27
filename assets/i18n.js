@@ -835,7 +835,7 @@
     },
     "일지 남기기": { en: "Write an Entry", ja: "日誌を残す", zh: "写日志" },
     "다른 다락방의 오늘": { en: "Today in Other Rooms", ja: "ほかの屋根裏の今日", zh: "其他阁楼的今天" },
-    "편의 일지": { en: "'s Journal", ja: "さんの日誌", zh: "的日志" },
+    "편의 일지": { en: " journal entries", ja: "件の日誌", zh: "篇日志" },
     "아직 남겨진 일지가 없어요.": { en: "No journal entries yet.", ja: "まだ残された日誌はありません。", zh: "还没有留下的日志。" },
     "첫 일지의 주인이 되어 오늘을 남겨 보세요.": {
       en: "Be the first to leave today behind.",
