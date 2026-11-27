@@ -741,6 +741,7 @@
 
   const originalText = new WeakMap();
   const originalAttributes = new WeakMap();
+  const documentTitleSource = document.title || "";
   const KEYS_BY_LENGTH = Object.keys(DICT).sort((a, b) => b.length - a.length);
   let currentLang = readLanguage();
   let observer = null;
@@ -865,12 +866,9 @@
   function processDocumentTitle() {
     const title = document.querySelector("head > title");
     if (!title) return;
-    if (!originalText.has(title.firstChild) && title.firstChild) {
-      originalText.set(title.firstChild, title.textContent);
-    }
-    const source = title.firstChild ? originalText.get(title.firstChild) : title.textContent;
-    if (currentLang === "ko") title.textContent = source;
-    else title.textContent = translateString(source, currentLang);
+    // textContent를 넣을 때마다 텍스트 노드가 새로 생기므로 제목 원문은 한 번만 붙잡아 둡니다.
+    const source = documentTitleSource || title.textContent;
+    title.textContent = currentLang === "ko" ? source : translateString(source, currentLang);
   }
 
   const PICKER_STYLE = `
