@@ -782,6 +782,11 @@
       .replace(/\b1 posts\b/g, "1 post");
   }
 
+  function polishCjk(text) {
+    // 일본어·중국어는 글자 사이에 공백을 쓰지 않으므로, 원문 줄바꿈에서 생긴 공백을 정리합니다.
+    return text.replace(/([\u3000-\u30FF\u3400-\u4DBF\u4E00-\u9FFF\uFF00-\uFFEF]) ([\u3000-\u30FF\u3400-\u4DBF\u4E00-\u9FFF\uFF00-\uFFEF])/g, "$1$2");
+  }
+
   function translateString(value, lang) {
     if (!value || typeof value !== "string") return value;
     const target = lang || currentLang;
@@ -803,6 +808,7 @@
       result = result.split(key).join(replacement);
     }
     if (target === "en") result = polishEnglish(result);
+    if (target === "ja" || target === "zh") result = polishCjk(result);
     return result;
   }
 
