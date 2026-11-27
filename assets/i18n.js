@@ -687,6 +687,18 @@
       zh: "在手机 Chrome 里点右上角的 ⋮ →“添加到主屏幕”，就能像 App 一样打开。"
     },
     "마음 남기기": { en: "Leave a heart", ja: "ハートを残す", zh: "留下心意" },
+    "필명으로 시작": { en: "Start with a Pen Name", ja: "ペンネームで始める", zh: "用笔名开始" },
+    "작품 등록하기": { en: "Submit a Work", ja: "作品を登録する", zh: "登记作品" },
+    "책 · 이젤 · 기타 · 카메라 · 흙 · 색 — 여섯 분야가 한 방에": {
+      en: "Books · easel · guitar · camera · clay · color — six fields in one room",
+      ja: "本 · イーゼル · ギター · カメラ · 土 · 色 — 六つの分野が一つの部屋に",
+      zh: "书 · 画架 · 吉他 · 相机 · 泥土 · 颜色 — 六个领域在同一间房里"
+    },
+    "여섯 분야가 한 방에 모인 다락방 작업실. 책과 펜, 사진기, 도자기가 놓인 나무 선반, 기타와 타블렛, 이젤이 함께 있습니다.": {
+      en: "An attic studio where six fields meet. A wooden shelf holds books, pens, a camera and ceramics, with a guitar, a drawing tablet and an easel nearby.",
+      ja: "六つの分野が一つの部屋に集まった屋根裏の作業室。本とペン、カメラ、陶器が置かれた木の棚、ギターとタブレット、イーゼルがそろっています。",
+      zh: "六个领域汇聚一室的阁楼工作室。木架上放着书、笔、相机和陶器，还有吉他、数位板和画架。"
+    },
     "완성": { en: "Finished", ja: "完成", zh: "完成" },
     "과정 공개": { en: "In Progress", ja: "制作中", zh: "过程公开" },
     "첫 도전": { en: "First Try", ja: "初挑戦", zh: "首次尝试" }
@@ -801,6 +813,18 @@
     }
     if (!map.has(name)) map.set(name, element.getAttribute(name));
     return map.get(name);
+  }
+
+  function refreshAttributeSource(element, name) {
+    if (!element || element.nodeType !== Node.ELEMENT_NODE) return;
+    const map = originalAttributes.get(element);
+    if (!map || !map.has(name)) return;
+    const previous = map.get(name);
+    const current = element.getAttribute(name);
+    if (current == null) return;
+    const shown = currentLang === "ko" ? previous : translateString(previous, currentLang);
+    // app.js가 나중에 다른 문구를 넣은 경우 그 값을 새로운 원문으로 삼습니다.
+    if (current !== previous && current !== shown) map.set(name, current);
   }
 
   function processTextNode(node) {
@@ -1030,6 +1054,11 @@
           processTextNode(record.target);
           continue;
         }
+        if (record.type === "attributes") {
+          refreshAttributeSource(record.target, record.attributeName);
+          processAttributes(record.target);
+          continue;
+        }
         for (const node of record.addedNodes) {
           if (node.nodeType === Node.TEXT_NODE) processTextNode(node);
           else if (node.nodeType === Node.ELEMENT_NODE) processElement(node);
@@ -1041,7 +1070,9 @@
     observer.observe(document.body, {
       childList: true,
       subtree: true,
-      characterData: true
+      characterData: true,
+      attributes: true,
+      attributeFilter: ["placeholder", "aria-label", "title", "alt"]
     });
   }
 
