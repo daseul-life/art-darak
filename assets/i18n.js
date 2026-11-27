@@ -1100,11 +1100,13 @@
     }
     .i18n-menu__item[aria-checked="true"] .i18n-menu__code { color: #BE7089; }
     @media (max-width: 620px) {
-      .i18n-toggle { min-width: 44px; height: 31px; padding: 0 6px; font-size: 10.5px; gap: 3px; }
-      .i18n-menu { min-width: 124px; }
+      .i18n-toggle { min-width: 40px; height: 30px; padding: 0 5px; font-size: 10px; gap: 2px; }
+      .i18n-toggle__caret { width: 6px; height: 6px; }
+      .i18n-menu { min-width: 118px; }
     }
     @media (max-width: 380px) {
-      .i18n-toggle { min-width: 40px; height: 30px; padding: 0 5px; font-size: 10px; }
+      .i18n-toggle { min-width: 34px; height: 28px; padding: 0 3px; font-size: 9.5px; }
+      .i18n-toggle__caret { display: none; }
     }
   `;
 
